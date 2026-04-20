@@ -13,7 +13,7 @@ export class CampaignController {
 
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const campaign = await CampaignService.getById(req.params.id);
+      const campaign = await CampaignService.getById(req.params.id as string);
       if (!campaign) {
         return res.status(404).json({ success: false, error: 'Campaign not found', code: 404 });
       }
