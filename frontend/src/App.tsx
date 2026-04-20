@@ -16,7 +16,6 @@ import { useAuthStore } from './store/useAuthStore';
 // Navigation Sidebar
 const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void }) => {
     const location = useLocation();
-    const { user } = useAuthStore();
     
     return (
         <aside className={`fixed left-0 top-0 h-screen w-64 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-300 md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
