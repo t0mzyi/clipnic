@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/Button';
-import { ShieldCheck, User, Mail, CreditCard, ExternalLink, Scissors, Eye, Wallet } from 'lucide-react';
+import { ShieldCheck, User as UserIcon, Mail, CreditCard, ExternalLink, Scissors, Eye, Wallet } from 'lucide-react';
+import { useAuthStore } from '../store/useAuthStore';
 
 export const Profile = () => {
-    // Mock user stats
+    const { user } = useAuthStore();
+    
+    // Mock user stats (to be connected in later modules)
     const stats = {
-        totalClips: '14',
-        totalViews: '2,405,110',
-        currentBalance: '$382.50',
+        totalClips: '0',
+        totalViews: '0',
+        currentBalance: '$0.00',
     };
 
     // Modal state
@@ -34,12 +37,31 @@ export const Profile = () => {
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className="max-w-4xl mx-auto space-y-8 pb-12"
             >
-                <div className="pb-6 border-b border-white/[0.08] relative">
+                <div className="pb-8 border-b border-white/[0.08] relative">
                     <div className="absolute top-1/2 left-0 -translate-y-1/2 w-80 h-32 bg-white/[0.02] blur-[100px] pointer-events-none rounded-full" />
-                    <div className="flex items-end justify-between relative z-10">
-                        <div>
-                            <h1 className="text-4xl font-bold tracking-tight text-white/90">Account Profile</h1>
-                            <p className="text-white/40 text-lg font-light tracking-tight mt-2">Manage identity and payouts.</p>
+                    <div className="flex items-center justify-between relative z-10">
+                        <div className="flex items-center gap-6">
+                            {/* Avatar */}
+                            <div className="w-20 h-20 rounded-3xl overflow-hidden bg-white/[0.03] border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                                {user?.avatarUrl ? (
+                                    <img 
+                                        src={user.avatarUrl} 
+                                        alt={user.name || 'User'} 
+                                        referrerPolicy="no-referrer"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-white/10 via-white/5 to-transparent flex items-center justify-center">
+                                        <span className="text-3xl font-bold tracking-tighter text-white/40">
+                                            {user?.name?.[0] || user?.email?.[0].toUpperCase()}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                            <div>
+                                <h1 className="text-4xl font-bold tracking-tight text-white/90">Account Profile</h1>
+                                <p className="text-white/40 text-lg font-light tracking-tight mt-1">Manage identity and payouts.</p>
+                            </div>
                         </div>
                         <Button variant="outline" className="rounded-2xl border-white/10 hover:bg-white/5 text-white/70 h-12 px-6 text-sm font-bold uppercase tracking-wider">
                             Edit Profile
@@ -85,24 +107,24 @@ export const Profile = () => {
                     {/* Left Col: Account Form */}
                     <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] space-y-6">
                         <h3 className="text-lg font-semibold flex items-center gap-2.5">
-                            <User className="w-5 h-5 text-white/40" />
+                            <UserIcon className="w-5 h-5 text-white/40" />
                             Settings
                         </h3>
                         <div className="space-y-5">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-white/30 ml-1">Display Name</label>
-                                <input type="text" className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-5 py-4 text-base text-white focus:outline-none focus:border-white/20 transition-all" defaultValue="John Clipper" />
+                                <input type="text" className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-5 py-4 text-base text-white focus:outline-none focus:border-white/30 transition-all font-medium" defaultValue={user?.name || ''} placeholder="Set your display name" />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-white/30 ml-1">Email</label>
                                 <div className="relative">
-                                    <input type="email" readOnly className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-5 py-4 text-base text-white/40 cursor-not-allowed focus:outline-none" value="john@clipnic.com" />
+                                    <input type="email" readOnly className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-5 py-4 text-base text-white/40 cursor-not-allowed focus:outline-none font-medium" value={user?.email || ''} />
                                     <Mail className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
                                 </div>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-white/30 ml-1">Bio</label>
-                                <textarea className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-5 py-4 text-base text-white focus:outline-none focus:border-white/20 transition-all resize-none h-32" defaultValue="I make minimal tech content and edits." />
+                                <textarea className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-5 py-4 text-base text-white focus:outline-none focus:border-white/20 transition-all resize-none h-32 font-medium" placeholder="Tell us about your content style..." />
                             </div>
                             <Button variant="primary" className="w-full bg-white/10 hover:bg-white/15 border-white/5 text-white/80 rounded-2xl py-4 text-xs font-bold uppercase tracking-wide">
                                 Save Changes

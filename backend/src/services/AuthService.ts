@@ -1,9 +1,29 @@
-import jwt from 'jsonwebtoken';
+import { supabase } from '../config/supabase';
 
 export class AuthService {
-  static async loginMock(email: string, role: string) {
-    const defaultSecret = 'supersecretjwtkey';
-    const token = jwt.sign({ id: 'mock-id-123', role }, process.env.JWT_SECRET || defaultSecret, { expiresIn: '1d' });
-    return { token, user: { id: 'mock-id-123', email, role } };
+  /**
+   * Syncs a Supabase Auth user with our public.users table.
+   * This ensures we have a record to link submissions, campaigns, etc.
+   */
+  static async syncUser(supabaseId: string, email: string, name?: string, avatarUrl?: string, role: string = 'user') {
+    const { data, error } = await supabase
+      .from('users')
+      .upsert({
+        id: supabaseId,
+        email,
+        name,
+        avatar_url: avatarUrl,
+        role,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error syncing user:', error.message);
+      throw error;
+    }
+
+    return data;
   }
 }

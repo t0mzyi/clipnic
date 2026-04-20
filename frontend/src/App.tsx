@@ -11,19 +11,23 @@ import { MySubmissions } from './pages/MySubmissions';
 import { Login } from './pages/Login';
 import { supabase } from './lib/supabase';
 import { useEffect } from 'react';
+import { useAuthStore } from './store/useAuthStore';
 
 // Navigation Sidebar
 const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void }) => {
     const location = useLocation();
+    const { user } = useAuthStore();
     
     return (
         <aside className={`fixed left-0 top-0 h-screen w-64 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-300 md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-            <div className="flex items-center justify-between mb-12">
-                <div className="font-bold tracking-tighter text-2xl">CLIPNIC.</div>
+            <div className="flex items-center justify-between mb-8">
+                <img src="/logo.webp" alt="Clipnic Logo" className="h-10 w-auto object-contain" />
                 <button onClick={closeMenu} className="md:hidden text-white/50 hover:text-white">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 </button>
             </div>
+
+
             
             <div className="mb-4 text-xs font-bold text-white/30 uppercase tracking-widest px-3">Clipper Portal</div>
             <nav className="flex flex-col gap-2 text-sm font-medium mb-10 overflow-y-auto">
@@ -78,22 +82,66 @@ const Layout = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const { login, logout } = useAuthStore();
     const location = useLocation();
 
     useEffect(() => {
+        const syncBackend = async (session: any) => {
+            if (session) {
+                // 1. Instantly update store with metadata from the login session
+                const metadata = session.user.user_metadata;
+                const instantUser = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: metadata?.given_name 
+                        ? `${metadata.given_name} ${metadata.family_name || ''}`.trim()
+                        : (metadata?.full_name || metadata?.name),
+                    avatarUrl: metadata?.avatar_url || metadata?.picture,
+                    role: (metadata?.role as 'admin' | 'user') || 'user'
+                };
+                
+                // Set initial state from session
+                login(instantUser, session.access_token);
+
+                // 2. Sync with backend in the background to ensure DB is up to date
+                try {
+                    const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/sync`, {
+                        headers: {
+                            'Authorization': `Bearer ${session.access_token}`
+                        }
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        // Map snake_case from DB to camelCase for the frontend
+                        const userData = {
+                            ...result.data,
+                            avatarUrl: result.data.avatar_url
+                        };
+                        login(userData, session.access_token);
+                    }
+                } catch (err) {
+                    console.error('Failed to sync with backend:', err);
+                }
+            } else {
+                logout();
+            }
+        };
+
         // Check current session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
+            syncBackend(session);
             setLoading(false);
         });
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
+            syncBackend(session);
         });
 
         return () => subscription.unsubscribe();
-    }, []);
+    }, [login, logout]);
 
     // Loading state for initial session check
     if (loading) {
@@ -130,7 +178,7 @@ const Layout = () => {
             
             {/* Mobile Header */}
             <div className="md:hidden sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-between px-6">
-                <div className="font-bold tracking-tighter text-xl">CLIPNIC.</div>
+                <img src="/logo.webp" alt="Clipnic Logo" className="h-8 w-auto object-contain" />
                 <button onClick={() => setMobileMenuOpen(true)} className="text-white/70 hover:text-white">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
                 </button>

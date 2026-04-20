@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion';
 import { Activity, PlaySquare, CheckCircle, Wallet } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { useAuthStore } from '../store/useAuthStore';
 
 export const ClipperDashboard = () => {
+    const { user } = useAuthStore();
     const stats = {
         campaignsParticipated: '2',
         totalSubmissions: '14',
@@ -30,10 +32,41 @@ export const ClipperDashboard = () => {
             className="space-y-8" 
         >
             {/* Header */}
-            <div className="pb-6 border-b border-white/[0.08] relative">
+            <div className="pb-8 border-b border-white/[0.08] relative group">
                 <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-64 h-32 bg-white/[0.02] blur-[80px] pointer-events-none rounded-full" />
-                <h1 className="text-4xl font-bold tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/50 mb-2 relative z-10">Welcome Back</h1>
-                <p className="text-white/40 text-lg tracking-tight relative z-10 font-light">Your activity and earnings overview.</p>
+                
+                <div className="flex flex-col md:flex-row md:items-center gap-6 relative z-10">
+                    {/* Profile Picture / Avatar */}
+                    <div className="relative group/avatar">
+                        <div className="w-20 h-20 rounded-3xl overflow-hidden bg-white/[0.03] border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-500 group-hover/avatar:border-white/20 group-hover/avatar:scale-[1.02]">
+                            {user?.avatarUrl ? (
+                                <img 
+                                    src={user.avatarUrl} 
+                                    alt={user.name || 'User'} 
+                                    referrerPolicy="no-referrer"
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover/avatar:scale-110"
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-white/10 via-white/5 to-transparent flex items-center justify-center">
+                                    <span className="text-3xl font-bold tracking-tighter text-white/40 group-hover/avatar:text-white/60 transition-colors">
+                                        {user?.name?.[0] || user?.email?.[0].toUpperCase()}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                        {/* Status detail */}
+                        <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-black border-2 border-white/5 flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                        <h1 className="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/50">
+                            Welcome Back{user?.name ? `, ${user.name}` : ''}
+                        </h1>
+                        <p className="text-white/40 text-lg tracking-tight font-light truncate max-w-md">Your activity and earnings overview for today.</p>
+                    </div>
+                </div>
             </div>
 
             {/* Bento Grid layout */}

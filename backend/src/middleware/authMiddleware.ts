@@ -4,6 +4,8 @@ export interface AuthRequest extends Request {
   user?: {
     id: string;
     email?: string;
+    name?: string;
+    avatarUrl?: string;
     role: string;
   };
 }
@@ -24,10 +26,13 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     }
 
     // Map Supabase user to our request object
-    // Note: We can expand this to fetch the role from our public.users table if needed
     req.user = {
       id: user.id,
       email: user.email,
+      name: user.user_metadata?.given_name 
+            ? `${user.user_metadata.given_name} ${user.user_metadata.family_name || ''}`.trim()
+            : (user.user_metadata?.full_name || user.user_metadata?.name),
+      avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture,
       role: (user.user_metadata?.role as string) || 'user'
     };
     

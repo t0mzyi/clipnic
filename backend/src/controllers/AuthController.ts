@@ -2,11 +2,15 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
 
 export class AuthController {
-  static async login(req: Request, res: Response, next: NextFunction) {
+  /**
+   * Syncs the current session's user with the database.
+   * Expects the user object to be already attached by the authenticate middleware.
+   */
+  static async sync(req: any, res: Response, next: NextFunction) {
     try {
-      const { email, role } = req.body;
-      const result = await AuthService.loginMock(email, role);
-      res.json({ success: true, data: result });
+      const { id, email, name, avatarUrl, role } = req.user;
+      const user = await AuthService.syncUser(id, email, name, avatarUrl, role);
+      res.json({ success: true, data: user });
     } catch (error) {
       next(error);
     }

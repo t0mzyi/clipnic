@@ -5,6 +5,7 @@ interface User {
   email: string;
   role: 'admin' | 'user';
   name?: string;
+  avatarUrl?: string;
 }
 
 interface AuthState {
@@ -16,9 +17,9 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  user: { id: 'mock-id-123', email: 'clipper@clipnic.com', role: 'user', name: 'John Doe' }, // Mocking user for now
-  token: 'mock-jwt-token',
-  isAuthenticated: true,
+  user: null,
+  token: null,
+  isAuthenticated: false,
   login: (user, token) => set({ user, token, isAuthenticated: true }),
   logout: () => set({ user: null, token: null, isAuthenticated: false }),
 }));
