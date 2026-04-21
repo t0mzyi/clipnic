@@ -57,15 +57,20 @@ export class VerificationController {
       if (!tokenRes.ok) {
         let errStr = 'token_exchange_failed';
         try {
-            const errJson = await tokenRes.json();
-            console.error('Discord Token Error:', errJson);
-            if (errJson.error_description) {
-                errStr = encodeURIComponent(errJson.error_description);
-            } else if (errJson.error) {
-                errStr = encodeURIComponent(errJson.error);
+            const errorText = await tokenRes.text();
+            console.error('Discord Token Error Raw:', errorText);
+            try {
+                const errJson = JSON.parse(errorText);
+                if (errJson.error_description) {
+                    errStr = encodeURIComponent(errJson.error_description);
+                } else if (errJson.error) {
+                    errStr = encodeURIComponent(errJson.error);
+                }
+            } catch (jsonErr) {
+                errStr = encodeURIComponent(errorText.slice(0, 100));
             }
         } catch (e) {
-            console.error('Discord Token Error (no json):', await tokenRes.text());
+            console.error('Failed to read Discord error body:', e);
         }
         return res.redirect(`${frontendUrl}/profile?discord_error=${errStr}`);
       }
