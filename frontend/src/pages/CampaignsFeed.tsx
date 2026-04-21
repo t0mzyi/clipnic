@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { ArrowUpRight, DollarSign, Wallet } from 'lucide-react';
+import { ArrowUpRight, DollarSign, Wallet, TrendingUp } from 'lucide-react';
 
 // Mock data
 const mockCampaigns = [
@@ -14,6 +14,7 @@ const mockCampaigns = [
     totalBudget: 18134,
     budgetUsed: 11468.46,
     status: 'Active',
+    accent: 'emerald',
   },
   {
     id: 'c2',
@@ -23,6 +24,7 @@ const mockCampaigns = [
     totalBudget: 5000,
     budgetUsed: 5000,
     status: 'Paused',
+    accent: 'amber',
   },
   {
     id: 'c3',
@@ -32,12 +34,19 @@ const mockCampaigns = [
     totalBudget: 25000,
     budgetUsed: 12000,
     status: 'Active',
+    accent: 'blue',
   }
 ];
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 };
+
+const bannerImages = [
+  'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1612817288484-6f916006741a?q=80&w=800&auto=format&fit=crop',
+];
 
 // Create a motion version of react-router Link
 const MotionLink = motion.create(Link);
@@ -52,108 +61,115 @@ export const CampaignsFeed = () => {
       className="space-y-10 pb-12"
     >
       {/* Featured Banner */}
-      <div className="relative h-[300px] md:h-[450px] rounded-[48px] overflow-hidden border border-white/10 group shadow-2xl">
+      <div className="relative h-[280px] md:h-[400px] rounded-[40px] overflow-hidden border border-white/10 group shadow-2xl">
         <img 
             src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2000&auto=format&fit=crop" 
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
             alt="Featured Campaign" 
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent" />
-        <div className="absolute inset-0 flex flex-col justify-center p-12 md:p-16 space-y-6">
-            <div className="space-y-2">
-                <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.4em] bg-white/5 border border-white/10 px-3 py-1 rounded-full backdrop-blur-sm">Featured Opportunity</span>
-                <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-white max-w-xl">Brand New: Summer Tech Showcase</h2>
-            </div>
-            <p className="text-lg text-white/60 font-light max-w-lg leading-relaxed">Join the world's leading brands in the ultimate clipper challenge. High CPM, fast payouts, and premium assets provided.</p>
-            <div className="flex items-center gap-4">
-                <Button variant="primary" className="rounded-2xl px-8 py-4 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-white/90">
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-black/20" />
+        <div className="absolute inset-0 flex flex-col justify-end p-10 md:p-14 space-y-5">
+            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-[0.3em] bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full w-fit backdrop-blur-sm">Featured Opportunity</span>
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white max-w-xl leading-[1.1]">Summer Tech Showcase</h2>
+            <p className="text-sm text-white/50 font-light max-w-lg leading-relaxed">High CPM, fast payouts, and premium assets provided.</p>
+            <div className="flex items-center gap-4 pt-2">
+                <Button variant="primary" className="rounded-2xl px-6 py-3 bg-white text-black font-bold uppercase tracking-widest text-[10px] hover:bg-white/90">
                     Explore Now
                 </Button>
                 <div className="flex items-center gap-2 text-white/40 font-mono text-xs">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    124 Clippers Active
+                    124 Active
                 </div>
             </div>
         </div>
       </div>
 
-      <div className="pb-6 border-b border-white/[0.08] relative">
-        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-24 bg-white/[0.02] blur-[80px] pointer-events-none rounded-full" />
-        <h1 className="text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/50 relative z-10">All Campaigns</h1>
-        <p className="text-white/40 text-lg font-light tracking-tight mt-1.5 relative z-10">Discover marketing opportunities.</p>
+      {/* Section Header */}
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white/90">All Campaigns</h1>
+          <p className="text-white/30 text-sm font-light tracking-tight mt-1">Browse and join active marketing opportunities.</p>
+        </div>
+        <div className="flex items-center gap-2 text-[10px] font-bold text-white/30 uppercase tracking-widest">
+          <TrendingUp className="w-4 h-4" />
+          {mockCampaigns.length} Available
+        </div>
       </div>
 
-
+      {/* Campaign Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {mockCampaigns.map((campaign) => (
-          <MotionLink
-            to={`/campaigns/${campaign.id}`}
-            key={campaign.id}
-            layoutId={`card-${campaign.id}`}
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className="group relative rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] hover:bg-white/[0.04] hover:border-white/10 transition-all cursor-pointer block overflow-hidden"
-          >
-            {/* Card Banner */}
-            <div className="h-24 w-full relative overflow-hidden">
-                <img 
-                    src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop" 
-                    className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-opacity duration-500" 
-                    alt={campaign.title}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] to-transparent" />
-            </div>
+        {mockCampaigns.map((campaign, index) => {
+          const remaining = campaign.totalBudget - campaign.budgetUsed;
+          const progress = (campaign.budgetUsed / campaign.totalBudget) * 100;
+          const isFull = remaining <= 0;
 
-            <div className="p-6 relative z-10 -mt-6">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.01] to-transparent pointer-events-none" />
-            
-            <div className="flex items-start justify-between mb-5 relative z-10">
-              <Badge status={campaign.status} />
-              <div className="w-10 h-10 rounded-full bg-white/[0.03] border border-white/5 flex items-center justify-center text-white/20 group-hover:text-white/60 transition-all duration-300">
-                <ArrowUpRight className="w-5 h-5" />
+          return (
+            <MotionLink
+              to={`/campaigns/${campaign.id}`}
+              key={campaign.id}
+              layoutId={`card-${campaign.id}`}
+              whileHover={{ y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="group relative rounded-3xl bg-[#0c0c0c] border border-white/[0.06] hover:border-white/15 transition-all cursor-pointer block overflow-hidden shadow-lg hover:shadow-2xl"
+            >
+              {/* Card Banner */}
+              <div className="h-28 w-full relative overflow-hidden">
+                  <img 
+                      src={bannerImages[index % bannerImages.length]} 
+                      className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-70 group-hover:scale-105 transition-all duration-500" 
+                      alt={campaign.title}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c]/60 to-transparent" />
+                  <div className="absolute top-4 left-4">
+                    <Badge status={campaign.status} />
+                  </div>
+                  <div className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/30 group-hover:text-white/80 group-hover:bg-white/10 transition-all duration-300">
+                    <ArrowUpRight className="w-4 h-4" />
+                  </div>
               </div>
-            </div>
-            
-            <div className="mb-6 relative z-10">
-              <p className="text-xs text-white/40 font-semibold uppercase tracking-widest mb-1.5">{campaign.brand}</p>
-              <h3 className="text-xl font-semibold leading-tight tracking-tight text-white/90 group-hover:text-white transition-colors">{campaign.title}</h3>
-            </div>
 
-            <div className="space-y-3 mb-6 relative z-10">
-              <div className="flex justify-between items-center text-sm">
-                <div className="flex items-center gap-2 text-white/40">
-                  <DollarSign className="w-4 h-4" />
-                  <span>CPM</span>
+              <div className="p-5 pt-2 space-y-4">
+                {/* Title */}
+                <div>
+                  <p className="text-[10px] text-white/30 font-semibold uppercase tracking-[0.15em] mb-1">{campaign.brand}</p>
+                  <h3 className="text-lg font-bold leading-tight tracking-tight text-white/90 group-hover:text-white transition-colors">{campaign.title}</h3>
                 </div>
-                <span className="font-mono tabular-metrics font-medium text-white/80">{formatCurrency(campaign.cpmRate)}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <div className="flex items-center gap-2 text-white/40">
-                  <Wallet className="w-4 h-4" />
-                  <span>Budget</span>
-                </div>
-                <span className="font-mono tabular-metrics font-medium text-white/80">{formatCurrency(campaign.totalBudget - campaign.budgetUsed)}</span>
-              </div>
-            </div>
 
-            <div className="relative z-10 mb-6">
-              <div className="w-full bg-white/[0.03] h-1.5 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(campaign.budgetUsed / campaign.totalBudget) * 100}%` }}
-                  transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="bg-white/30 h-full rounded-full"
-                />
+                {/* Key Metrics - Highlighted */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.04]">
+                    <div className="flex items-center gap-1.5 text-white/30 mb-1">
+                      <DollarSign className="w-3 h-3" />
+                      <span className="text-[9px] font-bold uppercase tracking-widest">CPM</span>
+                    </div>
+                    <span className="font-mono text-lg font-bold text-white">{formatCurrency(campaign.cpmRate)}</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.04]">
+                    <div className="flex items-center gap-1.5 text-white/30 mb-1">
+                      <Wallet className="w-3 h-3" />
+                      <span className="text-[9px] font-bold uppercase tracking-widest">Left</span>
+                    </div>
+                    <span className={`font-mono text-lg font-bold ${isFull ? 'text-red-400' : 'text-emerald-400'}`}>{formatCurrency(remaining)}</span>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="space-y-2">
+                  <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                      transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                      className={`h-full rounded-full ${isFull ? 'bg-red-500' : 'bg-emerald-500/70'}`}
+                    />
+                  </div>
+                  <p className="text-[10px] text-white/20 font-mono text-right">{Math.round(progress)}% filled</p>
+                </div>
               </div>
-            </div>
-            
-            <Button variant="secondary" className="w-full relative z-10 bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 text-white/70 py-2 h-auto text-xs font-bold uppercase rounded-xl tracking-wider">
-              Details
-            </Button>
-          </div>
-          </MotionLink>
-        ))}
+            </MotionLink>
+          );
+        })}
       </div>
     </motion.div>
   );

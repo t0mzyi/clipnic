@@ -3,18 +3,19 @@ import { useParams, Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useState } from 'react';
-import { Shield } from 'lucide-react';
+import { Shield, Trophy, Eye, DollarSign, Clock, Target, Upload, ChevronLeft } from 'lucide-react';
 
 export const CampaignDetails = () => {
   const { id } = useParams();
   
-  // Mock data representing exact metrics
   const stats = {
     status: 'Active',
     cpmRate: id === 'c1' ? '$0.40' : '$0.55',
     totalBudget: id === 'c1' ? '$18,134' : '$5,000',
-    budgetUsed: id === 'c1' ? '$11,468.46 (63%)' : '$0.00 (0%)',
-    viewProgress: id === 'c1' ? '28,805,919 / 45,335,000 (64%)' : '0 / 9,000,000 (0%)',
+    budgetUsed: id === 'c1' ? '$11,468.46' : '$0.00',
+    budgetPercent: id === 'c1' ? '63%' : '0%',
+    viewProgress: id === 'c1' ? '28.8M / 45.3M' : '0 / 9M',
+    viewPercent: id === 'c1' ? '64%' : '0%',
     minViewsForPayout: '10,000 views',
     timeLeft: '10 days',
     title: id === 'c1' ? 'Test Verified' : 'Test Not Verified',
@@ -22,10 +23,8 @@ export const CampaignDetails = () => {
   };
 
   const progressPercentage = id === 'c1' ? 64 : 0;
-  
-  // Scenario: c1 is for "Verified", c2 is "Verification Required"
   const requiresVerification = id === 'c2';
-  const isUserVerified = false; // Mock user state
+  const isUserVerified = false;
 
   const [submissionUrl, setSubmissionUrl] = useState('');
   const [platform, setPlatform] = useState('youtube');
@@ -36,110 +35,112 @@ export const CampaignDetails = () => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="max-w-6xl mx-auto space-y-10"
+      className="max-w-6xl mx-auto space-y-8"
     >
-      {/* Banner & Header Section */}
-      <div className="relative h-[400px] md:h-[500px] rounded-[48px] overflow-hidden border border-white/10 group shadow-2xl">
-        {/* Background Image */}
+      {/* Back Nav */}
+      <Link to="/campaigns" className="inline-flex items-center gap-2 text-white/30 hover:text-white/60 transition-colors text-sm group">
+        <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+        Back to Campaigns
+      </Link>
+
+      {/* Banner */}
+      <div className="relative h-[320px] md:h-[420px] rounded-[40px] overflow-hidden border border-white/10 group shadow-2xl">
         <img 
             src={id === 'c1' 
                 ? "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=2000&auto=format&fit=crop" 
                 : "https://images.unsplash.com/photo-1612817288484-6f916006741a?q=80&w=2000&auto=format&fit=crop"} 
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
             alt="Campaign Banner" 
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-black/10" />
         
-        {/* Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-        <div className="absolute inset-0 bg-white/[0.02] backdrop-blur-[2px]" />
-        
-        {/* Content Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-10 md:p-16 flex flex-col md:flex-row md:items-end justify-between gap-8 relative z-10">
-            <div className="space-y-4">
+        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-3">
                 <Badge status={stats.status} />
-                <div>
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-2 text-white drop-shadow-2xl">{stats.title}</h1>
-                    <p className="text-xl md:text-2xl text-white/60 font-light tracking-wide">{stats.brand}</p>
-                </div>
+                <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white drop-shadow-2xl">{stats.title}</h1>
+                <p className="text-lg text-white/50 font-light">{stats.brand}</p>
             </div>
-            <div className="bg-black/40 backdrop-blur-xl rounded-[32px] p-8 border border-white/10 shadow-2xl">
-                <p className="text-[10px] text-white/40 mb-2 uppercase tracking-[0.3em] font-bold">Standard CPM</p>
-                <p className="text-4xl md:text-5xl font-mono tabular-metrics font-bold text-white">{stats.cpmRate}</p>
+            <div className="bg-black/50 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl text-center min-w-[140px]">
+                <p className="text-[9px] text-white/40 mb-1 uppercase tracking-[0.3em] font-bold">CPM Rate</p>
+                <p className="text-4xl font-mono font-bold text-emerald-400">{stats.cpmRate}</p>
             </div>
         </div>
       </div>
 
+      {/* Quick Stats Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
+          <div className="flex items-center gap-2 text-white/30">
+            <DollarSign className="w-4 h-4" />
+            <span className="text-[9px] font-bold uppercase tracking-widest">Total Budget</span>
+          </div>
+          <p className="text-2xl font-mono font-bold text-white">{stats.totalBudget}</p>
+        </div>
+        <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
+          <div className="flex items-center gap-2 text-white/30">
+            <Target className="w-4 h-4" />
+            <span className="text-[9px] font-bold uppercase tracking-widest">Spent</span>
+          </div>
+          <p className="text-2xl font-mono font-bold text-emerald-400">{stats.budgetUsed}</p>
+          <p className="text-[10px] font-mono text-white/20">{stats.budgetPercent} used</p>
+        </div>
+        <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
+          <div className="flex items-center gap-2 text-white/30">
+            <Eye className="w-4 h-4" />
+            <span className="text-[9px] font-bold uppercase tracking-widest">Views</span>
+          </div>
+          <p className="text-2xl font-mono font-bold text-white">{stats.viewProgress.split('/')[0].trim()}</p>
+          <p className="text-[10px] font-mono text-white/20">{stats.viewPercent} of goal</p>
+        </div>
+        <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
+          <div className="flex items-center gap-2 text-amber-500/60">
+            <Clock className="w-4 h-4" />
+            <span className="text-[9px] font-bold uppercase tracking-widest">Deadline</span>
+          </div>
+          <p className="text-2xl font-mono font-bold text-amber-400">{stats.timeLeft}</p>
+          <p className="text-[10px] font-mono text-white/20">remaining</p>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* Left Column: Stats & Progress */}
-        <div className="lg:col-span-2 space-y-10">
-            {/* Main Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-8 rounded-[32px] bg-[#0c0c0c] border border-white/5 shadow-2xl space-y-6">
-                    <div className="flex items-center gap-3 text-white/40 uppercase tracking-widest text-[10px] font-bold">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
-                        Financials
-                    </div>
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-end">
-                            <span className="text-sm text-white/30">Total Budget</span>
-                            <span className="text-2xl font-mono font-bold text-white/90">{stats.totalBudget}</span>
-                        </div>
-                        <div className="w-full h-px bg-white/5" />
-                        <div className="flex justify-between items-end">
-                            <span className="text-sm text-white/30">Budget Used</span>
-                            <span className="text-xl font-mono font-medium text-emerald-500/80">{stats.budgetUsed}</span>
-                        </div>
-                    </div>
-                </div>
+      {/* Progress Bar */}
+      <div className="p-6 rounded-2xl bg-[#0c0c0c] border border-white/[0.06]">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Budget Consumption</span>
+          <span className="text-sm font-mono font-bold text-white/60">{stats.budgetPercent}</span>
+        </div>
+        <div className="w-full bg-white/[0.04] h-3 rounded-full overflow-hidden">
+          <motion.div 
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPercentage}%` }}
+            transition={{ duration: 1.8, ease: "easeOut" }}
+            className="bg-gradient-to-r from-emerald-600 to-emerald-400 h-full rounded-full shadow-[0_0_12px_rgba(16,185,129,0.3)]"
+          />
+        </div>
+      </div>
 
-                <div className="p-8 rounded-[32px] bg-[#0c0c0c] border border-white/5 shadow-2xl space-y-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 text-white/40 uppercase tracking-widest text-[10px] font-bold">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-                            View Goals
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Submissions */}
+        <div className="lg:col-span-2 space-y-8">
+            {/* My Submissions */}
+            <div className="rounded-3xl bg-[#0c0c0c] border border-white/[0.06] overflow-hidden">
+                <div className="p-6 border-b border-white/[0.05] flex items-center justify-between">
+                    <h3 className="text-lg font-bold tracking-tight flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                            <Upload className="w-4 h-4" />
                         </div>
-                        <span className="text-[10px] font-mono text-amber-500/80 font-bold px-2 py-1 bg-amber-500/5 rounded-lg border border-amber-500/10 uppercase tracking-tighter">
-                            {stats.timeLeft} left
-                        </span>
-                    </div>
-                    <div className="space-y-4">
-                        <div className="w-full bg-white/5 h-2.5 rounded-full overflow-hidden">
-                            <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: `${progressPercentage}%` }}
-                                transition={{ duration: 1.5, ease: "easeOut" }}
-                                className="bg-gradient-to-r from-white/40 to-white h-full"
-                            />
-                        </div>
-                        <div className="flex justify-between items-center bg-white/[0.02] p-3 rounded-xl border border-white/[0.03]">
-                            <span className="text-[11px] text-white/40 font-mono italic">Progression</span>
-                            <span className="text-[13px] font-mono font-bold text-white/90">{stats.viewProgress}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* My Submissions - Major Section */}
-            <div className="rounded-[40px] bg-[#0c0c0c] border border-white/5 overflow-hidden shadow-2xl">
-                <div className="p-8 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-white/[0.02] to-transparent">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                        </div>
-                        <h3 className="text-2xl font-bold tracking-tight">Campaign Submissions</h3>
-                    </div>
-                    <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Verified Tracking</span>
+                        My Submissions
+                    </h3>
+                    <span className="text-[9px] font-bold text-emerald-400/60 uppercase tracking-[0.2em] bg-emerald-500/5 px-3 py-1 rounded-full border border-emerald-500/10">Live Tracking</span>
                 </div>
                 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="text-[10px] font-bold text-white/30 uppercase tracking-widest bg-white/[0.01]">
-                                <th className="px-8 py-5">Submissions</th>
-                                <th className="px-8 py-5">Views Meta</th>
-                                <th className="px-8 py-5">Value</th>
-                                <th className="px-8 py-5 text-right">Progress</th>
+                            <tr className="text-[9px] font-bold text-white/20 uppercase tracking-widest border-b border-white/[0.03]">
+                                <th className="px-6 py-4">Clip</th>
+                                <th className="px-6 py-4">Views</th>
+                                <th className="px-6 py-4">Earned</th>
+                                <th className="px-6 py-4 text-right">Status</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.03]">
@@ -148,26 +149,23 @@ export const CampaignDetails = () => {
                                 { url: 'youtu.be/clips/99y', platform: 'YouTube', views: '1,200', earnings: '$0.48', status: 'Pending', date: '5h ago' }
                             ].map((sub, i) => (
                                 <tr key={i} className="group hover:bg-white/[0.02] transition-all duration-300">
-                                    <td className="px-8 py-6">
+                                    <td className="px-6 py-5">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                            <div className={`w-2 h-2 rounded-full ${sub.status === 'Verified' ? 'bg-emerald-500' : 'bg-amber-500'} animate-pulse`} />
                                             <div>
-                                                <p className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">{sub.url}</p>
-                                                <p className="text-[10px] text-white/20 uppercase tracking-widest mt-0.5">{sub.platform}</p>
+                                                <p className="text-sm font-medium text-white/80">{sub.url}</p>
+                                                <p className="text-[10px] text-white/20 mt-0.5">{sub.platform} · {sub.date}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-6">
-                                        <div className="space-y-1">
-                                            <p className="text-sm font-mono font-bold text-white/70">{sub.views}</p>
-                                            <p className="text-[10px] text-white/20 uppercase tracking-tighter">{sub.date}</p>
-                                        </div>
+                                    <td className="px-6 py-5">
+                                        <p className="text-sm font-mono font-bold text-white/70">{sub.views}</p>
                                     </td>
-                                    <td className="px-8 py-6">
-                                        <p className="text-sm font-mono font-bold text-emerald-400 group-hover:scale-105 transition-transform origin-left">{sub.earnings}</p>
+                                    <td className="px-6 py-5">
+                                        <p className="text-sm font-mono font-bold text-emerald-400">{sub.earnings}</p>
                                     </td>
-                                    <td className="px-8 py-6 text-right">
-                                        <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-lg border ${sub.status === 'Verified' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-white/5 text-white/30 border-white/5'}`}>
+                                    <td className="px-6 py-5 text-right">
+                                        <span className={`text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-lg border ${sub.status === 'Verified' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
                                             {sub.status}
                                         </span>
                                     </td>
@@ -176,137 +174,126 @@ export const CampaignDetails = () => {
                         </tbody>
                     </table>
                 </div>
-                <div className="p-8 bg-white/[0.01] text-center border-t border-white/5">
-                    <p className="text-[11px] text-white/20 italic tracking-wide">Syncing data with social platforms in real-time...</p>
+            </div>
+
+            {/* Guidelines */}
+            <div className="p-8 rounded-3xl bg-[#0c0c0c] border border-white/[0.06]">
+                <h3 className="text-sm font-bold text-white/40 uppercase tracking-[0.15em] mb-5">Campaign Rules</h3>
+                <div className="space-y-4">
+                    {[
+                        "Original content only. Stolen clips result in permanent ban.",
+                        "Our system flags suspicious view velocity and bot patterns.",
+                        "Payouts finalize upon campaign expiry or budget exhaustion."
+                    ].map((rule, i) => (
+                        <div key={i} className="flex gap-3 items-start">
+                            <div className="mt-0.5 w-5 h-5 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0">
+                                <span className="text-[9px] font-mono font-bold text-white/30">{i + 1}</span>
+                            </div>
+                            <p className="text-xs text-white/40 leading-relaxed">{rule}</p>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
 
-        {/* Right Column: Submission & Leaderboard */}
-        <div className="space-y-10">
+        {/* Right Column */}
+        <div className="space-y-8">
             {/* Submit Card */}
             {requiresVerification && !isUserVerified ? (
-                <div className="p-10 rounded-[40px] bg-red-500/[0.02] border border-red-500/10 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/[0.03] blur-3xl -mr-16 -mt-16 rounded-full" />
-                    <h3 className="text-2xl font-bold mb-4 relative z-10 flex items-center gap-3">
-                        <Shield className="w-7 h-7 text-red-500" />
+                <div className="p-8 rounded-3xl bg-red-500/[0.03] border border-red-500/10 relative overflow-hidden">
+                    <h3 className="text-xl font-bold mb-3 flex items-center gap-3">
+                        <Shield className="w-6 h-6 text-red-500" />
                         Verification Required
                     </h3>
-                    <p className="text-white/40 mb-8 relative z-10 leading-relaxed font-light text-sm">
-                        Access is restricted until your account satisfies the platform verification metrics.
+                    <p className="text-white/40 mb-6 leading-relaxed text-sm">
+                        Complete identity verification before submitting clips.
                     </p>
-                    <Link to="/profile" className="w-full group/btn relative z-10 inline-flex items-center justify-center font-bold rounded-2xl transition-all focus:outline-none bg-white text-black hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] px-8 py-4 text-sm uppercase tracking-widest">
-                        Activate Identity
+                    <Link to="/profile" className="w-full inline-flex items-center justify-center font-bold rounded-2xl bg-white text-black hover:bg-white/90 px-6 py-4 text-xs uppercase tracking-widest transition-all">
+                        Verify Now
                     </Link>
                 </div>
             ) : (
-                <div className="p-10 rounded-[40px] bg-[#0c0c0c] border border-white/10 relative overflow-hidden group shadow-2xl">
-                    <div className="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <h3 className="text-2xl font-bold mb-6 relative z-10 text-white/90">Submit Your Clip</h3>
+                <div className="p-8 rounded-3xl bg-[#0c0c0c] border border-white/[0.08] space-y-5">
+                    <h3 className="text-xl font-bold text-white/90">Submit Clip</h3>
                     
-                    <div className="space-y-6 relative z-10">
-                        <div className="space-y-2">
-                            <label className="block text-[10px] font-bold text-white/20 uppercase tracking-widest ml-1">Platform Origin</label>
+                    <div className="space-y-4">
+                        <div className="space-y-1.5">
+                            <label className="block text-[9px] font-bold text-white/20 uppercase tracking-widest">Platform</label>
                             <select 
                                 value={platform}
                                 onChange={(e) => setPlatform(e.target.value)}
-                                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-white/30 transition-all appearance-none cursor-pointer"
+                                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/20 transition-all appearance-none cursor-pointer"
                             >
                                 <option value="youtube">YouTube Shorts</option>
                                 <option value="instagram">Instagram Reels</option>
                                 <option value="tiktok">TikTok</option>
                             </select>
                         </div>
-                        <div className="space-y-2">
-                             <label className="block text-[10px] font-bold text-white/20 uppercase tracking-widest ml-1">Content URL</label>
+                        <div className="space-y-1.5">
+                             <label className="block text-[9px] font-bold text-white/20 uppercase tracking-widest">URL</label>
                             <input 
                                 type="url" 
                                 value={submissionUrl}
                                 onChange={(e) => setSubmissionUrl(e.target.value)}
                                 placeholder="https://..." 
-                                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-white/30 transition-all font-mono placeholder:text-white/10" 
+                                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/20 transition-all font-mono placeholder:text-white/10" 
                             />
                         </div>
-                        <Button variant="primary" size="lg" className="w-full relative z-10 text-sm py-5 rounded-2xl font-bold uppercase tracking-widest bg-white text-black hover:bg-white/90">
-                            Push Submission
+                        <Button variant="primary" className="w-full text-xs py-4 rounded-xl font-bold uppercase tracking-widest bg-white text-black hover:bg-white/90">
+                            Submit
                         </Button>
                     </div>
                 </div>
             )}
 
-            {/* Leaderboard Card */}
-            <div className="p-10 rounded-[40px] bg-[#0c0c0c] border border-white/5 shadow-2xl space-y-8">
+            {/* Leaderboard */}
+            <div className="p-8 rounded-3xl bg-[#0c0c0c] border border-white/[0.06] space-y-6">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-2xl font-bold tracking-tight text-white/90">Hall of Fame</h3>
+                    <h3 className="text-xl font-bold tracking-tight text-white/90">Leaderboard</h3>
                     <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-amber-500"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                        <Trophy className="w-5 h-5 text-amber-500" />
                     </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                     {[
-                        { rank: 1, name: 'AlexEdit', views: '4.2M', earnings: '$1,680', color: 'text-amber-400', bg: 'bg-amber-500/5' },
-                        { rank: 2, name: 'ClipperPro', views: '2.8M', earnings: '$1,120', color: 'text-zinc-300', bg: 'bg-white/[0.04]' },
-                        { rank: 3, name: 'ShortsKing', views: '1.9M', earnings: '$760', color: 'text-amber-700', bg: 'bg-amber-700/5' },
+                        { rank: 1, name: 'AlexEdit', views: '4.2M', earnings: '$1,680', medal: '🥇' },
+                        { rank: 2, name: 'ClipperPro', views: '2.8M', earnings: '$1,120', medal: '🥈' },
+                        { rank: 3, name: 'ShortsKing', views: '1.9M', earnings: '$760', medal: '🥉' },
                     ].map((user) => (
-                        <div key={user.rank} className={`flex items-center justify-between p-5 rounded-3xl ${user.bg} border border-white/[0.03] hover:border-white/10 transition-all group relative overflow-hidden`}>
-                            <div className="flex items-center gap-4 relative z-10">
-                                <span className={`text-lg font-mono font-bold w-6 ${user.color}`}>
-                                    {user.rank}
-                                </span>
-                                <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xs font-bold text-white/60">
+                        <div key={user.rank} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:border-white/10 transition-all group">
+                            <div className="flex items-center gap-3">
+                                <span className="text-lg w-7">{user.medal}</span>
+                                <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[10px] font-bold text-white/50">
                                     {user.name.charAt(0)}
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold text-white/90">{user.name}</p>
-                                    <p className="text-[10px] text-white/30 font-mono tracking-tighter uppercase">{user.views} views</p>
+                                    <p className="text-[10px] text-white/25 font-mono">{user.views} views</p>
                                 </div>
                             </div>
-                            <div className="text-right relative z-10">
-                                <p className="text-sm font-mono font-bold text-emerald-400 group-hover:scale-110 transition-transform">{user.earnings}</p>
-                            </div>
+                            <p className="text-sm font-mono font-bold text-emerald-400">{user.earnings}</p>
                         </div>
                     ))}
                     
-                    <div className="pt-4 space-y-3">
+                    <div className="pt-2 space-y-2">
                          {[
-                            { rank: 4, name: 'ViralWave', views: '850K', earnings: '$340' },
-                            { rank: 5, name: 'FlowState', views: '620K', earnings: '$248' }
+                            { rank: 4, name: 'ViralWave', earnings: '$340' },
+                            { rank: 5, name: 'FlowState', earnings: '$248' }
                         ].map((user) => (
-                            <div key={user.rank} className="flex items-center justify-between px-5 py-3 rounded-2xl bg-white/[0.01] hover:bg-white/[0.03] transition-all">
-                                <div className="flex items-center gap-4">
-                                    <span className="text-xs font-mono font-bold w-4 text-white/20">{user.rank}</span>
-                                    <span className="text-xs font-medium text-white/50">{user.name}</span>
+                            <div key={user.rank} className="flex items-center justify-between px-4 py-2.5 rounded-xl">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-[10px] font-mono font-bold w-4 text-white/15">{user.rank}</span>
+                                    <span className="text-xs text-white/40">{user.name}</span>
                                 </div>
-                                <span className="text-[11px] font-mono font-bold text-white/30">{user.earnings}</span>
+                                <span className="text-[11px] font-mono font-bold text-white/25">{user.earnings}</span>
                             </div>
                         ))}
                     </div>
                 </div>
-            </div>
-
-            {/* Rules Card */}
-            <div className="p-10 rounded-[40px] bg-[#0c0c0c] border border-white/5 shadow-2xl">
-                <h3 className="text-lg font-bold mb-6 text-white/40 uppercase tracking-[0.2em]">Guidelines</h3>
-                <ul className="space-y-6">
-                    {[
-                        "Original content only. Stolen clips result in permanent ban.",
-                        "Our system flags suspicious view velocity and bot patterns.",
-                        "Payouts finalize upon campaign expiry or budget exhaustion."
-                    ].map((rule, i) => (
-                        <li key={i} className="flex gap-4 group">
-                             <div className="mt-1 p-1 rounded-lg bg-white/5 text-white/30 h-fit w-fit group-hover:bg-white/10 group-hover:text-white transition-all">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6 9 17l-5-5"/></svg>
-                            </div>
-                            <p className="text-xs text-white/40 leading-relaxed font-light group-hover:text-white/60 transition-colors">{rule}</p>
-                        </li>
-                    ))}
-                </ul>
             </div>
         </div>
       </div>
     </motion.div>
   );
 };
-
-

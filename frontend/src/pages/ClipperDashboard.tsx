@@ -5,14 +5,13 @@ import { useAuthStore } from '../store/useAuthStore';
 
 export const ClipperDashboard = () => {
     const { user } = useAuthStore();
-    const stats = {
-        campaignsParticipated: '2',
-        totalSubmissions: '14',
-        approved: '11',
-        totalEarnings: '$382.50'
-    };
+    const stats = [
+        { label: 'Campaigns', value: '2', icon: Activity, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/15' },
+        { label: 'Total Clips', value: '14', icon: PlaySquare, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/15' },
+        { label: 'Approved', value: '11', icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/15' },
+        { label: 'Earnings', value: '$382.50', icon: Wallet, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/15', highlight: true },
+    ];
 
-    // Mock data for sparkline
     const mockViewData = [
       { name: 'Mon', views: 4000 },
       { name: 'Tue', views: 3000 },
@@ -32,121 +31,92 @@ export const ClipperDashboard = () => {
             className="space-y-8" 
         >
             {/* Header */}
-            <div className="pb-8 border-b border-white/[0.08] relative group">
-                <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-64 h-32 bg-white/[0.02] blur-[80px] pointer-events-none rounded-full" />
-                
-                <div className="flex flex-col md:flex-row md:items-center gap-6 relative z-10">
-                    {/* Profile Picture / Avatar */}
-                    <div className="relative group/avatar">
-                        <div className="w-20 h-20 rounded-3xl overflow-hidden bg-white/[0.03] border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-500 group-hover/avatar:border-white/20 group-hover/avatar:scale-[1.02]">
+            <div className="pb-6 border-b border-white/[0.06]">
+                <div className="flex flex-col md:flex-row md:items-center gap-5">
+                    {/* Avatar */}
+                    <div className="relative">
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white/[0.03] border border-white/10 shadow-lg">
                             {user?.avatarUrl ? (
                                 <img 
                                     src={user.avatarUrl} 
                                     alt={user.name || 'User'} 
                                     referrerPolicy="no-referrer"
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover/avatar:scale-110"
+                                    className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-white/10 via-white/5 to-transparent flex items-center justify-center">
-                                    <span className="text-3xl font-bold tracking-tighter text-white/40 group-hover/avatar:text-white/60 transition-colors">
+                                <div className="w-full h-full bg-gradient-to-br from-white/10 to-transparent flex items-center justify-center">
+                                    <span className="text-2xl font-bold text-white/40">
                                         {user?.name?.[0] || user?.email?.[0].toUpperCase()}
                                     </span>
                                 </div>
                             )}
                         </div>
-                        {/* Status detail */}
-                        <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-black border-2 border-white/5 flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-black border-2 border-emerald-500/30 flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500" />
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <h1 className="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/50">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight text-white/90">
                             Welcome Back{user?.name ? `, ${user.name}` : ''}
                         </h1>
-                        <p className="text-white/40 text-lg tracking-tight font-light truncate max-w-md">Your activity and earnings overview for today.</p>
+                        <p className="text-white/30 text-sm font-light mt-0.5">Your activity and earnings overview.</p>
                     </div>
                 </div>
             </div>
 
-            {/* Bento Grid layout */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                
-                {/* Active Campaigns Card */}
-                <div className="relative overflow-hidden p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
-                    <div className="flex items-center justify-between mb-4">
-                        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest flex items-center gap-2.5">
-                            <Activity className="w-4 h-4 text-white/40 group-hover:text-white/80 transition-colors" />
-                            Campaigns
-                        </p>
-                    </div>
-                    <p className="text-4xl font-mono tracking-tight font-medium text-white/90">{stats.campaignsParticipated}</p>
-                </div>
-
-                {/* Total Clips Card */}
-                <div className="relative overflow-hidden p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
-                    <div className="flex items-center justify-between mb-4">
-                        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest flex items-center gap-2.5">
-                            <PlaySquare className="w-4 h-4 text-white/40 group-hover:text-white/80 transition-colors" />
-                            Clips
-                        </p>
-                    </div>
-                    <p className="text-4xl font-mono tracking-tight font-medium text-white/90">{stats.totalSubmissions}</p>
-                </div>
-
-                {/* Approved Card */}
-                <div className="relative overflow-hidden p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
-                    <div className="flex items-center justify-between mb-4">
-                        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest flex items-center gap-2.5">
-                            <CheckCircle className="w-4 h-4 text-green-500/50 group-hover:text-green-400 transition-colors" />
-                            Approved
-                        </p>
-                    </div>
-                    <p className="text-4xl font-mono tracking-tight font-medium text-white/90">{stats.approved}</p>
-                </div>
-
-                {/* Earnings Card - Highlighted */}
-                <div className="relative overflow-hidden p-6 rounded-3xl bg-white/[0.05] border border-white/[0.1] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_8px_30px_rgba(0,0,0,0.5)] group hover:bg-white/[0.08] transition-colors duration-500">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
-                    <div className="flex items-center justify-between mb-4 relative z-10">
-                        <p className="text-white/70 text-xs font-semibold uppercase tracking-widest flex items-center gap-2.5">
-                            <Wallet className="w-4 h-4 text-white/90" />
-                            Earnings
-                        </p>
-                    </div>
-                    <p className="text-4xl font-mono tracking-tight font-bold text-white relative z-10">{stats.totalEarnings}</p>
-                </div>
-
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {stats.map((stat, idx) => {
+                    const Icon = stat.icon;
+                    return (
+                        <motion.div 
+                            key={idx}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.08 }}
+                            className={`p-5 rounded-2xl border transition-all duration-300 hover:scale-[1.02] ${stat.highlight ? 'bg-amber-500/5 border-amber-500/15' : 'bg-[#0c0c0c] border-white/[0.06]'}`}
+                        >
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className={`p-1.5 rounded-lg ${stat.bg} border ${stat.border}`}>
+                                    <Icon className={`w-3.5 h-3.5 ${stat.color}`} />
+                                </div>
+                                <span className="text-[9px] font-bold text-white/25 uppercase tracking-widest">{stat.label}</span>
+                            </div>
+                            <p className={`text-3xl font-mono tracking-tight font-bold ${stat.highlight ? 'text-amber-400' : 'text-white/90'}`}>{stat.value}</p>
+                        </motion.div>
+                    );
+                })}
             </div>
 
-            {/* Performance Chart Bento Box */}
-            <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] h-96 flex flex-col">
-                <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-medium tracking-tight text-white/90">View Velocity</h3>
-                    <div className="flex items-center gap-2 text-[11px] font-mono text-white/50 bg-white/[0.03] px-3 py-1 rounded-full border border-white/[0.05]">
-                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                        Live Tracking
+            {/* Chart */}
+            <div className="p-6 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] h-80 flex flex-col">
+                <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-sm font-bold tracking-tight text-white/70">View Velocity</h3>
+                    <div className="flex items-center gap-2 text-[10px] font-mono text-emerald-400/60 bg-emerald-500/5 px-3 py-1 rounded-full border border-emerald-500/10">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Live
                     </div>
                 </div>
-                <div className="flex-1 w-full h-full min-h-0 relative -ml-4">
+                <div className="flex-1 w-full min-h-0 -ml-4">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={mockViewData}>
                             <defs>
                                 <linearGradient id="colorViewsDashboard" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#ffffff" stopOpacity={0.15}/>
-                                    <stop offset="95%" stopColor="#ffffff" stopOpacity={0}/>
+                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.15}/>
+                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                                 </linearGradient>
                             </defs>
                             <XAxis 
                                 dataKey="name" 
-                                stroke="rgba(255,255,255,0.2)" 
+                                stroke="rgba(255,255,255,0.1)" 
                                 fontSize={10} 
                                 tickLine={false} 
                                 axisLine={false} 
                                 dy={10}
                             />
                             <YAxis 
-                                stroke="rgba(255,255,255,0.2)" 
+                                stroke="rgba(255,255,255,0.1)" 
                                 fontSize={10} 
                                 tickLine={false} 
                                 axisLine={false} 
@@ -155,19 +125,19 @@ export const ClipperDashboard = () => {
                             />
                             <Tooltip 
                                 contentStyle={{ 
-                                    backgroundColor: 'rgba(10,10,10,0.9)', 
+                                    backgroundColor: 'rgba(10,10,10,0.95)', 
                                     border: '1px solid rgba(255,255,255,0.1)',
-                                    borderRadius: '8px',
+                                    borderRadius: '12px',
                                     backdropFilter: 'blur(12px)',
                                     fontSize: '11px',
                                     padding: '8px 12px'
                                 }}
-                                itemStyle={{ color: '#fff', padding: 0 }}
+                                itemStyle={{ color: '#10b981', padding: 0 }}
                             />
                             <Area 
                                 type="monotone" 
                                 dataKey="views" 
-                                stroke="#ffffff" 
+                                stroke="#10b981" 
                                 strokeWidth={2}
                                 fillOpacity={1} 
                                 fill="url(#colorViewsDashboard)" 

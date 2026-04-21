@@ -26,7 +26,17 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       return res.status(401).json({ success: false, error: 'Invalid or expired token', code: 401 });
     }
 
-    // Map Supabase user to our request object
+    // Fetch latest user data from database (Role & Block status)
+    const { data: dbUser, error: dbError } = await supabase
+      .from('users')
+      .select('role, is_blocked')
+      .eq('id', user.id)
+      .single();
+
+    if (dbError && dbError.code !== 'PGRST116') { // PGRST116 is 'not found'
+      console.error('Database user fetch error:', dbError);
+    }
+
     // Map Supabase user to our request object
     req.user = {
       id: user.id,
@@ -35,20 +45,11 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
             ? `${user.user_metadata.given_name} ${user.user_metadata.family_name || ''}`.trim()
             : (user.user_metadata?.full_name || user.user_metadata?.name),
       avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture,
-      role: (user.user_metadata?.role as string) || 'user'
+      // DB role takes precedence over JWT metadata to prevent stale token issues
+      role: dbUser?.role || (user.user_metadata?.role as string) || 'user'
     };
 
-    // Check if the user is blocked
-    const { data: blockData, error: blockError } = await supabase
-      .from('users')
-      .select('is_blocked')
-      .eq('id', user.id)
-      .single();
-    if (blockError) {
-      console.error('Block status fetch error:', blockError);
-      return res.status(500).json({ success: false, error: 'Failed to verify user status', code: 500 });
-    }
-    if (blockData?.is_blocked) {
+    if (dbUser?.is_blocked) {
       return res.status(403).json({ success: false, error: 'Your account is blocked', code: 403 });
     }
     
