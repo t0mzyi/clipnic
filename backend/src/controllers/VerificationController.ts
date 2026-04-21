@@ -55,8 +55,19 @@ export class VerificationController {
       });
 
       if (!tokenRes.ok) {
-        console.error('Discord Token Error:', await tokenRes.text());
-        return res.redirect(`${frontendUrl}/profile?discord_error=token_exchange_failed`);
+        let errStr = 'token_exchange_failed';
+        try {
+            const errJson = await tokenRes.json();
+            console.error('Discord Token Error:', errJson);
+            if (errJson.error_description) {
+                errStr = encodeURIComponent(errJson.error_description);
+            } else if (errJson.error) {
+                errStr = encodeURIComponent(errJson.error);
+            }
+        } catch (e) {
+            console.error('Discord Token Error (no json):', await tokenRes.text());
+        }
+        return res.redirect(`${frontendUrl}/profile?discord_error=${errStr}`);
       }
 
       const tokenData = await tokenRes.json();

@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Search, ShieldCheck, ShieldAlert, MessageSquare, ExternalLink, Users } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const YoutubeIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-red-500">
@@ -60,7 +61,19 @@ export const AdminUsers = () => {
     };
 
     const handleUpdateRole = async (userId: string, newRole: 'admin' | 'user') => {
-        if (!window.confirm(`Are you sure you want to change this user's role to ${newRole}?`)) return;
+        const result = await Swal.fire({
+            title: 'Change Role?',
+            text: `Are you sure you want to change this user's role to ${newRole}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#27272a',
+            confirmButtonText: 'Yes, change it!',
+            background: '#0c0c0c',
+            color: '#fff'
+        });
+
+        if (!result.isConfirmed) return;
         
         setActionLoading(userId);
         try {
@@ -75,9 +88,34 @@ export const AdminUsers = () => {
             const json = await res.json();
             if (json.success) {
                 setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+                Swal.fire({
+                    title: 'Success!',
+                    text: `User role updated to ${newRole}.`,
+                    icon: 'success',
+                    background: '#0c0c0c',
+                    color: '#fff',
+                    confirmButtonColor: '#10b981'
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: json.error || 'Failed to update user role.',
+                    icon: 'error',
+                    background: '#0c0c0c',
+                    color: '#fff',
+                    confirmButtonColor: '#ef4444'
+                });
             }
         } catch (err) {
             console.error('Failed to update role:', err);
+            Swal.fire({
+                title: 'Error!',
+                text: 'Something went wrong.',
+                icon: 'error',
+                background: '#0c0c0c',
+                color: '#fff',
+                confirmButtonColor: '#ef4444'
+            });
         } finally {
             setActionLoading(null);
         }
