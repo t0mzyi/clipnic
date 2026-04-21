@@ -93,9 +93,20 @@ export const CampaignsFeed = () => {
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className="group relative p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] hover:bg-white/[0.04] hover:border-white/10 transition-all cursor-pointer block overflow-hidden"
+            className="group relative rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] hover:bg-white/[0.04] hover:border-white/10 transition-all cursor-pointer block overflow-hidden"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.01] to-transparent pointer-events-none" />
+            {/* Card Banner */}
+            <div className="h-24 w-full relative overflow-hidden">
+                <img 
+                    src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop" 
+                    className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-opacity duration-500" 
+                    alt={campaign.title}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] to-transparent" />
+            </div>
+
+            <div className="p-6 relative z-10 -mt-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.01] to-transparent pointer-events-none" />
             
             <div className="flex items-start justify-between mb-5 relative z-10">
               <Badge status={campaign.status} />
@@ -140,6 +151,7 @@ export const CampaignsFeed = () => {
             <Button variant="secondary" className="w-full relative z-10 bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 text-white/70 py-2 h-auto text-xs font-bold uppercase rounded-xl tracking-wider">
               Details
             </Button>
+          </div>
           </MotionLink>
         ))}
       </div>

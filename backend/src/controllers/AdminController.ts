@@ -81,7 +81,7 @@ export class AdminController {
       if (dbError) throw dbError;
 
       // 2. Update Supabase Auth Metadata (Requires service role)
-      const { error: authError } = await supabase.auth.admin.updateUserById(id, {
+      const { error: authError } = await supabase.auth.admin.updateUserById(id as string, {
         user_metadata: { role }
       });
 
