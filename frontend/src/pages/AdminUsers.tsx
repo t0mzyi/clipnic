@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
-import { Search, User as UserIcon, Shield, ShieldCheck, ShieldAlert, MessageSquare, ExternalLink, Filter } from 'lucide-react';
+import { Search, ShieldCheck, ShieldAlert, MessageSquare, ExternalLink, Filter } from 'lucide-react';
 
 const YoutubeIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-red-500">

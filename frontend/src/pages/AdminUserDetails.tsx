@@ -1,12 +1,12 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { Button } from '../components/ui/Button';
 import { 
-    ChevronLeft, Shield, ShieldCheck, ShieldAlert, 
+    ChevronLeft, Shield, ShieldCheck, 
     MessageSquare, Mail, 
-    Calendar, User as UserIcon, ExternalLink,
+    User as UserIcon,
     AlertTriangle
 } from 'lucide-react';
 

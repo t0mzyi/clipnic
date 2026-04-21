@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/Button';
-import { ShieldCheck, User as UserIcon, Mail, CreditCard, ExternalLink, Scissors, Eye, Wallet } from 'lucide-react';
+import { ShieldCheck, Mail, CreditCard, ExternalLink, Scissors, Eye, Wallet } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSearchParams } from 'react-router-dom';
 
@@ -21,7 +21,6 @@ export const Profile = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     
     // Discord state
-    const [discordUser, setDiscordUser] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
     const [verifyError, setVerifyError] = useState('');
     

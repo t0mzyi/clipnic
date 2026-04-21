@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Wallet, ArrowDownRight, ArrowUpRight, Landmark, CreditCard, History, TrendingUp, DollarSign } from 'lucide-react';
+import { Wallet, ArrowDownRight, ArrowUpRight, Landmark, CreditCard, History, TrendingUp } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
 export const Earnings = () => {

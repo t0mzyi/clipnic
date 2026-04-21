@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
-import { Button } from '../components/ui/Button';
-import { Search, Filter, Calendar, Layers, CheckCircle2, Eye, Wallet, Inbox } from 'lucide-react';
+import { Search, Filter, Calendar, Layers, CheckCircle2, Eye, Wallet } from 'lucide-react';
 
 export const MySubmissions = () => {
     return (
