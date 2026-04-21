@@ -50,10 +50,13 @@ export const CampaignDetails = () => {
     const [campaign, setCampaign] = useState<Campaign | null>(null);
     const [loading, setLoading] = useState(true);
     
-    // Modal states
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
     const [submissionUrl, setSubmissionUrl] = useState('');
     const [platform, setPlatform] = useState('youtube');
+    
+    const [submissions, setSubmissions] = useState<any[]>([]);
+    const [leaderboard, setLeaderboard] = useState<any[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         const fetchCampaign = async () => {
@@ -69,7 +72,28 @@ export const CampaignDetails = () => {
                 setLoading(false);
             }
         };
-        if (id) fetchCampaign();
+
+        const fetchSubmissions = async () => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/campaign/${id}/my`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const json = await res.json();
+                if (json.success) setSubmissions(json.data);
+            } catch (err) { console.error('Failed to fetch my submissions:', err); }
+        };
+
+        const fetchLeaderboard = async () => {
+             try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/campaign/${id}/leaderboard`);
+                const json = await res.json();
+                if (json.success) setLeaderboard(json.data);
+            } catch (err) { console.error('Failed to fetch leaderboard:', err); }
+        };
+
+        if (id) {
+            fetchCampaign();
+            if (token) fetchSubmissions();
+            fetchLeaderboard();
+        }
     }, [id, token]);
 
     // Auto-detect platform from URL
@@ -104,11 +128,29 @@ export const CampaignDetails = () => {
     const isUserVerified = !!(user?.discordVerified && user?.youtubeVerified);
     const banner = campaign.banner_url || FALLBACK_BANNERS[0];
 
-    const handleSubmitClip = (e: React.FormEvent) => {
+    const handleSubmitClip = async (e: React.FormEvent) => {
         e.preventDefault();
-        Toast.fire({ title: 'Clip Submitted!', text: 'Your clip is now in review.', icon: 'success' });
-        setIsSubmitModalOpen(false);
-        setSubmissionUrl('');
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ campaign_id: id, url: submissionUrl, platform })
+            });
+            const json = await res.json();
+            
+            if (!json.success) throw new Error(json.error);
+            
+            Toast.fire({ title: 'Clip Submitted!', text: 'Your clip is now in review.', icon: 'success' });
+            setSubmissions(prev => [json.data, ...prev]);
+            setIsSubmitModalOpen(false);
+            setSubmissionUrl('');
+        } catch (err: any) {
+            Toast.fire({ title: 'Error', text: err.message, icon: 'error', background: '#200' });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -219,28 +261,31 @@ export const CampaignDetails = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/[0.03]">
-                                    {[
-                                        { url: 'youtu.be/clips/01x', platform: 'YouTube', views: '24,500', earnings: '$9.80', status: 'Verified', date: '2h ago' },
-                                        { url: 'youtu.be/clips/99y', platform: 'YouTube', views: '1,200', earnings: '$0.48', status: 'Pending', date: '5h ago' }
-                                    ].map((sub, i) => (
-                                        <tr key={i} className="group hover:bg-white/[0.02] transition-all duration-300">
+                                    {submissions.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-8 text-center text-[10px] uppercase tracking-widest text-white/30">
+                                                No submissions yet. Add your first clip!
+                                            </td>
+                                        </tr>
+                                    ) : submissions.map((sub, i) => (
+                                        <tr key={sub.id || i} className="group hover:bg-white/[0.02] transition-all duration-300">
                                             <td className="px-6 py-5">
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`w-2 h-2 rounded-full ${sub.status === 'Verified' ? 'bg-emerald-500' : 'bg-amber-500'} animate-pulse`} />
+                                                    <div className={`w-2 h-2 rounded-full ${sub.status === 'Verified' ? 'bg-emerald-500' : sub.status === 'Pending' ? 'bg-amber-500' : 'bg-red-500'} animate-pulse`} />
                                                     <div>
-                                                        <p className="text-sm font-medium text-white/80">{sub.url}</p>
-                                                        <p className="text-[10px] text-white/20 mt-0.5">{sub.platform} · {sub.date}</p>
+                                                        <p className="text-sm font-medium text-white/80 max-w-[200px] truncate">{sub.url}</p>
+                                                        <p className="text-[10px] text-white/20 mt-0.5 capitalize">{sub.platform} · {new Date(sub.created_at).toLocaleDateString()}</p>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5">
-                                                <p className="text-sm font-mono font-bold text-white/70">{sub.views}</p>
+                                                <p className="text-sm font-mono font-bold text-white/70">{sub.views?.toLocaleString() || 0}</p>
                                             </td>
                                             <td className="px-6 py-5">
-                                                <p className="text-sm font-mono font-bold text-emerald-400">{sub.earnings}</p>
+                                                <p className="text-sm font-mono font-bold text-emerald-400">${Number(sub.earnings || 0).toFixed(2)}</p>
                                             </td>
                                             <td className="px-6 py-5 text-right">
-                                                <span className={`text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-lg border ${sub.status === 'Verified' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
+                                                <span className={`text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-lg border ${sub.status === 'Verified' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : sub.status === 'Pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
                                                     {sub.status}
                                                 </span>
                                             </td>
@@ -261,40 +306,45 @@ export const CampaignDetails = () => {
                         </div>
 
                         <div className="space-y-3">
-                            {[
-                                { rank: 1, name: 'AlexEdit', views: '4.2M', earnings: '$1,680', medal: '🥇' },
-                                { rank: 2, name: 'ClipperPro', views: '2.8M', earnings: '$1,120', medal: '🥈' },
-                                { rank: 3, name: 'ShortsKing', views: '1.9M', earnings: '$760', medal: '🥉' },
-                            ].map((user) => (
-                                <div key={user.rank} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:border-white/10 transition-all group">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-lg w-7">{user.medal}</span>
-                                        <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[10px] font-bold text-white/50">
-                                            {user.name.charAt(0)}
+                            {leaderboard.length === 0 ? (
+                                <p className="text-center text-[10px] uppercase tracking-widest text-white/30 py-4">No data yet</p>
+                            ) : (
+                                <>
+                                    {leaderboard.slice(0, 3).map((user, i) => (
+                                        <div key={user.user_id} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:border-white/10 transition-all group">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-lg w-7">{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
+                                                {user.avatar_url ? (
+                                                    <img src={user.avatar_url} alt={user.name} className="w-9 h-9 rounded-xl border border-white/[0.06] object-cover" />
+                                                ) : (
+                                                    <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[10px] font-bold text-white/50">
+                                                        {user.name.charAt(0)}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <p className="text-sm font-bold text-white/90">{user.name}</p>
+                                                    <p className="text-[10px] text-white/25 font-mono">{user.views?.toLocaleString() || 0} views</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-sm font-mono font-bold text-emerald-400">${Number(user.earnings || 0).toFixed(2)}</p>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-white/90">{user.name}</p>
-                                            <p className="text-[10px] text-white/25 font-mono">{user.views} views</p>
+                                    ))}
+                                    
+                                    {leaderboard.length > 3 && (
+                                        <div className="pt-2 space-y-2">
+                                            {leaderboard.slice(3).map((user, i) => (
+                                                <div key={user.user_id} className="flex items-center justify-between px-4 py-2.5 rounded-xl">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-[10px] font-mono font-bold w-4 text-white/15">{i + 4}</span>
+                                                        <span className="text-xs text-white/40">{user.name}</span>
+                                                    </div>
+                                                    <span className="text-[11px] font-mono font-bold text-white/25">${Number(user.earnings || 0).toFixed(2)}</span>
+                                                </div>
+                                            ))}
                                         </div>
-                                    </div>
-                                    <p className="text-sm font-mono font-bold text-emerald-400">{user.earnings}</p>
-                                </div>
-                            ))}
-                            
-                            <div className="pt-2 space-y-2">
-                                 {[
-                                    { rank: 4, name: 'ViralWave', earnings: '$340' },
-                                    { rank: 5, name: 'FlowState', earnings: '$248' }
-                                ].map((user) => (
-                                    <div key={user.rank} className="flex items-center justify-between px-4 py-2.5 rounded-xl">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[10px] font-mono font-bold w-4 text-white/15">{user.rank}</span>
-                                            <span className="text-xs text-white/40">{user.name}</span>
-                                        </div>
-                                        <span className="text-[11px] font-mono font-bold text-white/25">{user.earnings}</span>
-                                    </div>
-                                ))}
-                            </div>
+                                    )}
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -388,8 +438,9 @@ export const CampaignDetails = () => {
                                     </div>
                                 </div>
 
-                                <Button type="submit" variant="primary" className="w-full text-xs py-4 rounded-xl font-bold uppercase tracking-widest bg-white text-black hover:bg-white/90 shadow-xl">
-                                    Submit Clip
+                                <Button type="submit" disabled={isSubmitting} variant="primary" className="w-full text-xs py-4 rounded-xl font-bold uppercase tracking-widest bg-white text-black hover:bg-white/90 shadow-xl disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+                                    {isSubmitting && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
+                                    {isSubmitting ? (platform === 'youtube' ? 'Verifying Ownership...' : 'Submitting...') : 'Submit Clip'}
                                 </Button>
                             </form>
                         </motion.div>

@@ -1,7 +1,78 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Calendar, Layers, CheckCircle2, Eye, Wallet } from 'lucide-react';
+import { Search, Filter, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink } from 'lucide-react';
+import { useAuthStore } from '../store/useAuthStore';
+import Swal from 'sweetalert2';
 
 export const MySubmissions = () => {
+    const { token } = useAuthStore();
+    const [submissions, setSubmissions] = useState<any[]>([]);
+    const [stats, setStats] = useState({ totalClips: 0, views: 0, earnings: 0, approved: 0 });
+    const [refreshingId, setRefreshingId] = useState<string | null>(null);
+
+    const fetchAll = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/my`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success) {
+               setSubmissions(json.data);
+               let views = 0;
+               let earnings = 0;
+               let approved = 0;
+               json.data.forEach((s: any) => {
+                   views += s.views || 0;
+                   earnings += Number(s.earnings || 0);
+                   if (s.status === 'Verified') approved += 1;
+               });
+               setStats({ totalClips: json.data.length, views, earnings, approved });
+            }
+        } catch (err) { console.error('Failed to fetch my submissions:', err); }
+    };
+
+    const handleRefresh = async (id: string) => {
+        setRefreshingId(id);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/${id}/refresh`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (!json.success) throw new Error(json.error);
+
+            Swal.fire({
+                title: 'Views Updated!',
+                text: 'Your clip views and earnings have been synced with the latest platform data.',
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+            await fetchAll();
+        } catch (err: any) {
+            Swal.fire({
+                title: 'Too Soon',
+                text: err.message,
+                icon: 'info',
+                background: '#0D0D0D',
+                color: '#fff',
+                confirmButtonColor: '#fff',
+                confirmButtonText: 'Got it',
+                customClass: {
+                    popup: 'rounded-[24px] border border-white/10'
+                }
+            });
+        } finally {
+            setRefreshingId(null);
+        }
+    };
+    
+    useEffect(() => {
+        if (token) fetchAll();
+    }, [token]);
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -27,21 +98,21 @@ export const MySubmissions = () => {
                         <Layers className="w-5 h-5" />
                         Total Clips
                     </p>
-                    <p className="text-4xl font-mono tabular-metrics text-white/90">0</p>
+                    <p className="text-4xl font-mono tabular-metrics text-white/90">{stats.totalClips}</p>
                 </div>
                 <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
                     <p className="text-xs text-white/40 mb-3 uppercase tracking-widest font-semibold flex items-center gap-2.5">
                         <CheckCircle2 className="w-5 h-5 text-green-500/50" />
                         Approved
                     </p>
-                    <p className="text-4xl font-mono tabular-metrics text-white/90">0</p>
+                    <p className="text-4xl font-mono tabular-metrics text-white/90">{stats.approved}</p>
                 </div>
                 <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
                     <p className="text-xs text-white/40 mb-3 uppercase tracking-widest font-semibold flex items-center gap-2.5">
                         <Eye className="w-5 h-5 text-white/30" />
                         Views
                     </p>
-                    <p className="text-4xl font-mono tabular-metrics text-white/90">0</p>
+                    <p className="text-4xl font-mono tabular-metrics text-white/90">{stats.views.toLocaleString()}</p>
                 </div>
                 <div className="p-6 rounded-3xl bg-white text-black shadow-2xl group overflow-hidden relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-black/[0.05] to-transparent pointer-events-none" />
@@ -49,7 +120,7 @@ export const MySubmissions = () => {
                         <Wallet className="w-5 h-5" />
                         Earnings
                     </p>
-                    <p className="text-4xl font-mono tabular-metrics font-bold relative z-10">$0.00</p>
+                    <p className="text-4xl font-mono tabular-metrics font-bold relative z-10">${stats.earnings.toFixed(2)}</p>
                 </div>
             </div>
 
@@ -99,34 +170,52 @@ export const MySubmissions = () => {
                             </tr>
                         </thead>
                         <tbody className="space-y-4">
-                            {[
-                                { id: 1, campaign: 'Cyberpunk Challenge', status: 'Approved', views: '45.2K', earnings: '$120.40', date: '2024-04-18', color: 'text-emerald-500' },
-                                { id: 2, campaign: 'Retro Gaming Mods', status: 'Pending', views: '12.8K', earnings: '$32.10', date: '2024-04-19', color: 'text-amber-500' },
-                                { id: 3, campaign: 'Tech Review 2024', status: 'Rejected', views: '0', earnings: '$0.00', date: '2024-04-15', color: 'text-red-500' },
-                                { id: 4, campaign: 'Crypto Analysis', status: 'Approved', views: '112.5K', earnings: '$450.00', date: '2024-04-10', color: 'text-emerald-500' },
-                            ].map((sub) => (
+                            {submissions.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="py-8 text-center text-[10px] uppercase tracking-widest text-white/30">
+                                        No trackable submissions found on your account.
+                                    </td>
+                                </tr>
+                            ) : submissions.map((sub) => (
                                 <tr key={sub.id} className="group bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all duration-300">
                                     <td className="py-5 pl-6 rounded-l-2xl border-y border-l border-white/[0.05]">
-                                        <p className="text-sm font-medium text-white/90">{sub.campaign}</p>
+                                        <p className="text-sm font-medium text-white/90">{sub.campaigns?.title || 'Unknown Campaign'}</p>
+                                        <p className="text-[10px] text-white/30 mt-0.5 truncate max-w-[200px]">{sub.url}</p>
                                     </td>
                                     <td className="py-5 border-y border-white/[0.05]">
-                                        <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 ${sub.color}`}>
+                                        <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 ${sub.status === 'Verified' ? 'text-emerald-500' : sub.status === 'Pending' ? 'text-amber-500' : 'text-red-500'}`}>
                                             {sub.status}
                                         </span>
                                     </td>
                                     <td className="py-5 border-y border-white/[0.05] font-mono text-sm text-white/60">
-                                        {sub.views}
+                                        {sub.views?.toLocaleString() || 0}
                                     </td>
                                     <td className="py-5 border-y border-white/[0.05] font-mono text-sm font-bold text-white/90">
-                                        {sub.earnings}
+                                        ${Number(sub.earnings || 0).toFixed(2)}
                                     </td>
                                     <td className="py-5 border-y border-white/[0.05] text-[11px] text-white/30 font-medium">
-                                        {sub.date}
+                                        {new Date(sub.created_at).toLocaleDateString()}
                                     </td>
                                     <td className="py-5 pr-6 rounded-r-2xl border-y border-r border-white/[0.05] text-right">
-                                        <button className="text-[10px] font-bold text-white/30 uppercase tracking-widest hover:text-white transition-colors">
-                                            View Details
-                                        </button>
+                                        <div className="flex items-center justify-end gap-3">
+                                            <button 
+                                                disabled={refreshingId === sub.id}
+                                                onClick={() => handleRefresh(sub.id)}
+                                                className={`p-2 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all ${refreshingId === sub.id ? 'animate-pulse' : ''}`}
+                                                title="Refresh View Count"
+                                            >
+                                                <RotateCw className={`w-3.5 h-3.5 ${refreshingId === sub.id ? 'animate-spin' : ''}`} />
+                                            </button>
+                                            <a 
+                                                href={sub.url} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                                                title="Open Video"
+                                            >
+                                                <ExternalLink className="w-3.5 h-3.5" />
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

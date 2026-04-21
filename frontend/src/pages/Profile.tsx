@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/Button';
-import { ShieldCheck, Mail, CreditCard, ExternalLink, Scissors, Eye, Wallet } from 'lucide-react';
+import { ShieldCheck, Mail, CreditCard, ExternalLink, Scissors, Eye, Wallet, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -22,7 +22,7 @@ const Toast = Swal.mixin({
 
 export const Profile = () => {
     const { user, token, login } = useAuthStore();
-    
+
     // Member since date
     const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'April 2024';
 
@@ -37,11 +37,11 @@ export const Profile = () => {
     const [isVerifyOpen, setIsVerifyOpen] = useState(false);
     const [verifyStep, setVerifyStep] = useState<1 | 2>(1);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    
+
     // Discord state
     const [isVerifying, setIsVerifying] = useState(false);
     const [verifyError, setVerifyError] = useState('');
-    
+
     const [searchParams, setSearchParams] = useSearchParams();
 
     // Re-sync with backend (useful after OAuth redirects)
@@ -60,12 +60,13 @@ export const Profile = () => {
                     discordId: result.data.discord_id,
                     youtubeVerified: result.data.youtube_verified,
                     youtubeHandle: result.data.youtube_handle,
+                    youtubeChannels: result.data.youtube_channels,
                     instagramVerified: result.data.instagram_verified,
                     instagramHandle: result.data.instagram_handle
                 };
                 login(userData, token);
             }
-        } catch(e) {
+        } catch (e) {
             console.error(e);
         }
     }, [token, login]);
@@ -75,6 +76,8 @@ export const Profile = () => {
         const dSuccess = searchParams.get('discord_success');
         const iError = searchParams.get('instagram_error');
         const iSuccess = searchParams.get('instagram_success');
+        const yError = searchParams.get('youtube_error');
+        const ySuccess = searchParams.get('youtube_success');
 
         if (dError) {
             setVerifyError(decodeURIComponent(dError));
@@ -99,13 +102,98 @@ export const Profile = () => {
             searchParams.delete('instagram_success');
             setSearchParams(searchParams);
         }
+        if (yError) {
+            Toast.fire({ title: 'YouTube Link Failed', text: decodeURIComponent(yError), icon: 'error' });
+            searchParams.delete('youtube_error');
+            setSearchParams(searchParams);
+        }
+        if (ySuccess) {
+            Toast.fire({ title: 'Success!', text: 'YouTube channel safely linked.', icon: 'success' });
+            setIsVerifyOpen(true); // Open it so they can see their new connected channel layout!
+            fetchSync();
+            searchParams.delete('youtube_success');
+            setSearchParams(searchParams);
+        }
     }, [searchParams, setSearchParams, fetchSync]);
-    
+
     // Social state
     const [selectedSocial, setSelectedSocial] = useState('');
-    const [socialUser, setSocialUser] = useState('');
+    const { settings } = useAuthStore();
+    const [youtubeUrl, setYoutubeUrl] = useState('');
     const [showCode, setShowCode] = useState(false);
     const [verifyCode] = useState(() => 'CLPNIC-' + Math.random().toString(36).substring(2, 8).toUpperCase());
+
+    const handleManualVerify = async () => {
+        if (!youtubeUrl) {
+            Toast.fire({ title: 'Error', text: 'Please enter your YouTube Handle or URL', icon: 'error' });
+            return;
+        }
+        setIsVerifying(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-youtube`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    handle: youtubeUrl,
+                    code: verifyCode
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            Toast.fire({ title: 'Success', text: 'YouTube channel verified via bio!', icon: 'success' });
+            setShowCode(false);
+            setYoutubeUrl('');
+            fetchSync();
+        } catch (error: any) {
+            setVerifyError(error.message);
+            setIsVerifying(false);
+        }
+    };
+
+    const handleRemoveChannel = async (channelId: string, handle: string) => {
+        const result = await Swal.fire({
+            title: 'Disconnect Channel?',
+            text: `Are you sure you want to remove ${handle}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#3f3f46',
+            confirmButtonText: 'Yes, disconnect',
+            background: '#0c0c0c',
+            color: '#fff'
+        });
+
+        if (result.isConfirmed) {
+            setIsVerifying(true);
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/youtube/${channelId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                Toast.fire({ title: 'Disconnected', text: `${handle} has been removed.`, icon: 'success' });
+                
+                // Close modal if that was the last channel causing them to become unverified
+                if (user?.youtubeChannels?.length === 1) {
+                    setIsVerifyOpen(false);
+                }
+                
+                fetchSync();
+            } catch (error: any) {
+                Toast.fire({ title: 'Error', text: error.message, icon: 'error' });
+            } finally {
+                setIsVerifying(false);
+            }
+        }
+    };
 
     return (
         <>
@@ -123,9 +211,9 @@ export const Profile = () => {
                             {/* Avatar */}
                             <div className="w-20 h-20 rounded-3xl overflow-hidden bg-white/[0.03] border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                                 {user?.avatarUrl ? (
-                                    <img 
-                                        src={user.avatarUrl} 
-                                        alt={user.name || 'User'} 
+                                    <img
+                                        src={user.avatarUrl}
+                                        alt={user.name || 'User'}
                                         referrerPolicy="no-referrer"
                                         className="w-full h-full object-cover"
                                     />
@@ -154,9 +242,9 @@ export const Profile = () => {
                                 <p className="text-white/40 text-lg font-light tracking-tight mt-1">Creator since {memberSince}</p>
                             </div>
                         </div>
-                        <Button 
+                        <Button
                             onClick={() => setIsSettingsOpen(true)}
-                            variant="outline" 
+                            variant="outline"
                             className="rounded-2xl border-white/10 hover:bg-white/5 text-white/70 h-12 px-6 text-sm font-bold uppercase tracking-wider"
                         >
                             Edit Profile
@@ -223,13 +311,13 @@ export const Profile = () => {
                                     </h4>
                                     <p className="text-xs text-white/40">Join our server to confirm your creator identity.</p>
                                 </div>
-                                
+
                                 {user?.discordVerified ? (
                                     <div className="flex items-center gap-2 text-emerald-500 text-sm font-medium px-4">
                                         <ShieldCheck className="w-4 h-4" /> Verified
                                     </div>
                                 ) : (
-                                    <Button variant="secondary" onClick={() => { setVerifyStep(1); setShowCode(false); setIsVerifyOpen(true); }} className="w-full md:w-auto px-8 text-xs hover:bg-white/10 shrink-0">Start Step 1</Button>
+                                    <Button variant="secondary" onClick={() => { setVerifyStep(1); setIsVerifyOpen(true); }} className="w-full md:w-auto px-8 text-xs hover:bg-white/10 shrink-0">Start Step 1</Button>
                                 )}
                             </div>
 
@@ -242,15 +330,15 @@ export const Profile = () => {
                                             Link Socials
                                         </h4>
                                         <p className="text-xs text-white/40 mb-6">Connect your primary platform to unlock paid campaign tracking.</p>
-                                        
+
                                         <div className="flex gap-4">
-                                            <button 
-                                                onClick={() => { setSelectedSocial('youtube'); setVerifyStep(2); setShowCode(false); setIsVerifyOpen(true); }}
+                                            <button
+                                                onClick={() => { setSelectedSocial('youtube'); setVerifyStep(2); setIsVerifyOpen(true); }}
                                                 className="w-14 h-14 rounded-2xl bg-[#FF0000]/10 border border-[#FF0000]/20 flex flex-col items-center justify-center text-[#FF0000] hover:bg-[#FF0000]/20 transition-all shadow-[0_8px_16px_-8px_rgba(255,0,0,0.15)] group/icon"
                                             >
-                                                <svg className="w-6 h-6 group-hover/icon:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                                <svg className="w-6 h-6 group-hover/icon:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => {
                                                     Toast.fire({
                                                         title: 'Coming Soon!',
@@ -260,9 +348,9 @@ export const Profile = () => {
                                                 }}
                                                 className="w-14 h-14 rounded-2xl bg-[#E1306C]/10 border border-[#E1306C]/20 flex flex-col items-center justify-center text-[#E1306C] hover:bg-[#E1306C]/20 transition-all opacity-50 group/icon"
                                             >
-                                                <svg className="w-6 h-6 group-hover/icon:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                                                <svg className="w-6 h-6 group-hover/icon:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => {
                                                     Toast.fire({
                                                         title: 'Coming Soon!',
@@ -272,11 +360,11 @@ export const Profile = () => {
                                                 }}
                                                 className="w-14 h-14 rounded-2xl bg-[#00f2fe]/10 border border-[#00f2fe]/20 flex flex-col items-center justify-center text-[#00f2fe] hover:bg-[#00f2fe]/20 transition-all shadow-[0_8px_16px_-8px_rgba(0,242,254,0.15)] opacity-50 group/icon"
                                             >
-                                                <svg className="w-6 h-6 group-hover/icon:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+                                                <svg className="w-6 h-6 group-hover/icon:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg>
                                             </button>
                                         </div>
                                     </div>
-                                    
+
                                     {user?.youtubeVerified && (
                                         <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-medium px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
                                             <ShieldCheck className="w-3 h-3" /> YouTube: {user.youtubeHandle}
@@ -330,34 +418,34 @@ export const Profile = () => {
             {/* Premium Verification Modal */}
             <AnimatePresence>
                 {isVerifyOpen && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
                     >
-                        <motion.div 
+                        <motion.div
                             initial={{ y: 20, scale: 0.97, opacity: 0 }}
                             animate={{ y: 0, scale: 1, opacity: 1 }}
                             exit={{ y: 20, scale: 0.97, opacity: 0 }}
                             className="bg-[#0D0D0D] border border-white/10 rounded-[32px] p-8 max-w-md w-full relative shadow-[0_32px_64px_-16px_rgba(0,0,0,1)]"
                         >
-                            <button 
+                            <button
                                 onClick={() => setIsVerifyOpen(false)}
                                 className="absolute top-8 right-8 text-white/20 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full"
                             >
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                             </button>
-                            
+
                             {verifyStep === 1 ? (
                                 <div className="space-y-6">
                                     <div className="space-y-2">
                                         <h2 className="text-xl font-bold tracking-tight">Discord Registration</h2>
                                         <p className="text-xs text-white/40 leading-relaxed">Join the official server (`https://discord.gg/rzhvv9Rf42`) and verify your Discord User ID below.</p>
                                     </div>
-                                    
+
                                     <a href="https://discord.gg/rzhvv9Rf42" target="_blank" rel="noreferrer" className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white border-0 rounded-2xl py-4 text-xs font-bold uppercase tracking-[0.1em] flex items-center justify-center gap-2.5 shadow-[0_8px_24px_-4px_rgba(88,101,242,0.4)] transition-all active:scale-[0.98]">
-                                        <svg width="20" height="20" viewBox="0 0 127.14 96.36" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.71,32.65-1.82,56.6.39,80.21a105.73,105.73,0,0,0,32.77,16.15,77.7,77.7,0,0,0,7.07-11.41,6.88,6.88,0,0,0-4.69-3.22,74.81,74.81,0,0,1-10.33-4.9,6.61,6.61,0,0,1-.12-11c.76-.58,1.56-1.11,2.44-1.63a70.84,70.84,0,0,1,34-11,70.06,70.06,0,0,1,34,11c.8.52,1.6,1.05,2.44,1.63a6.61,6.61,0,0,1-.12,11,74.44,74.44,0,0,1-10.33,4.9,6.88,6.88,0,0,0-4.69,3.22,77.7,77.7,0,0,0,7.07,11.41,105.73,105.73,0,0,0,32.77-16.15C129,56.6,124.47,32.65,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5.08-12.69,11.41-12.69S54,46,54,53,48.82,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5.08-12.69,11.44-12.69S96.14,46,96.14,53,91,65.69,84.69,65.69Z"/></svg>
+                                        <svg width="20" height="20" viewBox="0 0 127.14 96.36" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.71,32.65-1.82,56.6.39,80.21a105.73,105.73,0,0,0,32.77,16.15,77.7,77.7,0,0,0,7.07-11.41,6.88,6.88,0,0,0-4.69-3.22,74.81,74.81,0,0,1-10.33-4.9,6.61,6.61,0,0,1-.12-11c.76-.58,1.56-1.11,2.44-1.63a70.84,70.84,0,0,1,34-11,70.06,70.06,0,0,1,34,11c.8.52,1.6,1.05,2.44,1.63a6.61,6.61,0,0,1-.12,11,74.44,74.44,0,0,1-10.33,4.9,6.88,6.88,0,0,0-4.69,3.22,77.7,77.7,0,0,0,7.07,11.41,105.73,105.73,0,0,0,32.77-16.15C129,56.6,124.47,32.65,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5.08-12.69,11.41-12.69S54,46,54,53,48.82,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5.08-12.69,11.44-12.69S96.14,46,96.14,53,91,65.69,84.69,65.69Z" /></svg>
                                         Join Discord
                                     </a>
 
@@ -365,8 +453,8 @@ export const Profile = () => {
                                         {verifyError && (
                                             <p className="text-xs text-red-500 font-medium">{verifyError}</p>
                                         )}
-                                        <Button 
-                                            variant="primary" 
+                                        <Button
+                                            variant="primary"
                                             disabled={isVerifying}
                                             className="w-full rounded-2xl py-4 text-xs font-bold uppercase tracking-widest bg-white text-black hover:bg-white/90 shadow-xl disabled:opacity-50 mt-4"
                                             onClick={async () => {
@@ -382,17 +470,17 @@ export const Profile = () => {
                                                             'Authorization': `Bearer ${token}`
                                                         }
                                                     });
-                                                    
+
                                                     if (!res.ok) {
                                                         // Attempt to parse json failure
                                                         let errText = 'Failed to start verification';
                                                         try {
                                                             const json = await res.json();
                                                             errText = json.error || errText;
-                                                        } catch(e) {}
+                                                        } catch (e) { }
                                                         throw new Error(errText);
                                                     }
-                                                    
+
                                                     const json = await res.json();
                                                     window.location.href = json.url;
                                                 } catch (err: any) {
@@ -407,7 +495,7 @@ export const Profile = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-6">
-                                    {selectedSocial === 'instagram' && user?.instagramVerified && !showCode ? (
+                                    {selectedSocial === 'instagram' && user?.instagramVerified ? (
                                         <div className="space-y-6 flex flex-col items-center justify-center py-4">
                                             <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-500/20">
                                                 <ShieldCheck className="w-8 h-8" />
@@ -420,41 +508,94 @@ export const Profile = () => {
                                             </div>
                                             <div className="w-full pt-4 space-y-3 flex flex-col items-center">
                                                 <Button variant="secondary" className="w-full rounded-2xl py-3 text-xs bg-white/10 hover:bg-white/20" onClick={() => setIsVerifyOpen(false)}>Close</Button>
-                                                <button 
+                                                <button
                                                     onClick={() => {
                                                         setSelectedSocial('');
-                                                        setShowCode(false);
-                                                    }} 
+                                                    }}
                                                     className="text-[10px] text-white/30 uppercase tracking-widest hover:text-white transition-colors pt-2"
                                                 >
                                                     Change Account
                                                 </button>
                                             </div>
                                         </div>
-                                    ) : selectedSocial === 'youtube' && user?.youtubeVerified && !showCode ? (
-                                        <div className="space-y-6 flex flex-col items-center justify-center py-4">
-                                            <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-500/20">
-                                                <ShieldCheck className="w-8 h-8" />
+                                    ) : selectedSocial === 'youtube' && user?.youtubeVerified ? (
+                                        <div className="space-y-6 flex flex-col py-4 w-full">
+                                            <div className="flex flex-col items-center justify-center space-y-4">
+                                                <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-500/20">
+                                                    <ShieldCheck className="w-8 h-8" />
+                                                </div>
+                                                <div className="text-center space-y-2">
+                                                    <h2 className="text-xl font-bold tracking-tight text-white">YouTube Channels Linked</h2>
+                                                </div>
                                             </div>
-                                            <div className="text-center space-y-2">
-                                                <h2 className="text-xl font-bold tracking-tight text-white">YouTube Linked</h2>
-                                                <p className="text-xs text-white/40 leading-relaxed">
-                                                    Connected as <span className="text-white font-mono">{user.youtubeHandle}</span>.
-                                                </p>
-                                                <p className="text-[10px] text-emerald-500/80 font-medium mt-1">Verification complete! You can now remove the code from your bio.</p>
+
+                                            <div className="w-full space-y-3 mt-4 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
+                                                {user?.youtubeChannels && user.youtubeChannels.length > 0 ? (
+                                                    user.youtubeChannels.map((channel: any, idx: number) => (
+                                                        <div key={idx} className="flex justify-between items-center bg-white/5 border border-white/10 p-3 rounded-xl group">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-8 h-8 rounded-full bg-[#FF0000]/20 flex items-center justify-center">
+                                                                    <svg className="w-4 h-4 text-[#FF0000]" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                                                </div>
+                                                                <span className="text-white text-sm font-mono">{channel.handle}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-medium px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                                                                    <ShieldCheck className="w-3 h-3" /> Verified
+                                                                </div>
+                                                                <button 
+                                                                    onClick={() => handleRemoveChannel(channel.channelId, channel.handle)}
+                                                                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all focus:opacity-100"
+                                                                    title="Disconnect Channel"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="flex justify-between items-center bg-white/5 border border-white/10 p-3 rounded-xl group">
+                                                        <span className="text-white text-sm font-mono">{user?.youtubeHandle}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-medium px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                                                                <ShieldCheck className="w-3 h-3" /> Legacy Verified
+                                                            </div>
+                                                            <button 
+                                                                onClick={() => handleRemoveChannel('legacy', user?.youtubeHandle || 'Old Account')}
+                                                                className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all focus:opacity-100"
+                                                                title="Disconnect Legacy Account"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
+
                                             <div className="w-full pt-4 space-y-3 flex flex-col items-center">
-                                                <Button variant="secondary" className="w-full rounded-2xl py-3 text-xs bg-white/10 hover:bg-white/20" onClick={() => setIsVerifyOpen(false)}>Close</Button>
-                                                <button 
-                                                    onClick={() => {
-                                                        setSocialUser('');
-                                                        setShowCode(false);
-                                                        setSelectedSocial('');
-                                                    }} 
-                                                    className="text-[10px] text-white/30 uppercase tracking-widest hover:text-white transition-colors pt-2"
-                                                >
-                                                    Change Channel
-                                                </button>
+                                                <Button
+                                                    disabled={isVerifying}
+                                                    variant="secondary"
+                                                    className="w-full rounded-2xl py-3 text-xs bg-white/10 text-white hover:bg-white/20 flex flex-row items-center justify-center gap-2"
+                                                    onClick={async () => {
+                                                        setIsVerifying(true);
+                                                        setVerifyError('');
+                                                        try {
+                                                            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/youtube`, {
+                                                                headers: { 'Authorization': `Bearer ${token}` }
+                                                            });
+                                                            const json = await res.json();
+                                                            if (!res.ok) throw new Error(json.error);
+                                                            window.location.href = json.url;
+                                                        } catch (err: any) {
+                                                            setVerifyError(err.message === "Failed to fetch" ? "Backend unreachable" : err.message);
+                                                            setIsVerifying(false);
+                                                        }
+                                                    }}>
+                                                    {isVerifying ? <div className="w-3 h-3 rounded-full border-2 border-white/20 border-t-white animate-spin" /> : null}
+                                                    {isVerifying ? 'Redirecting...' : '+ Link Another Channel'}
+                                                </Button>
+                                                <Button variant="secondary" className="w-full rounded-2xl py-3 text-xs bg-transparent border border-white/10 text-white/50 hover:bg-white/5" onClick={() => setIsVerifyOpen(false)}>Close</Button>
                                             </div>
                                         </div>
                                     ) : (
@@ -463,14 +604,13 @@ export const Profile = () => {
                                                 <h2 className="text-xl font-bold tracking-tight">Platform Linkage</h2>
                                                 <p className="text-xs text-white/40 leading-relaxed">Choose your primary content channel for views monitoring.</p>
                                             </div>
-                                            
+
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">Platform</label>
-                                                <select 
+                                                <select
                                                     value={selectedSocial}
                                                     onChange={(e) => {
                                                         setSelectedSocial(e.target.value);
-                                                        setShowCode(false);
                                                     }}
                                                     className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 transition-all appearance-none cursor-pointer"
                                                 >
@@ -483,41 +623,122 @@ export const Profile = () => {
                                         </div>
                                     )}
 
-                                    {selectedSocial === 'youtube' && !showCode && !user?.youtubeVerified && (
-                                        <motion.div 
+                                    {selectedSocial === 'youtube' && !user?.youtubeVerified && (
+                                        <motion.div
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            className="space-y-4 pt-4"
+                                            className="space-y-6 pt-4 flex flex-col items-center w-full"
                                         >
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">YouTube Handle (Not Name)</label>
-                                                <input 
-                                                    type="text" 
-                                                    placeholder="@your_handle"
-                                                    value={socialUser}
-                                                    onChange={(e) => setSocialUser(e.target.value)}
-                                                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 transition-all font-mono" 
-                                                />
-                                                <p className="text-[10px] text-white/20 ml-1">Example: @clipnic_official</p>
+                                            <div className="w-16 h-16 rounded-3xl bg-[#FF0000]/10 flex items-center justify-center text-[#FF0000] border border-[#FF0000]/20 mb-2">
+                                                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122-2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
                                             </div>
-                                            <Button 
-                                                variant="secondary" 
-                                                className="w-full rounded-2xl py-3 text-xs font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/15"
-                                                onClick={() => setShowCode(true)}
+
+                                            {settings?.youtube_auth_mode === 'manual' ? (
+                                                <div className="w-full space-y-6">
+                                                     {!showCode ? (
+                                                        <div className="space-y-4">
+                                                            <div className="text-center space-y-2 mb-4">
+                                                                <h3 className="font-bold text-white uppercase text-[10px] tracking-widest">Manual Verification</h3>
+                                                                <p className="text-xs text-white/40 px-4 leading-relaxed">Enter your channel handle to begin manual verification.</p>
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">YouTube Handle</label>
+                                                                <input 
+                                                                    type="text"
+                                                                    placeholder="@yourhandle"
+                                                                    value={youtubeUrl}
+                                                                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                                                                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 transition-all placeholder:text-white/10"
+                                                                />
+                                                            </div>
+                                                            <Button
+                                                                className="w-full rounded-2xl py-3 text-xs bg-white text-black hover:bg-white/90"
+                                                                onClick={() => {
+                                                                    if (!youtubeUrl) return Toast.fire({ title: 'Error', text: 'Enter handle first', icon: 'error' });
+                                                                    setShowCode(true);
+                                                                }}
+                                                            >
+                                                                Next: Generate Code
+                                                            </Button>
+                                                        </div>
+                                                     ) : (
+                                                        <div className="space-y-4">
+                                                            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center space-y-3">
+                                                                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Add to your channel bio</p>
+                                                                <div className="bg-black/40 border border-white/5 p-3 rounded-xl font-mono text-emerald-500 text-lg tracking-wider">
+                                                                    {verifyCode}
+                                                                </div>
+                                                                <p className="text-[10px] text-white/40 leading-relaxed italic">Add this code anywhere in your channel bio, then click verify.</p>
+                                                            </div>
+                                                            <div className="flex gap-3 pt-2">
+                                                                <Button variant="secondary" className="flex-1 rounded-2xl py-3 text-xs bg-white/10 border border-white/10 hover:bg-white/20" onClick={() => setShowCode(false)}>Back</Button>
+                                                                <Button 
+                                                                    disabled={isVerifying}
+                                                                    className="flex-[2] rounded-2xl py-3 text-xs bg-white text-black hover:bg-white/90" 
+                                                                    onClick={handleManualVerify}
+                                                                >
+                                                                    {isVerifying ? 'Verifying...' : 'Check Bio Now'}
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                     )}
+                                                </div>
+                                            ) : (
+                                                <div className="w-full space-y-6">
+                                                    <div className="text-center space-y-2 mb-4">
+                                                        <p className="text-xs text-white/40 px-4 leading-relaxed">Link your channel instantly and securely through your Google Account.</p>
+                                                    </div>
+                                                    <Button
+                                                        disabled={isVerifying}
+                                                        className="w-full rounded-2xl py-3 text-xs bg-white text-black hover:bg-white/90 flex flex-row items-center justify-center gap-2"
+                                                        onClick={async () => {
+                                                            setIsVerifying(true);
+                                                            setVerifyError('');
+                                                            try {
+                                                                const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/youtube`, {
+                                                                    headers: { 'Authorization': `Bearer ${token}` }
+                                                                });
+                                                                const json = await res.json();
+                                                                if (!res.ok) throw new Error(json.error);
+                                                                window.location.href = json.url;
+                                                            } catch (err: any) {
+                                                                setVerifyError(err.message === "Failed to fetch" ? "Backend unreachable" : err.message);
+                                                                setIsVerifying(false);
+                                                            }
+                                                        }}
+                                                    >
+                                                        {isVerifying ? <div className="w-3 h-3 rounded-full border-2 border-white/20 border-t-white animate-spin" /> : null}
+                                                        {isVerifying ? 'Redirecting...' : 'Link with YouTube'}
+                                                    </Button>
+                                                </div>
+                                            )}
+                                            
+                                            {verifyError && (
+                                                <div className="w-full p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs text-center animate-pulse">
+                                                    {verifyError}
+                                                </div>
+                                            )}
+
+                                            <button 
+                                                onClick={() => {
+                                                    setSelectedSocial('');
+                                                    setShowCode(false);
+                                                }} 
+                                                className="text-[10px] text-white/30 uppercase tracking-widest hover:text-white transition-colors pt-2"
                                             >
-                                                Generate Link Code
-                                            </Button>
+                                                Cancel
+                                            </button>
                                         </motion.div>
                                     )}
 
                                     {selectedSocial === 'instagram' && !user?.instagramVerified && (
-                                        <motion.div 
+                                        <motion.div
                                             initial={{ opacity: 0, scale: 0.95 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             className="space-y-6 pt-6 flex flex-col items-center"
                                         >
                                             <div className="w-16 h-16 rounded-3xl bg-[#E1306C]/10 flex items-center justify-center text-[#E1306C] border border-[#E1306C]/20 mb-2">
-                                                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                                                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                                             </div>
                                             <div className="text-center space-y-2 mb-4">
                                                 <p className="text-xs text-white/40 px-4 leading-relaxed">Identity verification for Instagram uses official secure login to confirm your account handle.</p>
@@ -525,8 +746,8 @@ export const Profile = () => {
                                             {verifyError && (
                                                 <p className="text-xs text-red-500 font-medium text-center mb-2">{verifyError}</p>
                                             )}
-                                            <Button 
-                                                variant="primary" 
+                                            <Button
+                                                variant="primary"
                                                 disabled={isVerifying}
                                                 className="w-full rounded-2xl py-3.5 text-xs font-bold uppercase tracking-widest bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white hover:opacity-90 shadow-[0_12px_24px_-8px_rgba(253,29,29,0.3)] disabled:opacity-50"
                                                 onClick={async () => {
@@ -550,53 +771,6 @@ export const Profile = () => {
                                         </motion.div>
                                     )}
 
-                                    {showCode && (
-                                        <motion.div 
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            className="space-y-4 pt-4"
-                                        >
-                                            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center space-y-3">
-                                                <p className="text-[10px] text-white/40 font-medium leading-relaxed">Place this unique ID in your channel description or bio to prove ownership:</p>
-                                                <div className="relative group">
-                                                    <p className="font-mono text-lg tracking-[0.2em] font-bold text-white bg-black border border-white/20 p-4 rounded-xl selection:bg-white selection:text-black">
-                                                        {verifyCode}
-                                                    </p>
-                                                    <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-xl blur-md" />
-                                                </div>
-                                            </div>
-                                            {verifyError && (
-                                                <p className="text-xs text-red-500 font-medium text-center">{verifyError}</p>
-                                            )}
-                                            <Button 
-                                                variant="primary" 
-                                                disabled={isVerifying}
-                                                className="w-full rounded-2xl py-3 text-xs font-bold uppercase tracking-widest bg-white text-black hover:bg-white/90 shadow-[0_12px_24px_-8px_rgba(255,255,255,0.3)] disabled:opacity-50"
-                                                onClick={async () => {
-                                                    setIsVerifying(true);
-                                                    setVerifyError('');
-                                                    try {
-                                                        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-youtube`, {
-                                                            method: 'POST',
-                                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                                            body: JSON.stringify({ handle: socialUser, code: verifyCode })
-                                                        });
-                                                        const result = await res.json();
-                                                        if (!res.ok) throw new Error(result.error);
-                                                        
-                                                        await fetchSync();
-                                                        setIsVerifyOpen(false);
-                                                    } catch (err: any) {
-                                                        setVerifyError(err.message);
-                                                    } finally {
-                                                        setIsVerifying(false);
-                                                    }
-                                                }}
-                                            >
-                                                {isVerifying ? 'Scanning Profile...' : 'Verify Connection'}
-                                            </Button>
-                                        </motion.div>
-                                    )}
                                 </div>
                             )}
                         </motion.div>
@@ -606,25 +780,25 @@ export const Profile = () => {
             {/* Settings Modal */}
             <AnimatePresence>
                 {isSettingsOpen && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
                     >
-                        <motion.div 
+                        <motion.div
                             initial={{ y: 20, scale: 0.97, opacity: 0 }}
                             animate={{ y: 0, scale: 1, opacity: 1 }}
                             exit={{ y: 20, scale: 0.97, opacity: 0 }}
                             className="bg-[#0D0D0D] border border-white/10 rounded-[32px] p-8 max-w-sm w-full relative shadow-[0_32px_64px_-16px_rgba(0,0,0,1)]"
                         >
-                            <button 
+                            <button
                                 onClick={() => setIsSettingsOpen(false)}
                                 className="absolute top-8 right-8 text-white/20 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full"
                             >
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                             </button>
-                            
+
                             <div className="space-y-6">
                                 <div className="space-y-2 pt-2">
                                     <h2 className="text-xl font-bold tracking-tight">Edit Profile</h2>
@@ -646,8 +820,8 @@ export const Profile = () => {
                                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">Bio</label>
                                         <textarea className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 text-base text-white focus:outline-none focus:border-white/30 transition-all resize-none h-28 font-medium" placeholder="Tell us about your content style..." />
                                     </div>
-                                    <Button 
-                                        variant="primary" 
+                                    <Button
+                                        variant="primary"
                                         onClick={() => setIsSettingsOpen(false)}
                                         className="w-full bg-white text-black hover:bg-white/90 rounded-2xl py-4 text-xs font-bold uppercase tracking-widest shadow-xl"
                                     >

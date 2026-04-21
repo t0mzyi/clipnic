@@ -11,6 +11,7 @@ import { MySubmissions } from './pages/MySubmissions';
 import { Earnings } from './pages/Earnings';
 import { AdminUsers } from './pages/AdminUsers';
 import { AdminUserDetails } from './pages/AdminUserDetails';
+import { AdminSettings } from './pages/AdminSettings';
 import { Login } from './pages/Login';
 import { supabase } from './lib/supabase';
 import { useEffect } from 'react';
@@ -68,6 +69,10 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
                 <Link onClick={closeMenu} to="/admin/users" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/admin/users') ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     Users Mgmt
+                </Link>
+                <Link onClick={closeMenu} to="/admin/settings" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/admin/settings') ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Settings
                 </Link>
             </nav>
 
@@ -130,10 +135,11 @@ const Layout = () => {
                             discordId: result.data.discord_id,
                             youtubeVerified: result.data.youtube_verified,
                             youtubeHandle: result.data.youtube_handle,
+                            youtubeChannels: result.data.youtube_channels,
                             instagramVerified: result.data.instagram_verified,
                             instagramHandle: result.data.instagram_handle
                         };
-                        login(userData, session.access_token);
+                        login(userData, session.access_token, result.settings);
                     }
                 } catch (err) {
                     console.error('Failed to sync with backend:', err);
@@ -225,6 +231,7 @@ const Layout = () => {
                        <Route path="/admin/campaigns" element={<AdminCampaigns />} />
                        <Route path="/admin/users" element={<AdminUsers />} />
                        <Route path="/admin/users/:id" element={<AdminUserDetails />} />
+                       <Route path="/admin/settings" element={<AdminSettings />} />
                      </Routes>
                    </AnimatePresence>
                </div>
