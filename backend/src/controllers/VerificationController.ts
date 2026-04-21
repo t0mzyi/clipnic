@@ -51,7 +51,7 @@ export class VerificationController {
 
       const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-      let tokenRes: Response | null = null;
+      let tokenRes: globalThis.Response | null = null;
       let attempts = 0;
       const maxAttempts = 4;
 
