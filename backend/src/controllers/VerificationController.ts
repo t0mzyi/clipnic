@@ -49,25 +49,47 @@ export class VerificationController {
       // 1. Exchange code for access token
       console.log('Discord OAuth: exchanging code, redirect_uri =', redirectUri);
 
-      const discordTokenRes = await fetch('https://discord.com/api/v10/oauth2/token', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        },
-        body: new URLSearchParams({
-          client_id: clientId,
-          client_secret: clientSecret,
-          grant_type: 'authorization_code',
-          code: code as string,
-          redirect_uri: redirectUri
-        }).toString()
-      });
+      const tokenUrl = process.env.DISCORD_PROXY_URL 
+        ? `${process.env.DISCORD_PROXY_URL}?url=${encodeURIComponent('https://discord.com/api/v10/oauth2/token')}`
+        : 'https://discord.com/api/v10/oauth2/token';
+
+      const fetchToken = async (retryCount = 0): Promise<any> => {
+        const response = await fetch(tokenUrl, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Accept-Language': 'en-US,en;q=0.9',
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            },
+            body: new URLSearchParams({
+              client_id: clientId as string,
+              client_secret: clientSecret as string,
+              grant_type: 'authorization_code',
+              code: code as string,
+              redirect_uri: redirectUri as string
+            }).toString()
+          });
+
+          if (response.status === 429 && retryCount < 1) {
+              const retryAfter = response.headers.get('Retry-After');
+              const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : 2000;
+              if (waitMs <= 5000) { // Only auto-retry if wait is short
+                  console.warn(`Discord rate limited. Retrying after ${waitMs}ms...`);
+                  await new Promise(r => setTimeout(r, waitMs));
+                  return fetchToken(retryCount + 1);
+              }
+          }
+          return response;
+      };
+
+      const discordTokenRes = await fetchToken();
 
       if (discordTokenRes.status === 429) {
         console.warn('Discord rate limited — Render IP is temporarily blocked by Discord.');
-        return res.redirect(`${frontendUrl}/profile?discord_error=${encodeURIComponent('Rate limited by Discord. Please wait 30 minutes and try again.')}`);
+        return res.redirect(`${frontendUrl}/profile?discord_error=${encodeURIComponent('Rate limited by Discord. Please wait a few minutes and try again.')}`);
       }
 
       if (!discordTokenRes.ok) {
