@@ -27,6 +27,39 @@ export class CampaignController {
     try {
       const campaign = await CampaignService.create(req.body);
       res.status(201).json({ success: true, data: campaign });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ success: false, error: error.errors[0]?.message || 'Validation failed' });
+      }
+      next(error);
+    }
+  }
+
+  static async update(req: Request, res: Response, next: NextFunction) {
+    try {
+      const campaign = await CampaignService.update(req.params.id as string, req.body);
+      res.json({ success: true, data: campaign });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ success: false, error: error.errors[0]?.message || 'Validation failed' });
+      }
+      next(error);
+    }
+  }
+
+  static async updateStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      const campaign = await CampaignService.updateStatus(req.params.id as string, req.body.status);
+      res.json({ success: true, data: campaign });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteCampaign(req: Request, res: Response, next: NextFunction) {
+    try {
+      await CampaignService.delete(req.params.id as string);
+      res.json({ success: true, message: 'Campaign deleted' });
     } catch (error) {
       next(error);
     }

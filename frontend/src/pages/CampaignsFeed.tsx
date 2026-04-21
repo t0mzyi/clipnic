@@ -1,176 +1,215 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
+import { useState, useEffect } from 'react';
+import { useAuthStore } from '../store/useAuthStore';
 import { ArrowUpRight, DollarSign, Wallet, TrendingUp } from 'lucide-react';
 
-// Mock data
-const mockCampaigns = [
-  {
-    id: 'c1',
-    title: 'Test Verified',
-    brand: 'GlowRecipe',
-    cpmRate: 0.40,
-    totalBudget: 18134,
-    budgetUsed: 11468.46,
-    status: 'Active',
-    accent: 'emerald',
-  },
-  {
-    id: 'c2',
-    title: 'Test Not Verified',
-    brand: 'Grovemade',
-    cpmRate: 0.55,
-    totalBudget: 5000,
-    budgetUsed: 5000,
-    status: 'Paused',
-    accent: 'amber',
-  },
-  {
-    id: 'c3',
-    title: 'Tech Gadget Review',
-    brand: 'MarquesBrownlee',
-    cpmRate: 1.20,
-    totalBudget: 25000,
-    budgetUsed: 12000,
-    status: 'Active',
-    accent: 'blue',
-  }
+interface Campaign {
+    id: string;
+    title: string;
+    cpm_rate: number;
+    total_budget: number;
+    budget_used: number;
+    banner_url?: string;
+    status: string;
+    is_featured: boolean;
+}
+
+const FALLBACK_BANNERS = [
+    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1612817288484-6f916006741a?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800&auto=format&fit=crop',
 ];
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-};
-
-const bannerImages = [
-  'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1612817288484-6f916006741a?q=80&w=800&auto=format&fit=crop',
-];
-
-// Create a motion version of react-router Link
 const MotionLink = motion.create(Link);
 
 export const CampaignsFeed = () => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -12 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-      className="space-y-10 pb-12"
-    >
-      {/* Featured Banner */}
-      <div className="relative h-[280px] md:h-[400px] rounded-[40px] overflow-hidden border border-white/10 group shadow-2xl">
-        <img 
-            src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2000&auto=format&fit=crop" 
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-            alt="Featured Campaign" 
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-black/20" />
-        <div className="absolute inset-0 flex flex-col justify-end p-10 md:p-14 space-y-5">
-            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-[0.3em] bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full w-fit backdrop-blur-sm">Featured Opportunity</span>
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white max-w-xl leading-[1.1]">Summer Tech Showcase</h2>
-            <p className="text-sm text-white/50 font-light max-w-lg leading-relaxed">High CPM, fast payouts, and premium assets provided.</p>
-            <div className="flex items-center gap-4 pt-2">
-                <Button variant="primary" className="rounded-2xl px-6 py-3 bg-white text-black font-bold uppercase tracking-widest text-[10px] hover:bg-white/90">
-                    Explore Now
-                </Button>
-                <div className="flex items-center gap-2 text-white/40 font-mono text-xs">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    124 Active
+    const { token } = useAuthStore();
+    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchCampaigns = async () => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                if (json.success) setCampaigns(json.data || []);
+            } catch (err) {
+                console.error('Failed to fetch campaigns:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchCampaigns();
+    }, [token]);
+
+    const activeCampaigns = campaigns.filter(c => c.status === 'Active');
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-10 pb-12"
+        >
+            {/* Featured Marquee — Only show campaigns marked as featured */}
+            {!loading && campaigns.filter(c => c.is_featured).length > 0 && (
+                <div className="space-y-6 pt-4">
+                    <div className="flex items-center justify-between px-2">
+                        <h2 className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.3em] flex items-center gap-2">
+                            <TrendingUp className="w-3 h-3" /> Featured Opportunities
+                        </h2>
+                    </div>
+                    
+                    <div className="relative overflow-hidden w-full group">
+                        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#020202] to-transparent z-10 pointer-events-none" />
+                        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#020202] to-transparent z-10 pointer-events-none" />
+                        
+                        <motion.div 
+                            className="flex gap-6 w-max"
+                            animate={{ x: ["0%", "-50%"] }}
+                            transition={{ 
+                                duration: 25, 
+                                ease: "linear", 
+                                repeat: Infinity 
+                            }}
+                        >
+                            {/* Duplicate campaigns for infinite loop */}
+                            {[...campaigns.filter(c => c.is_featured), ...campaigns.filter(c => c.is_featured)].map((c, i) => (
+                                <Link 
+                                    to={`/campaigns/${c.id}`}
+                                    key={`${c.id}-${i}`}
+                                    className="relative w-[320px] md:w-[480px] h-[220px] md:h-[280px] rounded-[32px] overflow-hidden border border-white/10 group/item flex-shrink-0"
+                                >
+                                    <img
+                                        src={c.banner_url || FALLBACK_BANNERS[i % FALLBACK_BANNERS.length]}
+                                        className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover/item:opacity-90 group-hover/item:scale-105 transition-all duration-700"
+                                        alt={c.title}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                                    <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                                        <h3 className="text-xl md:text-2xl font-bold text-white mb-2 leading-tight">{c.title}</h3>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-amber-400 font-mono text-sm">${c.cpm_rate.toFixed(2)} CPM</span>
+                                            <span className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[9px] font-bold text-white/50 uppercase tracking-widest">Featured</span>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </motion.div>
+                    </div>
+                </div>
+            )}
+
+            {/* Section Header */}
+            <div className="flex items-end justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-white/90">All Campaigns</h1>
+                    <p className="text-white/30 text-sm font-light tracking-tight mt-1">Browse and join active marketing opportunities.</p>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] font-bold text-white/30 uppercase tracking-widest">
+                    <TrendingUp className="w-4 h-4" />
+                    {activeCampaigns.length} Available
                 </div>
             </div>
-        </div>
-      </div>
 
-      {/* Section Header */}
-      <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white/90">All Campaigns</h1>
-          <p className="text-white/30 text-sm font-light tracking-tight mt-1">Browse and join active marketing opportunities.</p>
-        </div>
-        <div className="flex items-center gap-2 text-[10px] font-bold text-white/30 uppercase tracking-widest">
-          <TrendingUp className="w-4 h-4" />
-          {mockCampaigns.length} Available
-        </div>
-      </div>
-
-      {/* Campaign Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {mockCampaigns.map((campaign, index) => {
-          const remaining = campaign.totalBudget - campaign.budgetUsed;
-          const progress = (campaign.budgetUsed / campaign.totalBudget) * 100;
-          const isFull = remaining <= 0;
-
-          return (
-            <MotionLink
-              to={`/campaigns/${campaign.id}`}
-              key={campaign.id}
-              layoutId={`card-${campaign.id}`}
-              whileHover={{ y: -4 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="group relative rounded-3xl bg-[#0c0c0c] border border-white/[0.06] hover:border-white/15 transition-all cursor-pointer block overflow-hidden shadow-lg hover:shadow-2xl"
-            >
-              {/* Card Banner */}
-              <div className="h-28 w-full relative overflow-hidden">
-                  <img 
-                      src={bannerImages[index % bannerImages.length]} 
-                      className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-70 group-hover:scale-105 transition-all duration-500" 
-                      alt={campaign.title}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c]/60 to-transparent" />
-                  <div className="absolute top-4 left-4">
-                    <Badge status={campaign.status} />
-                  </div>
-                  <div className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/30 group-hover:text-white/80 group-hover:bg-white/10 transition-all duration-300">
-                    <ArrowUpRight className="w-4 h-4" />
-                  </div>
-              </div>
-
-              <div className="p-5 pt-2 space-y-4">
-                {/* Title */}
-                <div>
-                  <p className="text-[10px] text-white/30 font-semibold uppercase tracking-[0.15em] mb-1">{campaign.brand}</p>
-                  <h3 className="text-lg font-bold leading-tight tracking-tight text-white/90 group-hover:text-white transition-colors">{campaign.title}</h3>
+            {/* Loading */}
+            {loading && (
+                <div className="py-24 flex justify-center">
+                    <div className="w-8 h-8 border-2 border-white/10 border-t-white/40 rounded-full animate-spin" />
                 </div>
+            )}
 
-                {/* Key Metrics - Highlighted */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.04]">
-                    <div className="flex items-center gap-1.5 text-white/30 mb-1">
-                      <DollarSign className="w-3 h-3" />
-                      <span className="text-[9px] font-bold uppercase tracking-widest">CPM</span>
-                    </div>
-                    <span className="font-mono text-lg font-bold text-white">{formatCurrency(campaign.cpmRate)}</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.04]">
-                    <div className="flex items-center gap-1.5 text-white/30 mb-1">
-                      <Wallet className="w-3 h-3" />
-                      <span className="text-[9px] font-bold uppercase tracking-widest">Left</span>
-                    </div>
-                    <span className={`font-mono text-lg font-bold ${isFull ? 'text-red-400' : 'text-emerald-400'}`}>{formatCurrency(remaining)}</span>
-                  </div>
+            {/* Empty state */}
+            {!loading && campaigns.length === 0 && (
+                <div className="py-24 text-center space-y-3">
+                    <p className="text-white/20 text-4xl">📭</p>
+                    <p className="text-white/30 text-sm font-light">No campaigns available right now. Check back soon!</p>
                 </div>
+            )}
 
-                {/* Progress Bar */}
-                <div className="space-y-2">
-                  <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progress}%` }}
-                      transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                      className={`h-full rounded-full ${isFull ? 'bg-red-500' : 'bg-emerald-500/70'}`}
-                    />
-                  </div>
-                  <p className="text-[10px] text-white/20 font-mono text-right">{Math.round(progress)}% filled</p>
+            {/* Campaign Cards */}
+            {!loading && campaigns.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {campaigns.map((campaign, index) => {
+                        const remaining = campaign.total_budget - campaign.budget_used;
+                        const progress = campaign.total_budget > 0 ? (campaign.budget_used / campaign.total_budget) * 100 : 0;
+                        const isFull = remaining <= 0;
+                        const banner = campaign.banner_url || FALLBACK_BANNERS[index % FALLBACK_BANNERS.length];
+
+                        return (
+                            <MotionLink
+                                to={`/campaigns/${campaign.id}`}
+                                key={campaign.id}
+                                layoutId={`card-${campaign.id}`}
+                                whileHover={{ y: -4 }}
+                                whileTap={{ scale: 0.98 }}
+                                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                                className="group relative rounded-3xl bg-[#0c0c0c] border border-white/[0.06] hover:border-white/15 transition-all cursor-pointer block overflow-hidden shadow-lg hover:shadow-2xl"
+                            >
+                                {/* Card Banner */}
+                                <div className="h-28 w-full relative overflow-hidden">
+                                    <img
+                                        src={banner}
+                                        className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-70 group-hover:scale-105 transition-all duration-500"
+                                        alt={campaign.title}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c]/60 to-transparent" />
+                                    <div className="absolute top-4 left-4">
+                                        <Badge status={campaign.status} />
+                                    </div>
+                                    <div className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/30 group-hover:text-white/80 group-hover:bg-white/10 transition-all duration-300">
+                                        <ArrowUpRight className="w-4 h-4" />
+                                    </div>
+                                </div>
+
+                                <div className="p-5 pt-2 space-y-4">
+                                    <div>
+
+                                        <h3 className="text-lg font-bold leading-tight tracking-tight text-white/90 group-hover:text-white transition-colors">{campaign.title}</h3>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.04]">
+                                            <div className="flex items-center gap-1.5 text-white/30 mb-1">
+                                                <DollarSign className="w-3 h-3" />
+                                                <span className="text-[9px] font-bold uppercase tracking-widest">CPM</span>
+                                            </div>
+                                            <span className="font-mono text-lg font-bold text-white">${campaign.cpm_rate.toFixed(2)}</span>
+                                        </div>
+                                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.04]">
+                                            <div className="flex items-center gap-1.5 text-white/30 mb-1">
+                                                <Wallet className="w-3 h-3" />
+                                                <span className="text-[9px] font-bold uppercase tracking-widest">Left</span>
+                                            </div>
+                                            <span className={`font-mono text-lg font-bold ${isFull ? 'text-red-400' : 'text-emerald-400'}`}>
+                                                ${remaining.toFixed(0)}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${Math.min(progress, 100)}%` }}
+                                                transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                                                className={`h-full rounded-full ${isFull ? 'bg-red-500' : 'bg-emerald-500/70'}`}
+                                            />
+                                        </div>
+                                        <p className="text-[10px] text-white/20 font-mono text-right">{Math.round(progress)}% filled</p>
+                                    </div>
+                                </div>
+                            </MotionLink>
+                        );
+                    })}
                 </div>
-              </div>
-            </MotionLink>
-          );
-        })}
-      </div>
-    </motion.div>
-  );
+            )}
+        </motion.div>
+    );
 };

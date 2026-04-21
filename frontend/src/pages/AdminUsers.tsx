@@ -32,6 +32,20 @@ interface User {
     role: 'admin' | 'user';
 }
 
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'bottom-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    background: '#0c0c0c',
+    color: '#fff',
+    didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+    }
+});
+
 export const AdminUsers = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -70,7 +84,8 @@ export const AdminUsers = () => {
             cancelButtonColor: '#27272a',
             confirmButtonText: 'Yes, change it!',
             background: '#0c0c0c',
-            color: '#fff'
+            color: '#fff',
+            customClass: { popup: 'rounded-3xl border border-white/10' }
         });
 
         if (!result.isConfirmed) return;
@@ -88,33 +103,24 @@ export const AdminUsers = () => {
             const json = await res.json();
             if (json.success) {
                 setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
-                Swal.fire({
+                Toast.fire({
                     title: 'Success!',
                     text: `User role updated to ${newRole}.`,
-                    icon: 'success',
-                    background: '#0c0c0c',
-                    color: '#fff',
-                    confirmButtonColor: '#10b981'
+                    icon: 'success'
                 });
             } else {
-                Swal.fire({
+                Toast.fire({
                     title: 'Error!',
                     text: json.error || 'Failed to update user role.',
-                    icon: 'error',
-                    background: '#0c0c0c',
-                    color: '#fff',
-                    confirmButtonColor: '#ef4444'
+                    icon: 'error'
                 });
             }
         } catch (err) {
             console.error('Failed to update role:', err);
-            Swal.fire({
+            Toast.fire({
                 title: 'Error!',
                 text: 'Something went wrong.',
-                icon: 'error',
-                background: '#0c0c0c',
-                color: '#fff',
-                confirmButtonColor: '#ef4444'
+                icon: 'error'
             });
         } finally {
             setActionLoading(null);

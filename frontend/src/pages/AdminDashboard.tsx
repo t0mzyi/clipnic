@@ -65,7 +65,7 @@ export const AdminDashboard = () => {
                         <h3 className="text-lg font-medium tracking-tight text-white/90">Daily Budget Burn</h3>
                     </div>
                     <div className="flex-1 w-full h-full min-h-0 relative -ml-4 focus-within:z-10">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                             <BarChart data={mockBurnRate}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                                 <XAxis 

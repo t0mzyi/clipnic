@@ -13,6 +13,7 @@ interface User {
   instagramVerified?: boolean;
   instagramHandle?: string;
   bio?: string;
+  created_at?: string;
 }
 
 interface AuthState {

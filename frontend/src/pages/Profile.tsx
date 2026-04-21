@@ -6,10 +6,27 @@ import { useAuthStore } from '../store/useAuthStore';
 import { useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'bottom-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    background: '#0c0c0c',
+    color: '#fff',
+    didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+    }
+});
+
 export const Profile = () => {
     const { user, token, login } = useAuthStore();
     
-    // Mock user stats (to be connected in later modules)
+    // Member since date
+    const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'April 2024';
+
+    // Mock user stats
     const stats = {
         totalClips: '0',
         totalViews: '0',
@@ -58,29 +75,29 @@ export const Profile = () => {
         const dSuccess = searchParams.get('discord_success');
         const iError = searchParams.get('instagram_error');
         const iSuccess = searchParams.get('instagram_success');
-        
+
         if (dError) {
-            setVerifyError(`Discord Error: ${dError.replace(/_/g, ' ')}`);
-            setIsVerifyOpen(true);
-            setVerifyStep(1);
-            setSearchParams({}, { replace: true });
-        } else if (dSuccess) {
-            fetchSync(); 
-            setIsVerifyOpen(true);
-            setVerifyStep(2);
-            setSearchParams({}, { replace: true });
-        } else if (iError) {
-            setVerifyError(`Instagram Error: ${iError.replace(/_/g, ' ')}`);
-            setIsVerifyOpen(true);
-            setVerifyStep(2);
-            setSelectedSocial('instagram');
-            setSearchParams({}, { replace: true });
-        } else if (iSuccess) {
+            setVerifyError(decodeURIComponent(dError));
+            Toast.fire({ title: 'Discord Error', text: decodeURIComponent(dError), icon: 'error' });
+            searchParams.delete('discord_error');
+            setSearchParams(searchParams);
+        }
+        if (dSuccess) {
+            Toast.fire({ title: 'Success!', text: 'Discord account linked successfully.', icon: 'success' });
             fetchSync();
-            setIsVerifyOpen(true);
-            setVerifyStep(2);
-            setSelectedSocial('instagram');
-            setSearchParams({}, { replace: true });
+            searchParams.delete('discord_success');
+            setSearchParams(searchParams);
+        }
+        if (iError) {
+            Toast.fire({ title: 'Instagram Error', text: decodeURIComponent(iError), icon: 'error' });
+            searchParams.delete('instagram_error');
+            setSearchParams(searchParams);
+        }
+        if (iSuccess) {
+            Toast.fire({ title: 'Success!', text: 'Instagram account linked successfully.', icon: 'success' });
+            fetchSync();
+            searchParams.delete('instagram_success');
+            setSearchParams(searchParams);
         }
     }, [searchParams, setSearchParams, fetchSync]);
     
@@ -134,7 +151,7 @@ export const Profile = () => {
                                         </div>
                                     )}
                                 </div>
-                                <p className="text-white/40 text-lg font-light tracking-tight mt-1">Manage identity and payouts.</p>
+                                <p className="text-white/40 text-lg font-light tracking-tight mt-1">Creator since {memberSince}</p>
                             </div>
                         </div>
                         <Button 
@@ -235,13 +252,10 @@ export const Profile = () => {
                                             </button>
                                             <button 
                                                 onClick={() => {
-                                                    Swal.fire({
+                                                    Toast.fire({
                                                         title: 'Coming Soon!',
                                                         text: 'Instagram integration will be available shortly.',
-                                                        icon: 'info',
-                                                        background: '#0c0c0c',
-                                                        color: '#fff',
-                                                        confirmButtonColor: '#E1306C'
+                                                        icon: 'info'
                                                     });
                                                 }}
                                                 className="w-14 h-14 rounded-2xl bg-[#E1306C]/10 border border-[#E1306C]/20 flex flex-col items-center justify-center text-[#E1306C] hover:bg-[#E1306C]/20 transition-all opacity-50 group/icon"
@@ -250,13 +264,10 @@ export const Profile = () => {
                                             </button>
                                             <button 
                                                 onClick={() => {
-                                                    Swal.fire({
+                                                    Toast.fire({
                                                         title: 'Coming Soon!',
                                                         text: 'TikTok integration will be available shortly.',
-                                                        icon: 'info',
-                                                        background: '#0c0c0c',
-                                                        color: '#fff',
-                                                        confirmButtonColor: '#00f2fe'
+                                                        icon: 'info'
                                                     });
                                                 }}
                                                 className="w-14 h-14 rounded-2xl bg-[#00f2fe]/10 border border-[#00f2fe]/20 flex flex-col items-center justify-center text-[#00f2fe] hover:bg-[#00f2fe]/20 transition-all shadow-[0_8px_16px_-8px_rgba(0,242,254,0.15)] opacity-50 group/icon"

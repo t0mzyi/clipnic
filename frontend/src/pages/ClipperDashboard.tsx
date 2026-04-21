@@ -99,7 +99,7 @@ export const ClipperDashboard = () => {
                     </div>
                 </div>
                 <div className="flex-1 w-full min-h-0 -ml-4">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minHeight={250}>
                         <AreaChart data={mockViewData}>
                             <defs>
                                 <linearGradient id="colorViewsDashboard" x1="0" y1="0" x2="0" y2="1">
