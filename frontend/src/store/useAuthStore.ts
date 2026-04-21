@@ -6,6 +6,13 @@ interface User {
   role: 'admin' | 'user';
   name?: string;
   avatarUrl?: string;
+  discordVerified?: boolean;
+  discordId?: string;
+  youtubeVerified?: boolean;
+  youtubeHandle?: string;
+  instagramVerified?: boolean;
+  instagramHandle?: string;
+  bio?: string;
 }
 
 interface AuthState {

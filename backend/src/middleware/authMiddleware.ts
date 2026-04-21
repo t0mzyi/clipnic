@@ -27,6 +27,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     }
 
     // Map Supabase user to our request object
+    // Map Supabase user to our request object
     req.user = {
       id: user.id,
       email: user.email,
@@ -36,6 +37,20 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture,
       role: (user.user_metadata?.role as string) || 'user'
     };
+
+    // Check if the user is blocked
+    const { data: blockData, error: blockError } = await supabase
+      .from('users')
+      .select('is_blocked')
+      .eq('id', user.id)
+      .single();
+    if (blockError) {
+      console.error('Block status fetch error:', blockError);
+      return res.status(500).json({ success: false, error: 'Failed to verify user status', code: 500 });
+    }
+    if (blockData?.is_blocked) {
+      return res.status(403).json({ success: false, error: 'Your account is blocked', code: 403 });
+    }
     
     next();
   } catch (error) {

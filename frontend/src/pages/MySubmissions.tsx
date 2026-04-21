@@ -87,15 +87,52 @@ export const MySubmissions = () => {
                     </div>
                 </div>
 
-                <div className="mt-10 py-20 text-center border-t border-white/[0.03] flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center text-white/10 mb-5">
-                        <Inbox className="w-8 h-8" />
-                    </div>
-                    <h3 className="text-xl font-medium text-white/80 mb-2">No submissions yet</h3>
-                    <p className="text-base text-white/30 mb-8 max-w-[300px] mx-auto">Upload content links to active campaigns to start earning.</p>
-                    <Button variant="outline" className="border-white/10 hover:bg-white/5 rounded-2xl text-xs px-8 py-3.5 uppercase font-bold tracking-widest">
-                        Explore Campaigns
-                    </Button>
+                <div className="mt-10 overflow-x-auto">
+                    <table className="w-full text-left border-separate border-spacing-y-4">
+                        <thead>
+                            <tr className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] px-4">
+                                <th className="pb-4 pl-6">Campaign</th>
+                                <th className="pb-4">Status</th>
+                                <th className="pb-4">Views</th>
+                                <th className="pb-4">Earnings</th>
+                                <th className="pb-4">Date</th>
+                                <th className="pb-4 pr-6 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="space-y-4">
+                            {[
+                                { id: 1, campaign: 'Cyberpunk Challenge', status: 'Approved', views: '45.2K', earnings: '$120.40', date: '2024-04-18', color: 'text-emerald-500' },
+                                { id: 2, campaign: 'Retro Gaming Mods', status: 'Pending', views: '12.8K', earnings: '$32.10', date: '2024-04-19', color: 'text-amber-500' },
+                                { id: 3, campaign: 'Tech Review 2024', status: 'Rejected', views: '0', earnings: '$0.00', date: '2024-04-15', color: 'text-red-500' },
+                                { id: 4, campaign: 'Crypto Analysis', status: 'Approved', views: '112.5K', earnings: '$450.00', date: '2024-04-10', color: 'text-emerald-500' },
+                            ].map((sub) => (
+                                <tr key={sub.id} className="group bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all duration-300">
+                                    <td className="py-5 pl-6 rounded-l-2xl border-y border-l border-white/[0.05]">
+                                        <p className="text-sm font-medium text-white/90">{sub.campaign}</p>
+                                    </td>
+                                    <td className="py-5 border-y border-white/[0.05]">
+                                        <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 ${sub.color}`}>
+                                            {sub.status}
+                                        </span>
+                                    </td>
+                                    <td className="py-5 border-y border-white/[0.05] font-mono text-sm text-white/60">
+                                        {sub.views}
+                                    </td>
+                                    <td className="py-5 border-y border-white/[0.05] font-mono text-sm font-bold text-white/90">
+                                        {sub.earnings}
+                                    </td>
+                                    <td className="py-5 border-y border-white/[0.05] text-[11px] text-white/30 font-medium">
+                                        {sub.date}
+                                    </td>
+                                    <td className="py-5 pr-6 rounded-r-2xl border-y border-r border-white/[0.05] text-right">
+                                        <button className="text-[10px] font-bold text-white/30 uppercase tracking-widest hover:text-white transition-colors">
+                                            View Details
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </motion.div>

@@ -49,13 +49,40 @@ export const CampaignsFeed = () => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-      className="space-y-6 pb-12"
+      className="space-y-10 pb-12"
     >
+      {/* Featured Banner */}
+      <div className="relative h-[300px] md:h-[450px] rounded-[48px] overflow-hidden border border-white/10 group shadow-2xl">
+        <img 
+            src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2000&auto=format&fit=crop" 
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+            alt="Featured Campaign" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent" />
+        <div className="absolute inset-0 flex flex-col justify-center p-12 md:p-16 space-y-6">
+            <div className="space-y-2">
+                <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.4em] bg-white/5 border border-white/10 px-3 py-1 rounded-full backdrop-blur-sm">Featured Opportunity</span>
+                <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-white max-w-xl">Brand New: Summer Tech Showcase</h2>
+            </div>
+            <p className="text-lg text-white/60 font-light max-w-lg leading-relaxed">Join the world's leading brands in the ultimate clipper challenge. High CPM, fast payouts, and premium assets provided.</p>
+            <div className="flex items-center gap-4">
+                <Button variant="primary" className="rounded-2xl px-8 py-4 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-white/90">
+                    Explore Now
+                </Button>
+                <div className="flex items-center gap-2 text-white/40 font-mono text-xs">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    124 Clippers Active
+                </div>
+            </div>
+        </div>
+      </div>
+
       <div className="pb-6 border-b border-white/[0.08] relative">
         <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-24 bg-white/[0.02] blur-[80px] pointer-events-none rounded-full" />
-        <h1 className="text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/50 relative z-10">Active Campaigns</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/50 relative z-10">All Campaigns</h1>
         <p className="text-white/40 text-lg font-light tracking-tight mt-1.5 relative z-10">Discover marketing opportunities.</p>
       </div>
+
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {mockCampaigns.map((campaign) => (
