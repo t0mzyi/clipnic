@@ -47,15 +47,17 @@ export class VerificationController {
       }
 
       // 1. Exchange code for access token
+      console.log('Discord OAuth: exchanging code, redirect_uri =', redirectUri);
       const tokenRes = await fetch('https://discord.com/api/v10/oauth2/token', {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/x-www-form-urlencoded',
             'Accept': 'application/json',
-            'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         },
         body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
           grant_type: 'authorization_code',
           code: code as string,
           redirect_uri: redirectUri
@@ -63,22 +65,14 @@ export class VerificationController {
       });
 
       if (!tokenRes.ok) {
+        const errorText = await tokenRes.text();
+        console.error('Discord Token Error:', tokenRes.status, errorText);
         let errStr = 'token_exchange_failed';
         try {
-            const errorText = await tokenRes.text();
-            console.error('Discord Token Error Raw:', errorText);
-            try {
-                const errJson = JSON.parse(errorText);
-                if (errJson.error_description) {
-                    errStr = encodeURIComponent(errJson.error_description);
-                } else if (errJson.error) {
-                    errStr = encodeURIComponent(errJson.error);
-                }
-            } catch (jsonErr) {
-                errStr = encodeURIComponent(errorText.slice(0, 100));
-            }
+            const errJson = JSON.parse(errorText);
+            errStr = encodeURIComponent(errJson.error_description || errJson.error || 'token_exchange_failed');
         } catch (e) {
-            console.error('Failed to read Discord error body:', e);
+            errStr = encodeURIComponent(errorText.slice(0, 200));
         }
         return res.redirect(`${frontendUrl}/profile?discord_error=${errStr}`);
       }
