@@ -13,6 +13,10 @@ router.get('/users/:id', AdminController.getUser);
 router.patch('/users/:id/block', AdminController.toggleBlock);
 router.patch('/users/:id/role', AdminController.updateUserRole);
 
+// Submission management
+router.get('/submissions', AdminController.getAllSubmissions);
+router.patch('/submissions/:id/status', AdminController.updateSubmissionStatus);
+
 // Global settings
 router.patch('/settings', SettingsController.updateSetting);
 

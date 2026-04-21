@@ -241,4 +241,30 @@ export class SubmissionService {
 
     return Object.values(aggregated).sort((a: any, b: any) => b.views - a.views);
   }
+
+  static async adminGetAllSubmissions() {
+    const { data, error } = await supabase
+      .from('submissions')
+      .select(`
+         *,
+         campaigns (title, cpm_rate),
+         users (name, avatar_url, email)
+      `)
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
+    return data;
+  }
+
+  static async adminUpdateStatus(submissionId: string, status: string) {
+    const { data, error } = await supabase
+      .from('submissions')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', submissionId)
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return data;
+  }
 }

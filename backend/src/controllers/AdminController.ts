@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
+import { SubmissionService } from '../services/SubmissionService';
 
 export class AdminController {
   /**
@@ -91,6 +91,32 @@ export class AdminController {
     } catch (error) {
       next(error);
     }
+  }
+
+  /**
+   * GET /admin/submissions
+   */
+  static async getAllSubmissions(req: Request, res: Response, next: NextFunction) {
+      try {
+          const data = await SubmissionService.adminGetAllSubmissions();
+          res.json({ success: true, data });
+      } catch (error) {
+          next(error);
+      }
+  }
+
+  /**
+   * PATCH /admin/submissions/:id/status
+   */
+  static async updateSubmissionStatus(req: Request, res: Response, next: NextFunction) {
+      try {
+          const { id } = req.params;
+          const { status } = req.body as { status: string };
+          const data = await SubmissionService.adminUpdateStatus(id, status);
+          res.json({ success: true, data });
+      } catch (error) {
+          next(error);
+      }
   }
 }
 

@@ -12,6 +12,7 @@ import { Earnings } from './pages/Earnings';
 import { AdminUsers } from './pages/AdminUsers';
 import { AdminUserDetails } from './pages/AdminUserDetails';
 import { AdminSettings } from './pages/AdminSettings';
+import { AdminSubmissions } from './pages/AdminSubmissions';
 import { Login } from './pages/Login';
 import { supabase } from './lib/supabase';
 import { useEffect } from 'react';
@@ -65,6 +66,10 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
                 <Link onClick={closeMenu} to="/admin/campaigns" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/admin/campaigns') ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
                     Campaigns Mgmt
+                </Link>
+                <Link onClick={closeMenu} to="/admin/submissions" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/admin/submissions') ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    Submissions Mgmt
                 </Link>
                 <Link onClick={closeMenu} to="/admin/users" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/admin/users') ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -229,6 +234,7 @@ const Layout = () => {
                        <Route path="/profile" element={<Profile />} />
                        <Route path="/admin" element={<AdminDashboard />} />
                        <Route path="/admin/campaigns" element={<AdminCampaigns />} />
+                       <Route path="/admin/submissions" element={<AdminSubmissions />} />
                        <Route path="/admin/users" element={<AdminUsers />} />
                        <Route path="/admin/users/:id" element={<AdminUserDetails />} />
                        <Route path="/admin/settings" element={<AdminSettings />} />
