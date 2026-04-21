@@ -47,15 +47,15 @@ export class VerificationController {
       }
 
       // 1. Exchange code for access token
-      const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
+      const tokenRes = await fetch('https://discord.com/api/v10/oauth2/token', {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'ClipNic-Backend/1.1.0' 
+            'Accept': 'application/json',
+            'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         },
         body: new URLSearchParams({
-          client_id: clientId,
-          client_secret: clientSecret,
           grant_type: 'authorization_code',
           code: code as string,
           redirect_uri: redirectUri
