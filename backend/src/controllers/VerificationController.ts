@@ -37,17 +37,6 @@ export class VerificationController {
       }
 
       const userId = decodeURIComponent(state as string);
-      const clientId = process.env.DISCORD_CLIENT_ID;
-      const clientSecret = process.env.DISCORD_CLIENT_SECRET;
-      const redirectUri = process.env.DISCORD_REDIRECT_URI;
-
-      if (!clientId || !clientSecret || !redirectUri) {
-        console.error('Missing Discord credentials:', { clientId: !!clientId, clientSecret: !!clientSecret, redirectUri: !!redirectUri });
-        return res.redirect(`${frontendUrl}/profile?discord_error=${encodeURIComponent('Backend is missing DISCORD_CLIENT_ID or SECRET')}`);
-      }
-
-      // 1. Exchange code for access token
-      console.log('Discord OAuth: exchanging code, redirect_uri =', redirectUri);
 
       const tokenUrl = process.env.DISCORD_PROXY_URL 
         ? `${process.env.DISCORD_PROXY_URL}?url=${encodeURIComponent('https://discord.com/api/v10/oauth2/token')}`
@@ -128,8 +117,6 @@ export class VerificationController {
       });
 
       if (!userGuildsRes.ok) {
-        const errText = await userGuildsRes.text();
-        console.error(`Failed to fetch user guilds: ${userGuildsRes.status} - ${errText}`);
         return res.redirect(`${frontendUrl}/profile?discord_error=failed_to_fetch_guilds`);
       }
 
