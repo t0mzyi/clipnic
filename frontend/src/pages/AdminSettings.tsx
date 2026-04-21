@@ -7,7 +7,7 @@ import Swal from 'sweetalert2';
 export const AdminSettings = () => {
     const { token, settings, setSettings } = useAuthStore();
     const [isSaving, setIsSaving] = useState(false);
-    
+
     // Auth mode local state
     const [ytAuthMode, setYtAuthMode] = useState<'oauth' | 'manual'>(
         settings?.youtube_auth_mode || 'oauth'
@@ -39,7 +39,7 @@ export const AdminSettings = () => {
 
             setSettings({ youtube_auth_mode: newMode });
             setYtAuthMode(newMode);
-            
+
             Swal.fire({
                 title: 'Settings Saved',
                 text: `Mode: ${newMode.toUpperCase()}`,
@@ -71,7 +71,7 @@ export const AdminSettings = () => {
             </header>
 
             <div className="grid grid-cols-1 gap-6">
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="p-6 rounded-[32px] bg-white/[0.03] border border-white/10 flex flex-col gap-6 shadow-xl relative overflow-hidden"
@@ -87,14 +87,13 @@ export const AdminSettings = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 relative z-10">
-                        <button 
+                        <button
                             disabled={isSaving}
                             onClick={() => handleSave('oauth')}
-                            className={`px-6 py-5 rounded-2xl border transition-all duration-300 flex items-center justify-between group/btn h-full ${
-                                ytAuthMode === 'oauth' 
-                                ? 'bg-[#FF0000]/5 border-[#FF0000]/40 text-white' 
-                                : 'bg-white/[0.01] border-white/5 text-white/30 hover:border-white/10'
-                            }`}
+                            className={`px-6 py-5 rounded-2xl border transition-all duration-300 flex items-center justify-between group/btn h-full ${ytAuthMode === 'oauth'
+                                    ? 'bg-[#FF0000]/5 border-[#FF0000]/40 text-white'
+                                    : 'bg-white/[0.01] border-white/5 text-white/30 hover:border-white/10'
+                                }`}
                         >
                             <div className="flex flex-col gap-0.5 text-left">
                                 <span className="font-bold text-sm tracking-tight">1-Click (OAuth)</span>
@@ -105,14 +104,13 @@ export const AdminSettings = () => {
                             </div>
                         </button>
 
-                        <button 
+                        <button
                             disabled={isSaving}
                             onClick={() => handleSave('manual')}
-                            className={`px-6 py-5 rounded-2xl border transition-all duration-300 flex items-center justify-between group/btn h-full ${
-                                ytAuthMode === 'manual' 
-                                ? 'bg-white/5 border-white/40 text-white' 
-                                : 'bg-white/[0.01] border-white/5 text-white/30 hover:border-white/10'
-                            }`}
+                            className={`px-6 py-5 rounded-2xl border transition-all duration-300 flex items-center justify-between group/btn h-full ${ytAuthMode === 'manual'
+                                    ? 'bg-white/5 border-white/40 text-white'
+                                    : 'bg-white/[0.01] border-white/5 text-white/30 hover:border-white/10'
+                                }`}
                         >
                             <div className="flex flex-col gap-0.5 text-left">
                                 <span className="font-bold text-sm tracking-tight">Manual Scraping</span>
@@ -124,10 +122,7 @@ export const AdminSettings = () => {
                         </button>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-white/20 text-[9px] leading-relaxed flex gap-3 italic items-center relative z-10 uppercase tracking-widest">
-                        <RefreshCw className={`w-3 h-3 ${isSaving ? 'animate-spin' : ''}`} />
-                        Settings propagate instantly to all users.
-                    </div>
+
                 </motion.div>
             </div>
         </div>

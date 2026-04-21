@@ -15,6 +15,7 @@ router.get('/discord/callback', VerificationController.discordCallback);
 router.get('/youtube', authenticate, VerificationController.youtubeGoogleAuth);
 router.get('/youtube/callback', VerificationController.youtubeGoogleCallback);
 router.post('/verify-youtube', authenticate, VerificationController.verifyYoutube);
+router.post('/verify-instagram', authenticate, VerificationController.verifyInstagram);
 router.delete('/youtube/:channelId', authenticate, VerificationController.disconnectYoutubeChannel);
 
 // Global Settings

@@ -120,6 +120,7 @@ export const Profile = () => {
     const [selectedSocial, setSelectedSocial] = useState('');
     const { settings } = useAuthStore();
     const [youtubeUrl, setYoutubeUrl] = useState('');
+    const [instagramHandle, setInstagramHandle] = useState('');
     const [showCode, setShowCode] = useState(false);
     const [verifyCode] = useState(() => 'CLPNIC-' + Math.random().toString(36).substring(2, 8).toUpperCase());
 
@@ -151,6 +152,38 @@ export const Profile = () => {
             fetchSync();
         } catch (error: any) {
             setVerifyError(error.message);
+            setIsVerifying(false);
+        }
+    };
+
+    const handleManualInstagramVerify = async () => {
+        if (!instagramHandle) {
+            Toast.fire({ title: 'Error', text: 'Please enter your Instagram handle', icon: 'error' });
+            return;
+        }
+        setIsVerifying(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-instagram`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    handle: instagramHandle
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            Toast.fire({ title: 'Success', text: 'Instagram account verified!', icon: 'success' });
+            setShowCode(false);
+            setInstagramHandle('');
+            fetchSync();
+        } catch (err: any) {
+            Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
+        } finally {
             setIsVerifying(false);
         }
     };
@@ -339,14 +372,8 @@ export const Profile = () => {
                                                 <svg className="w-6 h-6 group-hover/icon:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
                                             </button>
                                             <button
-                                                onClick={() => {
-                                                    Toast.fire({
-                                                        title: 'Coming Soon!',
-                                                        text: 'Instagram integration will be available shortly.',
-                                                        icon: 'info'
-                                                    });
-                                                }}
-                                                className="w-14 h-14 rounded-2xl bg-[#E1306C]/10 border border-[#E1306C]/20 flex flex-col items-center justify-center text-[#E1306C] hover:bg-[#E1306C]/20 transition-all opacity-50 group/icon"
+                                                onClick={() => { setSelectedSocial('instagram'); setVerifyStep(2); setIsVerifyOpen(true); }}
+                                                className="w-14 h-14 rounded-2xl bg-[#E1306C]/10 border border-[#E1306C]/20 flex flex-col items-center justify-center text-[#E1306C] hover:bg-[#E1306C]/20 transition-all group/icon shadow-[0_8px_16px_-8px_rgba(225,48,108,0.15)]"
                                             >
                                                 <svg className="w-6 h-6 group-hover/icon:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                                             </button>
@@ -735,39 +762,46 @@ export const Profile = () => {
                                         <motion.div
                                             initial={{ opacity: 0, scale: 0.95 }}
                                             animate={{ opacity: 1, scale: 1 }}
-                                            className="space-y-6 pt-6 flex flex-col items-center"
+                                            className="space-y-6 pt-6 flex flex-col items-center w-full"
                                         >
                                             <div className="w-16 h-16 rounded-3xl bg-[#E1306C]/10 flex items-center justify-center text-[#E1306C] border border-[#E1306C]/20 mb-2">
                                                 <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                                             </div>
-                                            <div className="text-center space-y-2 mb-4">
-                                                <p className="text-xs text-white/40 px-4 leading-relaxed">Identity verification for Instagram uses official secure login to confirm your account handle.</p>
+
+                                            <div className="w-full space-y-4">
+                                                <div className="text-center space-y-2 mb-4">
+                                                    <h3 className="font-bold text-white uppercase text-[10px] tracking-widest">Link Instagram</h3>
+                                                    <p className="text-xs text-white/40 px-4 leading-relaxed">Enter your Instagram handle to link your account.</p>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">Instagram Handle</label>
+                                                    <input 
+                                                        type="text"
+                                                        placeholder="@yourhandle"
+                                                        value={instagramHandle}
+                                                        onChange={(e) => setInstagramHandle(e.target.value)}
+                                                        className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 transition-all placeholder:text-white/10"
+                                                    />
+                                                </div>
+                                                <Button
+                                                    disabled={isVerifying}
+                                                    className="w-full rounded-2xl py-3 text-xs bg-white text-black hover:bg-white/90 flex items-center justify-center gap-2"
+                                                    onClick={handleManualInstagramVerify}
+                                                >
+                                                    {isVerifying && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
+                                                    {isVerifying ? 'Linking...' : 'Link Account'}
+                                                </Button>
                                             </div>
-                                            {verifyError && (
-                                                <p className="text-xs text-red-500 font-medium text-center mb-2">{verifyError}</p>
-                                            )}
-                                            <Button
-                                                variant="primary"
-                                                disabled={isVerifying}
-                                                className="w-full rounded-2xl py-3.5 text-xs font-bold uppercase tracking-widest bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white hover:opacity-90 shadow-[0_12px_24px_-8px_rgba(253,29,29,0.3)] disabled:opacity-50"
-                                                onClick={async () => {
-                                                    setIsVerifying(true);
-                                                    setVerifyError('');
-                                                    try {
-                                                        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/instagram`, {
-                                                            headers: { 'Authorization': `Bearer ${token}` }
-                                                        });
-                                                        const json = await res.json();
-                                                        if (!res.ok) throw new Error(json.error);
-                                                        window.location.href = json.url;
-                                                    } catch (err: any) {
-                                                        setVerifyError(err.message === "Failed to fetch" ? "Backend unreachable" : err.message);
-                                                        setIsVerifying(false);
-                                                    }
-                                                }}
+
+                                            <button 
+                                                onClick={() => {
+                                                    setSelectedSocial('');
+                                                    setShowCode(false);
+                                                }} 
+                                                className="text-[10px] text-white/30 uppercase tracking-widest hover:text-white transition-colors pt-2"
                                             >
-                                                {isVerifying ? 'Redirecting...' : 'Link with Instagram'}
-                                            </Button>
+                                                Cancel
+                                            </button>
                                         </motion.div>
                                     )}
 

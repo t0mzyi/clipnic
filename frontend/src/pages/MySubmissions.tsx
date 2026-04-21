@@ -179,8 +179,17 @@ export const MySubmissions = () => {
                             ) : submissions.map((sub) => (
                                 <tr key={sub.id} className="group bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all duration-300">
                                     <td className="py-5 pl-6 rounded-l-2xl border-y border-l border-white/[0.05]">
-                                        <p className="text-sm font-medium text-white/90">{sub.campaigns?.title || 'Unknown Campaign'}</p>
-                                        <p className="text-[10px] text-white/30 mt-0.5 truncate max-w-[200px]">{sub.url}</p>
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-xl bg-white/5 border border-white/5 ${sub.platform === 'youtube' ? 'text-red-500' : sub.platform === 'instagram' ? 'text-pink-500' : 'text-cyan-400'}`}>
+                                                {sub.platform === 'youtube' && <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>}
+                                                {sub.platform === 'instagram' && <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>}
+                                                {sub.platform === 'tiktok' && <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-white/90">{sub.campaigns?.title || 'Unknown Campaign'}</p>
+                                                <p className="text-[10px] text-white/30 mt-0.5 truncate max-w-[200px]">{sub.url}</p>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td className="py-5 border-y border-white/[0.05]">
                                         <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 ${sub.status === 'Verified' ? 'text-emerald-500' : sub.status === 'Pending' ? 'text-amber-500' : 'text-red-500'}`}>

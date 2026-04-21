@@ -509,4 +509,54 @@ export class VerificationController {
       next(error);
     }
   }
+
+  /**
+   * Links an Instagram account to the user's profile.
+   * Uses a claim-based system with duplicate protection since Instagram
+   * pages are fully JS-rendered and bio scraping is not feasible server-side.
+   */
+  static async verifyInstagram(req: any, res: Response, next: NextFunction) {
+    try {
+      const { id: userId } = req.user;
+      let { handle } = req.body;
+
+      if (!handle) {
+        return res.status(400).json({ success: false, error: 'Instagram handle is required.' });
+      }
+
+      // Cleanup handle
+      handle = handle.trim().replace(/^@/, '').toLowerCase();
+      
+      if (handle.length < 1 || handle.length > 30) {
+        return res.status(400).json({ success: false, error: 'Invalid Instagram handle.' });
+      }
+
+      // 1. DUPLICATE CHECK: Prevent two users from claiming same handle
+      const { data: duplicateUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('instagram_handle', `@${handle}`)
+        .neq('id', userId)
+        .maybeSingle();
+      
+      if (duplicateUser) {
+        return res.status(400).json({ success: false, error: 'This Instagram account is already linked to another user.' });
+      }
+
+      // 2. Update Database
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+            instagram_verified: true, 
+            instagram_handle: `@${handle}`
+        })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      res.json({ success: true, message: 'Instagram account linked successfully!' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

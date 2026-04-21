@@ -14,7 +14,6 @@ export class SubmissionService {
   static async fetchLiveViews(url: string, platform: string): Promise<{views: number, channelId: string | null}> {
     if (platform === 'youtube') {
       try {
-        // Regex to extract video ID from YouTube short or regular link
         const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
         const videoId = match ? match[1] : null;
         
@@ -27,16 +26,53 @@ export class SubmissionService {
                 channelId: json.items[0].snippet.channelId
             };
           }
-        } else {
-            console.warn('[SubmissionService] Missing YOUTUBE_API_KEY in .env or invalid URL');
         }
       } catch (err) {
         console.error('YouTube API Error:', err);
       }
+    } else if (platform === 'instagram') {
+      try {
+        const match = url.match(/(?:\/p\/|\/reels?\/|\/tv\/)([^/?#&]+)/i);
+        const shortcode = match ? match[1] : null;
+
+        if (shortcode) {
+           const proxyUrl = process.env.DISCORD_PROXY_URL;
+           const targetUrl = proxyUrl 
+             ? `${proxyUrl}?url=${encodeURIComponent(`https://www.instagram.com/reels/${shortcode}/`)}`
+             : `https://www.instagram.com/reels/${shortcode}/`;
+
+           const res = await fetch(targetUrl, {
+             headers: {
+               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+               'Accept-Language': 'en-US,en;q=0.9',
+               'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8'
+             }
+           });
+
+           if (res.ok) {
+             const html = await res.text();
+             const ogDescMatch = html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
+             if (ogDescMatch) {
+                const desc = ogDescMatch[1];
+                const viewMatch = desc.match(/([\d,.]+[KMB]?) views/i);
+                if (viewMatch) {
+                    let viewStr = viewMatch[1].replace(/,/g, '');
+                    let viewsNum = 0;
+                    if (viewStr.endsWith('K')) viewsNum = parseFloat(viewStr) * 1000;
+                    else if (viewStr.endsWith('M')) viewsNum = parseFloat(viewStr) * 1000000;
+                    else if (viewStr.endsWith('B')) viewsNum = parseFloat(viewStr) * 1000000000;
+                    else viewsNum = parseInt(viewStr, 10);
+
+                    return { views: viewsNum, channelId: 'ig_post' };
+                }
+             }
+           }
+        }
+      } catch (err) {
+        console.error('Instagram Scrape Error:', err);
+      }
     }
-    
-    // Default fallback if API fails or instagram/tiktok is used and unsupported
-    return { views: 0, channelId: null }; 
+    return { views: 0, channelId: null };
   }
 
   static async create(userId: string, data: any) {
@@ -61,6 +97,11 @@ export class SubmissionService {
         const isOwner = existingChannels.some((c: any) => c.channelId === channelId);
         if (!isOwner) {
             throw new Error("This video does not belong to any of your verified channels.");
+        }
+    } else if (validated.platform === 'instagram') {
+        const { data: userRaw } = await supabase.from('users').select('instagram_verified').eq('id', userId).single();
+        if (!userRaw?.instagram_verified) {
+            throw new Error("You must verify your Instagram account in your Profile first.");
         }
     }
     
