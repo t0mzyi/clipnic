@@ -47,4 +47,17 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
+
+    // Keep-alive ping for Render free tier (prevents 50s cold start that kills Discord OAuth codes)
+    if (process.env.NODE_ENV !== 'development' && process.env.RENDER_EXTERNAL_URL) {
+        const keepAliveUrl = `${process.env.RENDER_EXTERNAL_URL}/api/auth/discord/debug`;
+        setInterval(async () => {
+            try {
+                await fetch(keepAliveUrl);
+                console.log('[keep-alive] pinged successfully');
+            } catch (e) {
+                console.warn('[keep-alive] ping failed:', e);
+            }
+        }, 14 * 60 * 1000); // every 14 minutes
+    }
 });
