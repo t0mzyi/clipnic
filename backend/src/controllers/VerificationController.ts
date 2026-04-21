@@ -41,16 +41,24 @@ export class VerificationController {
       const clientSecret = process.env.DISCORD_CLIENT_SECRET;
       const redirectUri = process.env.DISCORD_REDIRECT_URI;
 
+      if (!clientId || !clientSecret || !redirectUri) {
+        console.error('Missing Discord credentials:', { clientId: !!clientId, clientSecret: !!clientSecret, redirectUri: !!redirectUri });
+        return res.redirect(`${frontendUrl}/profile?discord_error=${encodeURIComponent('Backend is missing DISCORD_CLIENT_ID or SECRET')}`);
+      }
+
       // 1. Exchange code for access token
       const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: { 
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'ClipNic-Backend/1.1.0' 
+        },
         body: new URLSearchParams({
-          client_id: clientId!,
-          client_secret: clientSecret!,
+          client_id: clientId,
+          client_secret: clientSecret,
           grant_type: 'authorization_code',
           code: code as string,
-          redirect_uri: redirectUri!
+          redirect_uri: redirectUri
         }).toString()
       });
 
