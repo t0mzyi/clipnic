@@ -113,7 +113,7 @@ export class AdminController {
       try {
           const { id } = req.params;
           const { status } = req.body as { status: string };
-          const data = await SubmissionService.adminUpdateStatus(id, status);
+          const data = await SubmissionService.adminUpdateStatus(id as string, status);
           res.json({ success: true, data });
       } catch (error) {
           next(error);

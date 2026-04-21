@@ -54,7 +54,7 @@ export class SubmissionController {
       try {
           const userId = (req as any).user.id;
           const id = req.params.id;
-          const updated = await SubmissionService.refreshSubmission(userId, id);
+          const updated = await SubmissionService.refreshSubmission(userId, id as string);
           res.json({ success: true, data: updated });
       } catch (err: any) {
           res.status(400).json({ success: false, error: err.message });
