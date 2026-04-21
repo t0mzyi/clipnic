@@ -436,7 +436,16 @@ export const AdminCampaigns = () => {
 
                                 {/* Section: Caps */}
                                 <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em] pt-2 border-t border-white/[0.05] mt-2">Earnings Caps <span className="text-white/15 normal-case font-normal">(optional)</span></p>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest flex items-center gap-1.5">
+                                            <Eye className="w-3 h-3 text-emerald-400/60" /> Min Views
+                                        </label>
+                                        <input type="number" step="1" min="0" placeholder="e.g. 1000"
+                                            value={form.min_views ?? ''} onChange={set('min_views')}
+                                            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 font-mono focus:outline-none focus:border-white/25 transition-all" />
+                                        <p className="text-[9px] text-white/20">Views needed before earnings count</p>
+                                    </div>
                                     <div className="space-y-1.5">
                                         <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest flex items-center gap-1.5">
                                             <Users className="w-3 h-3 text-blue-400/60" /> Per Clipper Cap ($)
@@ -447,7 +456,7 @@ export const AdminCampaigns = () => {
                                                 value={form.per_clipper_cap ?? ''} onChange={set('per_clipper_cap')}
                                                 className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-8 pr-4 py-3 text-sm text-white placeholder-white/20 font-mono focus:outline-none focus:border-white/25 transition-all" />
                                         </div>
-                                        <p className="text-[9px] text-white/20">Max total earnings per clipper</p>
+                                        <p className="text-[9px] text-white/20">Max total per clipper</p>
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest flex items-center gap-1.5">
@@ -459,7 +468,7 @@ export const AdminCampaigns = () => {
                                                 value={form.per_video_cap ?? ''} onChange={set('per_video_cap')}
                                                 className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-8 pr-4 py-3 text-sm text-white placeholder-white/20 font-mono focus:outline-none focus:border-white/25 transition-all" />
                                         </div>
-                                        <p className="text-[9px] text-white/20">Max earnings per single video submission</p>
+                                        <p className="text-[9px] text-white/20">Max per single video</p>
                                     </div>
                                 </div>
 

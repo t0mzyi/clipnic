@@ -342,7 +342,7 @@ export const AdminUserDetails = () => {
                                     {[
                                         { label: 'Total', value: earnings.totalEarnings, icon: TrendingUp, color: 'text-blue-500' },
                                         { label: 'Available', value: earnings.availableBalance, icon: Wallet, color: 'text-emerald-500' },
-                                        { label: 'Pending', value: earnings.pendingPayout, icon: History, color: 'text-amber-500' },
+                                        { label: 'Claimable', value: earnings.pendingPayout, icon: History, color: 'text-amber-500' },
                                         { label: 'Claimed', value: earnings.claimed, icon: Landmark, color: 'text-purple-500' },
                                     ].map((s, i) => (
                                         <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5">
