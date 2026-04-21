@@ -46,27 +46,57 @@ export class VerificationController {
         return res.redirect(`${frontendUrl}/profile?discord_error=${encodeURIComponent('Backend is missing DISCORD_CLIENT_ID or SECRET')}`);
       }
 
-      // 1. Exchange code for access token
+      // 1. Exchange code for access token — with retry for 429 rate limits
       console.log('Discord OAuth: exchanging code, redirect_uri =', redirectUri);
-      const tokenRes = await fetch('https://discord.com/api/v10/oauth2/token', {
-        method: 'POST',
-        headers: { 
+
+      const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+      let tokenRes: Response | null = null;
+      let attempts = 0;
+      const maxAttempts = 4;
+
+      while (attempts < maxAttempts) {
+        attempts++;
+        tokenRes = await fetch('https://discord.com/api/v10/oauth2/token', {
+          method: 'POST',
+          headers: { 
             'Content-Type': 'application/x-www-form-urlencoded',
             'Accept': 'application/json',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        },
-        body: new URLSearchParams({
-          client_id: clientId,
-          client_secret: clientSecret,
-          grant_type: 'authorization_code',
-          code: code as string,
-          redirect_uri: redirectUri
-        }).toString()
-      });
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          },
+          body: new URLSearchParams({
+            client_id: clientId,
+            client_secret: clientSecret,
+            grant_type: 'authorization_code',
+            code: code as string,
+            redirect_uri: redirectUri
+          }).toString()
+        });
 
-      if (!tokenRes.ok) {
-        const errorText = await tokenRes.text();
-        console.error('Discord Token Error:', tokenRes.status, errorText);
+        if (tokenRes.status === 429) {
+          const retryText = await tokenRes.text();
+          let waitMs = 35000; // default 35 seconds
+          try {
+            const retryJson = JSON.parse(retryText);
+            const retryAfter = retryJson.retry_after || 30;
+            waitMs = (retryAfter + 5) * 1000; // add 5s buffer
+            console.warn(`Discord rate limited (attempt ${attempts}/${maxAttempts}). Waiting ${waitMs/1000}s...`);
+          } catch (e) {
+            console.warn(`Discord rate limited, waiting ${waitMs/1000}s...`);
+          }
+          if (attempts < maxAttempts) {
+            await sleep(waitMs);
+            continue;
+          }
+          return res.redirect(`${frontendUrl}/profile?discord_error=${encodeURIComponent('Discord is rate limiting our server. Please wait 1 minute and try again.')}`);
+        }
+
+        break; // success or non-429 error — stop retrying
+      }
+
+      if (!tokenRes!.ok) {
+        const errorText = await tokenRes!.text();
+        console.error('Discord Token Error:', tokenRes!.status, errorText);
         let errStr = 'token_exchange_failed';
         try {
             const errJson = JSON.parse(errorText);
@@ -77,7 +107,7 @@ export class VerificationController {
         return res.redirect(`${frontendUrl}/profile?discord_error=${errStr}`);
       }
 
-      const tokenData = await tokenRes.json();
+      const tokenData = await tokenRes!.json();
       const accessToken = tokenData.access_token;
 
       // 2. Fetch User Info to get Discord ID
