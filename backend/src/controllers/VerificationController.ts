@@ -252,11 +252,24 @@ export class VerificationController {
       // 3. Extract channel info
       const channel = ytData.items[0];
       const channelId = channel.id;
+
+      // 4. PREVENT DUPLICATES: Check if this channel is already linked to ANOTHER user
+      const { data: duplicateUser } = await supabase
+        .from('users')
+        .select('id')
+        .contains('youtube_channels', [{ channelId }])
+        .neq('id', userId)
+        .maybeSingle();
+
+      if (duplicateUser) {
+          return res.redirect(`${frontendUrl}/profile?youtube_error=${encodeURIComponent('This YouTube channel is already linked to another account.')}`);
+      }
+
       // snippet.customUrl typically contains the "@handle"
       let handle = channel.snippet.customUrl || channel.snippet.title;
       if (!handle.startsWith('@')) handle = '@' + handle; // Safely default
 
-      // 4. Update Database
+      // 5. Update Database
       const { data: userRaw } = await supabase.from('users').select('youtube_channels').eq('id', userId).single();
       const existingChannels = userRaw?.youtube_channels || [];
 
@@ -347,7 +360,21 @@ export class VerificationController {
           } catch(e) { console.error("Search API fail:", e); }
       }
 
-      // Update Database
+      // 4. PREVENT DUPLICATES (Manual Path)
+      if (channelId) {
+          const { data: duplicateUser } = await supabase
+            .from('users')
+            .select('id')
+            .contains('youtube_channels', [{ channelId }])
+            .neq('id', userId)
+            .maybeSingle();
+          
+          if (duplicateUser) {
+              return res.status(400).json({ success: false, error: 'This YouTube channel is already linked to another account.' });
+          }
+      }
+
+      // 5. Update Database
       const { data: userRaw } = await supabase.from('users').select('youtube_channels').eq('id', userId).single();
       const existingChannels = userRaw?.youtube_channels || [];
 
