@@ -1,3 +1,4 @@
+import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 import { SubmissionService } from '../services/SubmissionService';
 

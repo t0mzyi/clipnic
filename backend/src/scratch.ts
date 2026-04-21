@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
@@ -7,22 +7,29 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABAS
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function run() {
-  const { data, error } = await supabase
+async function debugTime() {
+  const { data: sub, error } = await supabase
     .from('submissions')
-    .select(`
-       *,
-       campaigns (
-          title,
-          cpm_rate
-       )
-    `)
-    .eq('user_id', '87273ec2-61d1-4230-923f-f1c9950f96e5')
-    .order('created_at', { ascending: false });
+    .select('id, updated_at')
+    .eq('url', 'https://youtu.be/l6ieo7xPvuI')
+    .single();
 
-  console.log("Submissions with Campaign:");
-  console.dir(data, { depth: null });
-  if (error) console.error("Error:", error);
+  if (error) {
+      console.error("Error fetching sub:", error);
+      return;
+  }
+
+  const lastUpdatedStr = sub.updated_at;
+  const lastUpdatedDate = new Date(lastUpdatedStr);
+  const lastUpdatedTime = lastUpdatedDate.getTime();
+  const now = Date.now();
+  const diffMs = now - lastUpdatedTime;
+  const diffMinutes = diffMs / (1000 * 60);
+
+  console.log("Current System Time (UTC):", new Date().toISOString());
+  console.log("Submission updated_at (DB):", lastUpdatedStr);
+  console.log("Difference (Minutes):", diffMinutes);
+  console.log("Is Rate Limited (diff < 10):", diffMinutes < 10);
 }
 
-run();
+debugTime();
