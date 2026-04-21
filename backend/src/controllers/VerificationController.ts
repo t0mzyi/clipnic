@@ -122,10 +122,11 @@ export class VerificationController {
       // 5. Success Redirect
       return res.redirect(`${frontendUrl}/profile?discord_success=true`);
 
-    } catch (error) {
+    } catch (error: any) {
        console.error('Callback error:', error);
        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-       return res.redirect(`${frontendUrl}/profile?discord_error=server_error`);
+       const msg = error.message ? encodeURIComponent(error.message) : 'server_error';
+       return res.redirect(`${frontendUrl}/profile?discord_error=${msg}`);
     }
   }
 
