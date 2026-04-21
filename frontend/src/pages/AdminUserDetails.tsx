@@ -7,8 +7,10 @@ import {
     ChevronLeft, Shield, ShieldCheck, 
     MessageSquare, Mail, 
     User as UserIcon,
-    AlertTriangle
+    AlertTriangle,
+    Wallet, TrendingUp, History, Landmark, DollarSign
 } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const YoutubeIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-red-400">
@@ -50,9 +52,12 @@ export const AdminUserDetails = () => {
     const [roleLoading, setRoleLoading] = useState(false);
     const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
     const [newRole, setNewRole] = useState<'admin' | 'user' | null>(null);
+    const [earnings, setEarnings] = useState<any>(null);
+    const [markingPaid, setMarkingPaid] = useState<string | null>(null);
 
     useEffect(() => {
         fetchUser();
+        fetchEarnings();
     }, [id]);
 
     const fetchUser = async () => {
@@ -66,6 +71,51 @@ export const AdminUserDetails = () => {
             console.error('Failed to fetch user:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchEarnings = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${id}/earnings`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success) setEarnings(json.data);
+        } catch (err) {
+            console.error('Failed to fetch earnings:', err);
+        }
+    };
+
+    const handleMarkPaid = async (submissionId: string) => {
+        const result = await Swal.fire({
+            title: 'Mark as Paid?',
+            text: 'This will move the earnings to the Claimed column.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#a855f7',
+            cancelButtonColor: '#3f3f46',
+            confirmButtonText: 'Yes, mark paid',
+            background: '#0c0c0c',
+            color: '#fff',
+            customClass: { popup: 'rounded-[24px] border border-white/10' }
+        });
+        if (!result.isConfirmed) return;
+        setMarkingPaid(submissionId);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/submissions/${submissionId}/status`, {
+                method: 'PATCH',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'Paid' })
+            });
+            const json = await res.json();
+            if (json.success) {
+                Swal.fire({ title: 'Done', text: 'Marked as paid.', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+                fetchEarnings();
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setMarkingPaid(null);
         }
     };
 
@@ -277,6 +327,74 @@ export const AdminUserDetails = () => {
                                 <p className="text-[11px] text-white/30 font-mono truncate">{user.instagram_handle || 'Not linked'}</p>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Earnings Card */}
+                    <div className="p-10 rounded-[48px] bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                        <h3 className="text-lg font-medium text-white/90 mb-8 flex items-center gap-3">
+                            <DollarSign className="w-5 h-5 text-white/40" />
+                            Earnings Overview
+                        </h3>
+
+                        {earnings ? (
+                            <>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                                    {[
+                                        { label: 'Total', value: earnings.totalEarnings, icon: TrendingUp, color: 'text-blue-500' },
+                                        { label: 'Available', value: earnings.availableBalance, icon: Wallet, color: 'text-emerald-500' },
+                                        { label: 'Pending', value: earnings.pendingPayout, icon: History, color: 'text-amber-500' },
+                                        { label: 'Claimed', value: earnings.claimed, icon: Landmark, color: 'text-purple-500' },
+                                    ].map((s, i) => (
+                                        <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+                                            <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest flex items-center gap-1.5 mb-2">
+                                                <s.icon className={`w-3.5 h-3.5 ${s.color}`} />
+                                                {s.label}
+                                            </p>
+                                            <p className="text-xl font-mono font-bold text-white/90">${s.value.toFixed(2)}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                                    {earnings.breakdown.map((item: any) => (
+                                        <div key={item.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-white/80 truncate">{item.campaignTitle}</p>
+                                                <p className="text-[10px] text-white/30 font-mono truncate">{item.url}</p>
+                                            </div>
+                                            <div className="flex items-center gap-4 ml-4">
+                                                <div className="text-right">
+                                                    <p className="text-sm font-mono font-bold text-white/90">${item.earnings.toFixed(2)}</p>
+                                                    <p className="text-[9px] text-white/30 font-mono">{item.views?.toLocaleString()} views</p>
+                                                </div>
+                                                <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg border whitespace-nowrap ${
+                                                    item.status === 'Paid' ? 'text-purple-400 bg-purple-500/10 border-purple-500/20' :
+                                                    item.status === 'Verified' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' :
+                                                    item.status === 'Pending' ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' :
+                                                    'text-red-400 bg-red-500/10 border-red-500/20'
+                                                }`}>{item.status}</span>
+                                                {item.status !== 'Paid' && item.status !== 'Rejected' && (
+                                                    <button
+                                                        disabled={markingPaid === item.id}
+                                                        onClick={() => handleMarkPaid(item.id)}
+                                                        className="text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 transition-all whitespace-nowrap disabled:opacity-50"
+                                                    >
+                                                        {markingPaid === item.id ? '...' : 'Mark Paid'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {earnings.breakdown.length === 0 && (
+                                        <p className="text-center py-8 text-[10px] text-white/30 uppercase tracking-widest">No submissions yet.</p>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex justify-center py-8">
+                                <div className="w-5 h-5 rounded-full border-2 border-white/10 border-t-white/40 animate-spin" />
+                            </div>
+                        )}
                     </div>
 
                     {/* Metadata Card */}

@@ -7,6 +7,7 @@ const router = Router();
 // Requires standard user authentication for submitting and viewing their own submissions
 router.post('/', authenticate, SubmissionController.submitClip);
 router.get('/my', authenticate, SubmissionController.getAllMySubmissions);
+router.get('/earnings', authenticate, SubmissionController.getEarningsSummary);
 router.get('/campaign/:campaignId/my', authenticate, SubmissionController.getMySubmissions);
 
 router.post('/:id/refresh', authenticate, SubmissionController.refreshSubmission);

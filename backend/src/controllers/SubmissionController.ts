@@ -60,4 +60,14 @@ export class SubmissionController {
           res.status(400).json({ success: false, error: err.message });
       }
   }
+
+  static async getEarningsSummary(req: Request, res: Response) {
+      try {
+          const userId = (req as any).user.id;
+          const data = await SubmissionService.getUserEarningsSummary(userId);
+          res.json({ success: true, data });
+      } catch (err: any) {
+          res.status(400).json({ success: false, error: err.message });
+      }
+  }
 }

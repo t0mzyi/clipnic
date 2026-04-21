@@ -308,4 +308,79 @@ export class SubmissionService {
     if (error) throw error;
     return data;
   }
+
+  /**
+   * Calculates a user's earnings breakdown:
+   * - Available Balance: earnings where views < campaign min_views (still accumulating)
+   * - Pending Payout: earnings where views >= min_views AND status != 'Paid' (ready to pay)
+   * - Claimed: earnings where status == 'Paid'
+   * - Total Earnings: sum of all
+   */
+  static async getUserEarningsSummary(userId: string) {
+    const { data: submissions, error } = await supabase
+      .from('submissions')
+      .select(`
+         *,
+         campaigns (
+            title,
+            cpm_rate,
+            min_views,
+            per_video_cap
+         )
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    let availableBalance = 0;
+    let pendingPayout = 0;
+    let claimed = 0;
+    const breakdown: any[] = [];
+
+    for (const sub of (submissions || [])) {
+      const campaign = sub.campaigns;
+      const minViews = campaign?.min_views || 0;
+      const earnings = Number(sub.earnings || 0);
+
+      let earningCategory = 'available'; // default: still accumulating
+
+      if (sub.status === 'Paid') {
+        earningCategory = 'claimed';
+        claimed += earnings;
+      } else if (sub.status === 'Rejected') {
+        earningCategory = 'rejected';
+      } else if (minViews > 0 && sub.views < minViews) {
+        earningCategory = 'available';
+        availableBalance += earnings;
+      } else {
+        earningCategory = 'pending';
+        pendingPayout += earnings;
+      }
+
+      breakdown.push({
+        id: sub.id,
+        url: sub.url,
+        platform: sub.platform,
+        views: sub.views,
+        earnings,
+        status: sub.status,
+        earningCategory,
+        campaignTitle: campaign?.title || 'Unknown',
+        minViews,
+        created_at: sub.created_at,
+        updated_at: sub.updated_at
+      });
+    }
+
+    const totalEarnings = availableBalance + pendingPayout + claimed;
+
+    return {
+      totalEarnings,
+      availableBalance,
+      pendingPayout,
+      claimed,
+      breakdown
+    };
+  }
 }

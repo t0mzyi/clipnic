@@ -1,22 +1,74 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, ArrowDownRight, ArrowUpRight, Landmark, CreditCard, History, TrendingUp } from 'lucide-react';
-import { Button } from '../components/ui/Button';
+import { Wallet, ArrowDownRight, ArrowUpRight, Landmark, History, TrendingUp, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useAuthStore } from '../store/useAuthStore';
+
+interface EarningsData {
+    totalEarnings: number;
+    availableBalance: number;
+    pendingPayout: number;
+    claimed: number;
+    breakdown: any[];
+}
 
 export const Earnings = () => {
+    const { token } = useAuthStore();
+    const [data, setData] = useState<EarningsData | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (token) fetchEarnings();
+    }, [token]);
+
+    const fetchEarnings = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/earnings`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success) setData(json.data);
+        } catch (err) {
+            console.error('Failed to fetch earnings:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const stats = [
-        { label: 'Available Balance', value: '$1,240.50', icon: Wallet, color: 'text-emerald-500' },
-        { label: 'Pending Payout', value: '$450.00', icon: History, color: 'text-amber-500' },
-        { label: 'Total Earned', value: '$8,920.00', icon: TrendingUp, color: 'text-blue-500' },
-        { label: 'Paid This Month', value: '$2,100.00', icon: Landmark, color: 'text-purple-500' },
+        { label: 'Total Earnings', value: data?.totalEarnings ?? 0, icon: TrendingUp, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
+        { label: 'Available Balance', value: data?.availableBalance ?? 0, icon: Wallet, color: 'text-emerald-500', bgColor: 'bg-emerald-500/10', hint: 'Views below min threshold' },
+        { label: 'Pending Payout', value: data?.pendingPayout ?? 0, icon: History, color: 'text-amber-500', bgColor: 'bg-amber-500/10', hint: 'Ready to claim' },
+        { label: 'Claimed', value: data?.claimed ?? 0, icon: Landmark, color: 'text-purple-500', bgColor: 'bg-purple-500/10', hint: 'Paid out' },
     ];
 
-    const transactions = [
-        { id: 1, type: 'payout', amount: '$450.00', status: 'Pending', date: '2024-04-20', method: 'PayPal' },
-        { id: 2, type: 'earning', amount: '$120.40', status: 'Completed', date: '2024-04-18', campaign: 'Cyberpunk Challenge' },
-        { id: 3, type: 'earning', amount: '$85.20', status: 'Completed', date: '2024-04-17', campaign: 'Retro Gaming' },
-        { id: 4, type: 'payout', amount: '$1,200.00', status: 'Completed', date: '2024-04-10', method: 'Stripe' },
-        { id: 5, type: 'earning', amount: '$310.00', status: 'Completed', date: '2024-04-05', campaign: 'Crypto Review' },
-    ];
+    const getCategoryIcon = (category: string) => {
+        switch (category) {
+            case 'available': return <Clock className="w-4 h-4 text-emerald-500" />;
+            case 'pending': return <AlertCircle className="w-4 h-4 text-amber-500" />;
+            case 'claimed': return <CheckCircle2 className="w-4 h-4 text-purple-500" />;
+            default: return <Clock className="w-4 h-4 text-white/30" />;
+        }
+    };
+
+    const getCategoryLabel = (category: string) => {
+        switch (category) {
+            case 'available': return 'Accumulating';
+            case 'pending': return 'Ready to Claim';
+            case 'claimed': return 'Paid';
+            case 'rejected': return 'Rejected';
+            default: return category;
+        }
+    };
+
+    const getCategoryColor = (category: string) => {
+        switch (category) {
+            case 'available': return 'text-emerald-500';
+            case 'pending': return 'text-amber-500';
+            case 'claimed': return 'text-purple-500';
+            case 'rejected': return 'text-red-500';
+            default: return 'text-white/40';
+        }
+    };
 
     return (
         <motion.div
@@ -31,97 +83,120 @@ export const Earnings = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 relative z-10">
                     <div>
                         <h1 className="text-4xl font-bold tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/50 mb-2">Earnings</h1>
-                        <p className="text-white/40 text-lg font-light tracking-tight">Manage your payouts and revenue streams.</p>
+                        <p className="text-white/40 text-lg font-light tracking-tight">Track your revenue and payouts in real-time.</p>
                     </div>
-                    <Button variant="primary" className="rounded-2xl px-6 py-3 flex items-center gap-2 group">
-                        <CreditCard className="w-4 h-4" />
-                        Request Payout
-                    </Button>
                 </div>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, idx) => {
-                    const Icon = stat.icon;
-                    return (
-                        <div key={idx} className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
-                            <div className="flex items-center justify-between mb-5 font-mono">
-                                <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2.5">
-                                    <Icon className={`w-5 h-5 ${stat.color} opacity-80`} />
-                                    {stat.label}
-                                </p>
-                            </div>
-                            <p className="text-4xl font-mono tracking-tight font-medium text-white/90">{stat.value}</p>
-                        </div>
-                    );
-                })}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Chart Area (Dummy SVG) */}
-                <div className="lg:col-span-2 p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] flex flex-col h-[400px]">
-                    <div className="flex items-center justify-between mb-8">
-                        <h3 className="text-lg font-medium tracking-tight text-white/90">Revenue Over Time</h3>
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
-                            <div className="w-2 h-2 rounded-full bg-blue-500" />
-                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Growth</span>
-                        </div>
-                    </div>
-                    <div className="flex-1 w-full bg-white/[0.01] rounded-2xl border border-white/[0.03] flex items-center justify-center relative overflow-hidden">
-                        {/* Dummy SVG Chart */}
-                        <svg className="w-full h-full p-4 overflow-visible" viewBox="0 0 400 200" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.2" />
-                                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
-                                </linearGradient>
-                            </defs>
-                            <path 
-                                d="M0,180 Q50,150 100,160 T200,100 T300,80 T400,20 L400,200 L0,200 Z" 
-                                fill="url(#chartGradient)"
-                            />
-                            <path 
-                                d="M0,180 Q50,150 100,160 T200,100 T300,80 T400,20" 
-                                fill="none" 
-                                stroke="#3b82f6" 
-                                strokeWidth="3"
-                                strokeLinecap="round"
-                            />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[1px] bg-black/5">
-                            <TrendingUp className="w-12 h-12 text-white/10" />
-                        </div>
-                    </div>
+            {loading ? (
+                <div className="flex items-center justify-center py-20">
+                    <div className="w-6 h-6 rounded-full border-2 border-white/10 border-t-white animate-spin" />
                 </div>
-
-                {/* Recent Transactions */}
-                <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] flex flex-col h-[400px]">
-                    <div className="flex items-center justify-between mb-8">
-                        <h3 className="text-lg font-medium tracking-tight text-white/90">Activity</h3>
-                        <History className="w-5 h-5 text-white/20" />
-                    </div>
-                    <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                        {transactions.map((tx) => (
-                            <div key={tx.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-all">
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === 'payout' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                                        {tx.type === 'payout' ? <ArrowUpRight className="w-5 h-5" /> : <ArrowDownRight className="w-5 h-5" />}
+            ) : (
+                <>
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {stats.map((stat, idx) => {
+                            const Icon = stat.icon;
+                            return (
+                                <motion.div
+                                    key={idx}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                    className={`p-8 rounded-3xl border shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500 ${
+                                        idx === 0 ? 'bg-white text-black border-white/20' : 'bg-white/[0.02] border-white/[0.05]'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between mb-5">
+                                        <p className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-2.5 ${
+                                            idx === 0 ? 'text-black/50' : 'text-white/40'
+                                        }`}>
+                                            <Icon className={`w-5 h-5 ${idx === 0 ? 'text-black/40' : stat.color} opacity-80`} />
+                                            {stat.label}
+                                        </p>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-white/90 uppercase tracking-tight">{tx.type === 'payout' ? 'Payout' : 'Earning'}</p>
-                                        <p className="text-[10px] text-white/40 font-mono tracking-tighter">{tx.date} • {tx.method || tx.campaign}</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-sm font-mono font-bold text-white/90">{tx.amount}</p>
-                                    <p className={`text-[10px] font-bold uppercase tracking-widest ${tx.status === 'Pending' ? 'text-amber-500/80' : 'text-emerald-500/80'}`}>{tx.status}</p>
-                                </div>
-                            </div>
-                        ))}
+                                    <p className={`text-4xl font-mono tracking-tight font-medium ${
+                                        idx === 0 ? 'text-black' : 'text-white/90'
+                                    }`}>
+                                        ${stat.value.toFixed(2)}
+                                    </p>
+                                    {stat.hint && (
+                                        <p className={`text-[9px] mt-2 uppercase tracking-widest ${
+                                            idx === 0 ? 'text-black/30' : 'text-white/20'
+                                        }`}>{stat.hint}</p>
+                                    )}
+                                </motion.div>
+                            );
+                        })}
                     </div>
-                </div>
-            </div>
+
+                    {/* Breakdown Table */}
+                    <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-lg font-medium tracking-tight text-white/90">Earnings Breakdown</h3>
+                            <span className="text-[10px] text-white/30 uppercase tracking-widest font-bold">{data?.breakdown?.length || 0} submissions</span>
+                        </div>
+                        
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-separate border-spacing-y-3">
+                                <thead>
+                                    <tr className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">
+                                        <th className="pb-3 pl-6">Campaign</th>
+                                        <th className="pb-3">Views</th>
+                                        <th className="pb-3">Min Views</th>
+                                        <th className="pb-3">Earnings</th>
+                                        <th className="pb-3">Status</th>
+                                        <th className="pb-3 pr-6">Category</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {(!data?.breakdown || data.breakdown.length === 0) ? (
+                                        <tr>
+                                            <td colSpan={6} className="py-12 text-center text-[10px] uppercase tracking-widest text-white/30">
+                                                No earnings data yet. Submit clips to start earning.
+                                            </td>
+                                        </tr>
+                                    ) : data.breakdown.map((item: any) => (
+                                        <tr key={item.id} className="group bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300">
+                                            <td className="py-4 pl-6 rounded-l-2xl border-y border-l border-white/[0.05]">
+                                                <p className="text-sm font-medium text-white/90">{item.campaignTitle}</p>
+                                                <p className="text-[10px] text-white/30 mt-0.5 truncate max-w-[180px]">{item.url}</p>
+                                            </td>
+                                            <td className="py-4 border-y border-white/[0.05] font-mono text-sm text-white/60">
+                                                {item.views?.toLocaleString() || 0}
+                                            </td>
+                                            <td className="py-4 border-y border-white/[0.05] font-mono text-sm text-white/40">
+                                                {item.minViews?.toLocaleString() || '—'}
+                                            </td>
+                                            <td className="py-4 border-y border-white/[0.05] font-mono text-sm font-bold text-white/90">
+                                                ${item.earnings.toFixed(2)}
+                                            </td>
+                                            <td className="py-4 border-y border-white/[0.05]">
+                                                <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 ${
+                                                    item.status === 'Verified' ? 'text-emerald-500' : 
+                                                    item.status === 'Paid' ? 'text-purple-500' :
+                                                    item.status === 'Pending' ? 'text-amber-500' : 'text-red-500'
+                                                }`}>
+                                                    {item.status}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 pr-6 rounded-r-2xl border-y border-r border-white/[0.05]">
+                                                <div className="flex items-center gap-2">
+                                                    {getCategoryIcon(item.earningCategory)}
+                                                    <span className={`text-[10px] font-bold uppercase tracking-widest ${getCategoryColor(item.earningCategory)}`}>
+                                                        {getCategoryLabel(item.earningCategory)}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </>
+            )}
         </motion.div>
     );
 };
