@@ -37,6 +37,9 @@ export class VerificationController {
       }
 
       const userId = decodeURIComponent(state as string);
+      const clientId = process.env.DISCORD_CLIENT_ID;
+      const clientSecret = process.env.DISCORD_CLIENT_SECRET;
+      const redirectUri = process.env.DISCORD_REDIRECT_URI;
 
       const tokenUrl = process.env.DISCORD_PROXY_URL 
         ? `${process.env.DISCORD_PROXY_URL}?url=${encodeURIComponent('https://discord.com/api/v10/oauth2/token')}`
