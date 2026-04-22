@@ -21,7 +21,7 @@ export const ClipperDashboard = () => {
 
     useEffect(() => {
         if (token) {
-            Promise.all([fetchEarnings(), fetchSubmissions()]).finally(() => setLoading(false));
+            Promise.all([fetchEarnings(), fetchSubmissions(), fetchCampaigns()]).finally(() => setLoading(false));
         }
     }, [token]);
 
@@ -35,15 +35,17 @@ export const ClipperDashboard = () => {
         } catch (err) { console.error(err); }
     };
 
-    const fetchSubmissions = async () => {
+    const fetchCampaigns = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/my`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
-            if (json.success) setSubmissions(json.data);
+            if (json.success) setAllCampaigns(json.data || []);
         } catch (err) { console.error(err); }
     };
+
+    const [allCampaigns, setAllCampaigns] = useState<any[]>([]);
 
     // Build chart data: group views by date (last 14 days)
     const chartData = useMemo(() => {
@@ -147,6 +149,57 @@ export const ClipperDashboard = () => {
                 </div>
             ) : (
                 <>
+                    {/* Active Missions Quick Access */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <Link to="/campaigns" className="md:col-span-2 relative group overflow-hidden rounded-[2.5rem] bg-[#0c0c0c] border border-white/[0.06] p-8 flex flex-col justify-between min-h-[220px] hover:border-emerald-500/30 transition-all duration-500">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 blur-[80px] -mr-32 -mt-32 rounded-full group-hover:bg-emerald-500/20 transition-colors duration-700" />
+                            <div className="relative z-10">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    Live Feed
+                                </div>
+                                <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Active Missions</h2>
+                                <p className="text-white/40 text-sm max-w-sm font-light">Explore {allCampaigns.length} available campaigns and start earning today.</p>
+                            </div>
+                            <div className="relative z-10 flex items-center justify-between mt-6">
+                                <div className="flex -space-x-2">
+                                    {allCampaigns.slice(0, 3).map((c, i) => (
+                                        <div key={i} className="w-10 h-10 rounded-full border-2 border-[#0c0c0c] bg-white/5 overflow-hidden">
+                                            {c.banner_url ? <img src={c.banner_url} className="w-full h-full object-cover" alt="" /> : <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-white/20">{c.title[0]}</div>}
+                                        </div>
+                                    ))}
+                                    {allCampaigns.length > 3 && (
+                                        <div className="w-10 h-10 rounded-full border-2 border-[#0c0c0c] bg-white/[0.03] flex items-center justify-center text-[10px] font-bold text-white/40">
+                                            +{allCampaigns.length - 3}
+                                        </div>
+                                    )}
+                                </div>
+                                <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-emerald-400 group-hover:gap-4 transition-all duration-300">
+                                    View Feed <ChevronRight size={14} />
+                                </span>
+                            </div>
+                        </Link>
+                        
+                        <div className="grid grid-cols-1 gap-6">
+                            <Link to="/campaigns?filter=Featured" className="relative group overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-purple-500/20 to-transparent border border-purple-500/20 p-6 flex flex-col justify-between hover:scale-[1.02] transition-all duration-500">
+                                <div>
+                                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                        Premium <span className="text-[10px] bg-purple-500 text-white px-1.5 py-0.5 rounded italic">HOT</span>
+                                    </h3>
+                                    <p className="text-white/40 text-xs mt-1">High CPM featured missions.</p>
+                                </div>
+                                <ChevronRight className="self-end text-purple-400 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+
+                            <Link to="/campaigns/joined" className="relative group overflow-hidden rounded-[2.5rem] bg-[#0c0c0c] border border-white/[0.06] p-6 flex flex-col justify-between hover:border-white/20 transition-all duration-500 shadow-2xl">
+                                <div>
+                                    <h3 className="text-lg font-bold text-white">Joined Missions</h3>
+                                    <p className="text-white/40 text-xs mt-1">{uniqueCampaigns} missions in progress.</p>
+                                </div>
+                                <ChevronRight className="self-end text-white/20 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                        </div>
+                    </div>
 
 
                     {/* Stats Grid - Forced 4 Columns on Mobile */}

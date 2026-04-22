@@ -65,7 +65,7 @@ export const JoinedCampaigns = () => {
                         <h3 className="text-xl font-bold text-white/60">No Active Missions</h3>
                         <p className="text-white/25 text-sm max-w-xs">You haven't joined any campaigns yet. Browse the feed to find a mission.</p>
                     </div>
-                    <Link to="/campaigns" className="px-8 py-3 rounded-2xl bg-white text-black font-bold text-sm hover:scale-105 transition-all">
+                    <Link to="/campaigns" className="px-8 py-3 rounded-2xl bg-white text-zinc-950 font-bold text-sm hover:scale-105 transition-all">
                         Browse Campaigns
                     </Link>
                 </div>

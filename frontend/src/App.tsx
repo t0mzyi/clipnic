@@ -40,7 +40,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
     const isAdminPortal = location.pathname.startsWith('/admin');
 
     return (
-        <aside className={`fixed left-0 top-0 h-[100dvh] w-64 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-300 md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} ${isAdminPortal ? 'hidden md:hidden' : 'flex'}`}>
+        <aside className={`fixed left-0 top-0 h-[100dvh] w-72 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-500 ease-[0.16,1,0.3,1] md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} ${isAdminPortal ? 'hidden md:hidden' : 'flex'}`}>
             <div className="flex items-center justify-between mb-8">
                 <Link to="/campaigns" className="flex items-center gap-2 group">
                     <img src="/logo.webp" alt="Logo" className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
@@ -56,8 +56,8 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
 
             {!isAdminPortal ? (
                 <>
-                    <nav className="flex flex-col gap-2 text-sm font-medium mb-6 mt-8">
-                        <Link onClick={closeMenu} to="/campaigns" className={`transition-all py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/campaigns' ? 'bg-white/15 text-white border border-white/5' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
+                    <nav className="flex flex-col gap-2 text-sm font-medium mb-8 mt-14">
+                        <Link onClick={closeMenu} to="/campaigns" className={`transition-all py-3 px-4 rounded-xl flex items-center gap-3 ${location.pathname === '/campaigns' ? 'bg-white text-black font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
                             <Globe size={18} className={location.pathname === '/campaigns' ? 'text-emerald-400' : ''} />
                             <span className="glassy-text">Active Campaigns</span>
                         </Link>

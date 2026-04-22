@@ -278,7 +278,7 @@ export const AdminCampaigns = () => {
                     <p className="text-white/30 text-sm font-light">Create and manage clipping campaigns.</p>
                 </div>
                 <Button variant="primary" onClick={() => { setEditingCampaign(null); setForm(defaultForm); setStep(1); setIsModalOpen(true); }}
-                    className="flex items-center gap-2 rounded-xl px-5 py-3 bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-white/90">
+                    className="flex items-center gap-2 rounded-xl px-5 py-3 bg-white text-zinc-950 text-xs font-bold uppercase tracking-widest hover:bg-white/90">
                     <Plus className="w-4 h-4" /> New Campaign
                 </Button>
             </div>
@@ -586,7 +586,7 @@ export const AdminCampaigns = () => {
                             <div className="mt-8 pt-6 border-t border-white/[0.05] flex gap-3">
                                 {step > 1 && <Button variant="outline" onClick={() => setStep(s => s - 1)} className="px-8 py-3 rounded-xl text-xs">Back</Button>}
                                 {step < 4 ? (
-                                    <Button variant="primary" onClick={() => setStep(s => s + 1)} className="flex-1 bg-white text-black py-4 rounded-xl font-bold uppercase tracking-widest text-xs">Continue</Button>
+                                    <Button variant="primary" onClick={() => setStep(s => s + 1)} className="flex-1 bg-white text-zinc-950 py-4 rounded-xl font-bold uppercase tracking-widest text-xs">Continue</Button>
                                 ) : (
                                     <Button variant="primary" onClick={handleSubmit} disabled={submitting} className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs disabled:opacity-50 hover:bg-emerald-600 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
                                         {submitting ? "Launching..." : editingCampaign ? "Save Changes" : (

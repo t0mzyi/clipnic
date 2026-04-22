@@ -102,6 +102,31 @@ export class CampaignService {
           if (error.code === '23505') throw new Error("You have already joined this campaign.");
           throw error;
       }
+
+      // Sync handle to global user profile for better UX persistence
+      if (linkedHandle) {
+          try {
+              const handle = linkedHandle.startsWith('@') ? linkedHandle : `@${linkedHandle}`;
+              const isInstagram = linkedHandle.includes('instagram') || campaign.allowed_platforms?.includes('instagram');
+              const isYouTube = linkedHandle.includes('youtube') || campaign.allowed_platforms?.includes('youtube');
+
+              const updateData: any = {};
+              if (isInstagram) {
+                  updateData.instagram_handle = handle;
+                  updateData.instagram_verified = true;
+              } else if (isYouTube) {
+                  updateData.youtube_handle = handle;
+                  updateData.youtube_verified = true;
+              }
+
+              if (Object.keys(updateData).length > 0) {
+                  await supabase.from('users').update(updateData).eq('id', userId);
+              }
+          } catch (e) {
+              console.error('Failed to sync handle to profile:', e);
+          }
+      }
+
       return data;
   }
 

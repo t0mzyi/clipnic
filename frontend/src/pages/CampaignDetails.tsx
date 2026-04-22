@@ -67,6 +67,10 @@ export const CampaignDetails = () => {
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [leaderboard, setLeaderboard] = useState<any[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isVerifyingSocial, setIsVerifyingSocial] = useState(false);
+    const [socialVerifyError, setSocialVerifyError] = useState('');
+    const [verifyCode] = useState(() => 'CLPNIC-' + Math.random().toString(36).substring(2, 8).toUpperCase());
+    const [showYtCode, setShowYtCode] = useState(false);
 
     useEffect(() => {
         const fetchCampaign = async () => {
@@ -121,6 +125,28 @@ export const CampaignDetails = () => {
         }
     }, [id, token]);
 
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const dSuccess = searchParams.get('discord_success');
+        const iSuccess = searchParams.get('instagram_success');
+        const ySuccess = searchParams.get('youtube_success');
+
+        if (dSuccess || iSuccess || ySuccess) {
+            fetchSync();
+            setIsJoinModalOpen(true);
+            if (dSuccess) {
+                setJoinStep(2); // Stay on Discord step so they see Checkmark, then they click Next
+                Toast.fire({ title: 'Discord Linked!', icon: 'success' });
+            }
+            if (iSuccess || ySuccess) {
+                setJoinStep(3);
+                Toast.fire({ title: 'Social Linked!', icon: 'success' });
+            }
+            // Clean up URL
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    }, [token]);
+
     // Auto-detect platform from URL
     useEffect(() => {
         const url = submissionUrl.toLowerCase();
@@ -148,12 +174,88 @@ export const CampaignDetails = () => {
     const daysLeft = Math.max(0, Math.ceil((new Date(campaign.end_date).getTime() - Date.now()) / 86400000));
     const banner = campaign.banner_url || FALLBACK_BANNERS[0];
 
+    const fetchSync = async () => {
+        if (!token) return;
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/sync`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const result = await response.json();
+            if (result.success) {
+                const { updateUser } = useAuthStore.getState();
+                updateUser({
+                    discordVerified: result.data.discord_verified,
+                    youtubeVerified: result.data.youtube_verified,
+                    youtubeHandle: result.data.youtube_handle,
+                    instagramVerified: result.data.instagram_verified,
+                    instagramHandle: result.data.instagram_handle,
+                    youtubeChannels: result.data.youtube_channels
+                });
+            }
+        } catch (e) {
+            console.error('Sync failed:', e);
+        }
+    };
+
+    const handleInstagramVerify = async () => {
+        if (!linkedHandle) {
+            Toast.fire({ title: 'Error', text: 'Please enter your Instagram handle', icon: 'error' });
+            return;
+        }
+        setIsVerifyingSocial(true);
+        setSocialVerifyError('');
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-instagram`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ handle: linkedHandle })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            Toast.fire({ title: 'Success', text: 'Instagram account linked!', icon: 'success' });
+            await fetchSync();
+            handleJoinSubmit(); // Proceed to join after successful verification
+        } catch (err: any) {
+            setSocialVerifyError(err.message);
+        } finally {
+            setIsVerifyingSocial(false);
+        }
+    };
+
+    const handleYouTubeVerify = async () => {
+        if (!linkedHandle) {
+            Toast.fire({ title: 'Error', text: 'Please enter your YouTube Handle', icon: 'error' });
+            return;
+        }
+        setIsVerifyingSocial(true);
+        setSocialVerifyError('');
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-youtube`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ handle: linkedHandle, code: verifyCode })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            Toast.fire({ title: 'Success', text: 'YouTube channel linked!', icon: 'success' });
+            await fetchSync();
+            handleJoinSubmit(); 
+        } catch (err: any) {
+            setSocialVerifyError(err.message);
+        } finally {
+            setIsVerifyingSocial(false);
+        }
+    };
+
     const handleJoinSubmit = async (handleOverride?: string) => {
         setIsSubmitting(true);
         try {
             const finalHandle = handleOverride || linkedHandle;
             
-            // Safety check
             if (campaign?.status !== 'Active') {
                 throw new Error("This campaign is currently not accepting new participants.");
             }
@@ -167,7 +269,7 @@ export const CampaignDetails = () => {
             if (!json.success) throw new Error(json.error);
             
             setIsJoined(true);
-            setJoinStep(3); // Success
+            setJoinStep(4); // Success
             Toast.fire({ title: 'Welcome Aboard!', text: 'You are now part of this campaign.', icon: 'success' });
         } catch (err: any) {
             Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
@@ -233,7 +335,7 @@ export const CampaignDetails = () => {
                         
                         {/* Dynamic Top Button */}
                         {isJoined ? (
-                            <Button variant="primary" onClick={() => setIsSubmitModalOpen(true)} className="flex items-center gap-2 bg-white text-black hover:bg-white/90 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base">
+                            <Button variant="primary" onClick={() => setIsSubmitModalOpen(true)} className="flex items-center gap-2 bg-white text-zinc-950 hover:bg-white/90 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base">
                                 <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
                                 Submit Clip
                             </Button>
@@ -241,7 +343,7 @@ export const CampaignDetails = () => {
                             <Button 
                                 variant="primary" 
                                 disabled={campaign.status !== 'Active'}
-                                onClick={() => { setJoinStep(1); setIsJoinModalOpen(true); }} 
+                                onClick={() => { setJoinStep(user?.discordVerified ? 3 : 1); setIsJoinModalOpen(true); }} 
                                 className="flex items-center gap-2 bg-emerald-400 text-black hover:bg-emerald-300 font-extrabold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-[0_0_40px_rgba(52,211,153,0.25)] text-xs sm:text-base disabled:opacity-50 disabled:grayscale"
                             >
                                 <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -485,10 +587,242 @@ export const CampaignDetails = () => {
                         <motion.div initial={{ y: 24, scale: 0.95, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 24, scale: 0.95, opacity: 0 }}
                             className="bg-[#0c0c0c] border border-white/10 rounded-[40px] p-10 max-w-lg w-full shadow-2xl relative text-center">
                             
-                            {joinStep < 3 && (
-                                <button onClick={() => setIsJoinModalOpen(false)} className="absolute top-8 right-8 p-2 rounded-full text-white/20 hover:text-white hover:bg-white/5 transition-all">
-                                    <X className="w-5 h-5" />
-                                </button>
+                            {joinStep === 1 && (
+                                <div className="space-y-8">
+                                    <div className="mx-auto w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)] text-emerald-400">
+                                        <Shield className="w-10 h-10" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-center gap-2 mb-1">
+                                            <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-white/40 uppercase">Step 1 of 3</span>
+                                        </div>
+                                        <h2 className="text-3xl font-bold tracking-tight text-white">Join & Commit</h2>
+                                        <p className="text-white/30 text-sm">Review mission guidelines before proceeding.</p>
+                                    </div>
+                                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 text-left space-y-4 max-h-[240px] overflow-y-auto custom-scrollbar">
+                                        {campaign.rules?.map((rule, idx) => (
+                                            <div key={idx} className="flex gap-3">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 mt-1.5 shrink-0" />
+                                                <p className="text-xs text-white/60 leading-relaxed">{rule}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Button 
+                                        onClick={() => setJoinStep(2)} 
+                                        className="w-full py-5 rounded-2xl bg-white text-zinc-950 font-bold uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
+                                    >
+                                        I Agree to the Rules
+                                    </Button>
+                                </div>
+                            )}
+
+                            {joinStep === 2 && (
+                                <div className="space-y-8">
+                                    <div className="mx-auto w-20 h-20 rounded-3xl bg-[#5865F2]/10 flex items-center justify-center border border-[#5865F2]/20 shadow-[0_0_30px_rgba(88,101,242,0.1)] text-[#5865F2]">
+                                        <Shield className="w-10 h-10" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-center gap-2 mb-1">
+                                            <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-white/40 uppercase">Step 2 of 3</span>
+                                        </div>
+                                        <h2 className="text-3xl font-bold tracking-tight text-white">Discord Link</h2>
+                                        <p className="text-white/30 text-sm">Ensure you are part of our creator community.</p>
+                                    </div>
+
+                                    <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.06] text-left space-y-4">
+                                        {user?.discordVerified ? (
+                                            <div className="flex flex-col items-center py-4 space-y-4">
+                                                <div className="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
+                                                    <CheckCircle className="w-6 h-6" />
+                                                </div>
+                                                <div className="text-center">
+                                                    <p className="text-sm font-bold text-white">Discord Already Connected</p>
+                                                    <p className="text-[10px] text-white/30 mt-1 uppercase tracking-widest">ID: {user.discordId}</p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <p className="text-xs text-white/50 leading-relaxed text-center">This mission requires you to be in our Discord server. Link your account to continue.</p>
+                                                <Button 
+                                                    onClick={async () => {
+                                                        try {
+                                                            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/discord?redirectTo=${encodeURIComponent(window.location.href)}`, {
+                                                                headers: { 'Authorization': `Bearer ${token}` }
+                                                            });
+                                                            const json = await res.json();
+                                                            if (json.success && json.url) window.location.href = json.url;
+                                                        } catch (e) {
+                                                            Toast.fire({ title: 'Error', text: 'Failed to initiate Discord link.', icon: 'error' });
+                                                        }
+                                                    }}
+                                                    className="w-full py-4 rounded-xl bg-[#5865F2] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#4752C4] shadow-lg shadow-[#5865F2]/20"
+                                                >
+                                                    Connect Discord
+                                                </Button>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        <Button variant="outline" onClick={() => setJoinStep(1)} className="flex-1 py-5 rounded-2xl border-white/10 text-white/40">Back</Button>
+                                        <Button 
+                                            disabled={!user?.discordVerified}
+                                            onClick={() => setJoinStep(3)}
+                                            className="flex-[2] py-5 rounded-2xl bg-white text-zinc-950 font-bold uppercase tracking-widest text-sm hover:scale-[1.02] disabled:opacity-30 transition-all shadow-xl"
+                                        >
+                                            Next Step
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {joinStep === 3 && (
+                                <div className="space-y-8">
+                                    <div className="mx-auto w-20 h-20 rounded-3xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 shadow-[0_0_30px_rgba(245,158,11,0.1)] text-amber-500">
+                                        <Globe className="w-10 h-10" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-center gap-2 mb-1">
+                                            <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-white/40 uppercase">Step 3 of 3</span>
+                                        </div>
+                                        <h2 className="text-3xl font-bold tracking-tight text-white">Social Linking</h2>
+                                        <p className="text-white/30 text-sm">Target platform for this mission.</p>
+                                    </div>
+
+                                    <div className="space-y-6 text-left">
+                                        <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.06] space-y-5">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Select Platform</p>
+                                                <div className="flex gap-2">
+                                                    {campaign.allowed_platforms?.includes('youtube') && (
+                                                        <div className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center" title="YouTube Allowed">
+                                                            <svg className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                                        </div>
+                                                    )}
+                                                    {campaign.allowed_platforms?.includes('instagram') && (
+                                                        <div className="w-8 h-8 rounded-lg bg-pink-500/10 border border-pink-500/20 flex items-center justify-center" title="Instagram Allowed">
+                                                            <svg className="w-4 h-4 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {((campaign.allowed_platforms?.includes('instagram') && user?.instagramVerified) || (campaign.allowed_platforms?.includes('youtube') && user?.youtubeVerified)) ? (
+                                                <div className="py-4 space-y-4">
+                                                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+                                                        <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
+                                                            <CheckCircle className="w-5 h-5" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-white">Account Ready</p>
+                                                            <p className="text-[10px] text-white/30 uppercase tracking-widest">{user.instagramVerified ? user.instagramHandle : user.youtubeHandle}</p>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-[10px] text-white/20 text-center uppercase tracking-widest italic">You are verified and ready to join.</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    {!showYtCode ? (
+                                                        <>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Social Handle</label>
+                                                                <input 
+                                                                    value={linkedHandle}
+                                                                    onChange={e => setLinkedHandle(e.target.value)}
+                                                                    placeholder="@your_handle"
+                                                                    className="w-full bg-white/[0.03] border border-white/[0.1] rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-white/30 transition-all font-mono"
+                                                                />
+                                                            </div>
+
+                                                            {campaign.allowed_platforms?.includes('youtube') && (
+                                                                <Button 
+                                                                    variant="outline" 
+                                                                    onClick={() => setShowYtCode(true)}
+                                                                    className="w-full py-4 rounded-xl border-red-500/20 text-red-400 hover:bg-red-500/5 text-[10px] font-bold uppercase tracking-widest"
+                                                                >
+                                                                    Link via YouTube Bio
+                                                                </Button>
+                                                            )}
+                                                            
+                                                            {campaign.allowed_platforms?.includes('instagram') && (
+                                                                <Button 
+                                                                    variant="outline" 
+                                                                    onClick={handleInstagramVerify}
+                                                                    disabled={isVerifyingSocial || !linkedHandle}
+                                                                    className="w-full py-4 rounded-xl border-pink-500/20 text-pink-400 hover:bg-pink-500/5 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2"
+                                                                >
+                                                                    {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-pink-400/20 border-t-pink-400 animate-spin" />}
+                                                                    Link Instagram Handle
+                                                                </Button>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                            <div className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl text-center space-y-3">
+                                                                <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest leading-relaxed">Add this code to your YouTube channel bio</p>
+                                                                <div className="bg-black/60 border border-white/10 p-4 rounded-xl font-mono text-emerald-400 text-xl tracking-widest shadow-inner">
+                                                                    {verifyCode}
+                                                                </div>
+                                                                <button onClick={() => setShowYtCode(false)} className="text-[9px] text-white/30 uppercase tracking-widest hover:text-white underline">Back to handle input</button>
+                                                            </div>
+                                                            <Button 
+                                                                onClick={handleYouTubeVerify}
+                                                                disabled={isVerifyingSocial}
+                                                                className="w-full py-4 rounded-xl bg-white text-black text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl hover:scale-[1.02] transition-all"
+                                                            >
+                                                                {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
+                                                                Check YouTube Bio Now
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {socialVerifyError && (
+                                                <p className="text-[10px] text-red-500 font-medium text-center bg-red-500/5 p-2 rounded-lg border border-red-500/10 italic">
+                                                    {socialVerifyError}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {campaign.requires_dedicated_social && (
+                                            <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex gap-3 items-center">
+                                                <Target className="w-4 h-4 text-amber-500" />
+                                                <p className="text-[10px] text-amber-500/80 leading-relaxed font-bold uppercase tracking-wider">Dedicated Account Required for this mission</p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        <Button variant="outline" onClick={() => setJoinStep(2)} className="flex-1 py-5 rounded-2xl border-white/10 text-white/40">Back</Button>
+                                        <Button 
+                                            disabled={isSubmitting || isVerifyingSocial || (!user?.instagramVerified && !user?.youtubeVerified)} 
+                                            onClick={() => handleJoinSubmit()}
+                                            className="flex-[2] py-5 rounded-2xl bg-emerald-500 text-black font-bold uppercase tracking-widest text-sm hover:scale-[1.02] disabled:opacity-30 transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+                                        >
+                                            {isSubmitting ? 'Finalizing...' : 'Finalize & Join'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {joinStep === 4 && (
+                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8">
+                                    <div className="mx-auto w-24 h-24 rounded-full bg-emerald-500 flex items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.3)]">
+                                        <CheckCircle className="w-12 h-12 text-black" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h2 className="text-4xl font-bold tracking-tight text-white">You're In!</h2>
+                                        <p className="text-white/40 text-sm">Mission activated. Your progress is being tracked.</p>
+                                    </div>
+                                    <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 flex items-center justify-center gap-3">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                        <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Active Participation</p>
+                                    </div>
+                                    <Button onClick={() => setIsJoinModalOpen(false)} className="w-full py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-sm">
+                                        Start Clipping
+                                    </Button>
+                                </motion.div>
                             )}
 
                             {joinStep === 1 && (
@@ -519,7 +853,7 @@ export const CampaignDetails = () => {
                                                 setJoinStep(2);
                                             }
                                         }} 
-                                        className="w-full py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
+                                        className="w-full py-5 rounded-2xl bg-white text-zinc-950 font-bold uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
                                     >
                                         I Agree to the Rules
                                     </Button>
@@ -611,7 +945,7 @@ export const CampaignDetails = () => {
                                         <Button 
                                             disabled={isSubmitting || (campaign.requires_discord && !user?.discordVerified) || !linkedHandle} 
                                             onClick={() => handleJoinSubmit()}
-                                            className="flex-[2] py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-sm hover:scale-[1.02] disabled:opacity-30 transition-all"
+                                            className="flex-[2] py-5 rounded-2xl bg-white text-zinc-950 font-bold uppercase tracking-widest text-sm hover:scale-[1.02] disabled:opacity-30 transition-all"
                                         >
                                             {isSubmitting ? 'Joining...' : 'Finalize & Join'}
                                         </Button>

@@ -65,7 +65,13 @@ export const Profile = () => {
                     instagramVerified: result.data.instagram_verified,
                     instagramHandle: result.data.instagram_handle
                 };
-                login(userData, token);
+                // Merge metadata to prevent state flicker
+                const { user: currentUser, updateUser } = useAuthStore.getState();
+                if (currentUser && currentUser.id === userData.id) {
+                    updateUser(userData);
+                } else {
+                    login(userData, token);
+                }
             }
         } catch (e) {
             console.error(e);
@@ -306,7 +312,7 @@ export const Profile = () => {
                         </p>
                         <p className="text-4xl font-mono tracking-tight font-medium text-white/90">{stats.totalViews}</p>
                     </div>
-                    <div className="p-8 rounded-3xl bg-white text-black relative overflow-hidden group">
+                    <div className="p-8 rounded-3xl bg-white text-zinc-950 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-5 opacity-10">
                             <Wallet className="w-10 h-10" />
                         </div>
@@ -484,7 +490,7 @@ export const Profile = () => {
                                         <Button
                                             variant="primary"
                                             disabled={isVerifying}
-                                            className="w-full rounded-2xl py-4 text-xs font-bold uppercase tracking-widest bg-white text-black hover:bg-white/90 shadow-xl disabled:opacity-50 mt-4"
+                                            className="w-full rounded-2xl py-4 text-xs font-bold uppercase tracking-widest bg-white text-zinc-950 hover:bg-white/90 shadow-xl disabled:opacity-50 mt-4"
                                             onClick={async () => {
                                                 if (user?.discordVerified) {
                                                     setVerifyStep(2);
@@ -656,7 +662,7 @@ export const Profile = () => {
                                             className="space-y-6 pt-4 flex flex-col items-center w-full"
                                         >
                                             <div className="w-16 h-16 rounded-3xl bg-[#FF0000]/10 flex items-center justify-center text-[#FF0000] border border-[#FF0000]/20 mb-2">
-                                                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122-2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
+                                                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
                                             </div>
 
                                             {settings?.youtube_auth_mode === 'manual' ? (
@@ -678,7 +684,7 @@ export const Profile = () => {
                                                                 />
                                                             </div>
                                                             <Button
-                                                                className="w-full rounded-2xl py-3 text-xs bg-white text-black hover:bg-white/90"
+                                                                className="w-full rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90"
                                                                 onClick={() => {
                                                                     if (!youtubeUrl) return Toast.fire({ title: 'Error', text: 'Enter handle first', icon: 'error' });
                                                                     setShowCode(true);
@@ -700,7 +706,7 @@ export const Profile = () => {
                                                                 <Button variant="secondary" className="flex-1 rounded-2xl py-3 text-xs bg-white/10 border border-white/10 hover:bg-white/20" onClick={() => setShowCode(false)}>Back</Button>
                                                                 <Button 
                                                                     disabled={isVerifying}
-                                                                    className="flex-[2] rounded-2xl py-3 text-xs bg-white text-black hover:bg-white/90" 
+                                                                    className="flex-[2] rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90" 
                                                                     onClick={handleManualVerify}
                                                                 >
                                                                     {isVerifying ? 'Verifying...' : 'Check Bio Now'}
@@ -716,7 +722,7 @@ export const Profile = () => {
                                                     </div>
                                                     <Button
                                                         disabled={isVerifying}
-                                                        className="w-full rounded-2xl py-3 text-xs bg-white text-black hover:bg-white/90 flex flex-row items-center justify-center gap-2"
+                                                        className="w-full rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90 flex flex-row items-center justify-center gap-2"
                                                         onClick={async () => {
                                                             setIsVerifying(true);
                                                             setVerifyError('');
@@ -784,7 +790,7 @@ export const Profile = () => {
                                                 </div>
                                                 <Button
                                                     disabled={isVerifying}
-                                                    className="w-full rounded-2xl py-3 text-xs bg-white text-black hover:bg-white/90 flex items-center justify-center gap-2"
+                                                    className="w-full rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90 flex items-center justify-center gap-2"
                                                     onClick={handleManualInstagramVerify}
                                                 >
                                                     {isVerifying && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
@@ -856,7 +862,7 @@ export const Profile = () => {
                                     <Button
                                         variant="primary"
                                         onClick={() => setIsSettingsOpen(false)}
-                                        className="w-full bg-white text-black hover:bg-white/90 rounded-2xl py-4 text-xs font-bold uppercase tracking-widest shadow-xl"
+                                        className="w-full bg-white text-zinc-950 hover:bg-white/90 rounded-2xl py-4 text-xs font-bold uppercase tracking-widest shadow-xl"
                                     >
                                         Save Changes
                                     </Button>

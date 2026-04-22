@@ -133,7 +133,7 @@ export const MySubmissions = () => {
                     </p>
                     <p className="text-4xl font-mono tabular-metrics text-white/90">{stats.views.toLocaleString()}</p>
                 </div>
-                <div className="p-6 rounded-3xl bg-white text-black shadow-2xl group overflow-hidden relative">
+                <div className="p-6 rounded-3xl bg-white text-zinc-950 shadow-2xl group overflow-hidden relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-black/[0.05] to-transparent pointer-events-none" />
                     <p className="text-black/50 text-xs mb-3 uppercase tracking-widest font-bold flex items-center gap-2.5 relative z-10">
                         <Wallet className="w-5 h-5" />
