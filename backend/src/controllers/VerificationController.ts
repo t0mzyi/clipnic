@@ -532,7 +532,7 @@ export class VerificationController {
         .from('users')
         .update({ discord_verified: true, discord_id: discordId })
         .eq('id', userId)
-        .select()
+        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_handle, youtube_channels, youtube_verified, instagram_handle, instagram_verified, is_blocked, bio, created_at')
         .single();
 
       if (error) {
@@ -599,26 +599,116 @@ export class VerificationController {
     }
   }
 
+  /**
+   * Verifies an Instagram account by checking for a unique code in the profile bio.
+   */
+  static async verifyInstagramBio(req: any, res: Response, next: NextFunction) {
+    try {
+      const { id: userId } = req.user;
+      let { handle, code } = req.body;
+
+      if (!handle || !code) {
+        return res.status(400).json({ success: false, error: 'Instagram handle and verification code are required.' });
+      }
+
+      handle = handle.trim().replace(/^@/, '').toLowerCase();
+      
+      // Duplicate check (ensure no one else is using this handle)
+      const { data: duplicateUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('instagram_handle', `@${handle}`)
+        .neq('id', userId)
+        .maybeSingle();
+      
+      if (duplicateUser) {
+        return res.status(400).json({ success: false, error: 'This Instagram account is already verified by another user.' });
+      }
+
+      // Fetch Instagram Profile
+      const proxyUrl = process.env.DISCORD_PROXY_URL;
+      const targetUrl = proxyUrl 
+          ? `${proxyUrl}?url=${encodeURIComponent(`https://www.instagram.com/${handle}/`)}`
+          : `https://www.instagram.com/${handle}/`;
+
+      const igRes = await fetch(targetUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Upgrade-Insecure-Requests': '1'
+          }
+      });
+
+      if (!igRes.ok) {
+          throw new Error("Could not reach Instagram. If the profile is private, bio verification will fail.");
+      }
+
+      const html = await igRes.text();
+      
+      // Attempt to extract bio with multiple fallbacks
+      const bioMatch = 
+        html.match(/"biography":"([^"]+)"/i) || 
+        html.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i) ||
+        html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i) ||
+        html.match(/"description":"([^"]+)"/i);
+
+      let scrapedBio = bioMatch ? bioMatch[1] : null;
+      
+      // Clean up scraped bio (remove HTML entities if any)
+      if (scrapedBio) {
+          scrapedBio = scrapedBio.replace(/\\u([0-9a-fA-F]{4})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16)));
+      }
+
+      const bioDisplay = scrapedBio ? scrapedBio.slice(0, 100) : "Could not extract bio text";
+
+      // Look for the code in the HTML (biography field or general text)
+      const isVerified = html.includes(code);
+
+      if (!isVerified) {
+          const isBlocked = html.includes('login') || html.includes('checkpoint') || html.length < 2000;
+          const bioSnippet = `(We saw: "${bioDisplay}${scrapedBio && scrapedBio.length > 100 ? '...' : ''}")`;
+          
+          return res.status(400).json({ 
+              success: false, 
+              error: isBlocked 
+                ? `Instagram is blocking our verification attempt. Please try again in 5 minutes.` 
+                : `Verification code "${code}" not found in @${handle}'s bio. ${bioSnippet}`,
+              details: isBlocked ? "Bot detection triggered." : bioSnippet
+          });
+      }
+
+      // Update Database
+      const { data, error } = await supabase
+        .from('users')
+        .update({ 
+            instagram_verified: true, 
+            instagram_handle: `@${handle}`
+        })
+        .eq('id', userId)
+        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_handle, youtube_channels, youtube_verified, instagram_handle, instagram_verified, is_blocked, bio, created_at')
+        .single();
+
+      if (error) throw error;
+      res.json({ success: true, data });
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
   static async disconnectInstagram(req: any, res: Response, next: NextFunction) {
     try {
       const { id: userId } = req.user;
-      const { handle } = req.body; // Specifically which handle to remove
-
-      const { data: userRaw } = await supabase.from('users').select('instagram_handles').eq('id', userId).single();
-      let existingHandles = userRaw?.instagram_handles || [];
-
-      if (handle) {
-          existingHandles = existingHandles.filter((h: string) => h !== handle);
-      } else {
-          existingHandles = [];
-      }
 
       const { error } = await supabase
         .from('users')
         .update({ 
-            instagram_verified: existingHandles.length > 0, 
-            instagram_handle: existingHandles.length > 0 ? existingHandles[0] : null,
-            instagram_handles: existingHandles
+            instagram_verified: false, 
+            instagram_handle: null
         })
         .eq('id', userId);
 

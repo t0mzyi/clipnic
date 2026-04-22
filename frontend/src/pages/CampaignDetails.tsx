@@ -91,6 +91,7 @@ export const CampaignDetails = () => {
     const [socialVerifyError, setSocialVerifyError] = useState('');
     const [verifyCode] = useState(() => 'CLPNIC-' + Math.random().toString(36).substring(2, 8).toUpperCase());
     const [showYtCode, setShowYtCode] = useState(false);
+    const [showIgCode, setShowIgCode] = useState(false);
 
     useEffect(() => {
         const fetchCampaign = async () => {
@@ -266,23 +267,29 @@ export const CampaignDetails = () => {
             Toast.fire({ title: 'Error', text: 'Please enter your Instagram handle', icon: 'error' });
             return;
         }
+
+        if (!showIgCode) {
+            setShowIgCode(true);
+            return;
+        }
+
         setIsVerifyingSocial(true);
         setSocialVerifyError('');
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-instagram`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-instagram-bio`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ handle: linkedHandle })
+                body: JSON.stringify({ handle: linkedHandle, code: verifyCode })
             });
 
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
+            if (!res.ok) throw data;
 
-            Toast.fire({ title: 'Success', text: 'Instagram account linked!', icon: 'success' });
+            Toast.fire({ title: 'Success', text: 'Instagram account verified!', icon: 'success' });
             await fetchSync();
-            handleJoinSubmit(); // Proceed to join after successful verification
+            handleJoinSubmit(); 
         } catch (err: any) {
-            setSocialVerifyError(err.message);
+            setSocialVerifyError(err.details || err.error || err.message || 'Verification failed');
         } finally {
             setIsVerifyingSocial(false);
         }
@@ -992,6 +999,31 @@ export const CampaignDetails = () => {
 
 
                                                     </>
+                                                ) : (showYtCode || showIgCode) ? (
+                                                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                        <div className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl text-center space-y-3">
+                                                            <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest leading-relaxed">
+                                                                Add this code to your {showYtCode ? 'YouTube channel' : 'Instagram profile'} bio
+                                                            </p>
+                                                            <div className="bg-black/60 border border-white/10 p-4 rounded-xl font-mono text-emerald-400 text-xl tracking-widest shadow-inner">
+                                                                {verifyCode}
+                                                            </div>
+                                                            <button 
+                                                                onClick={() => { setShowYtCode(false); setShowIgCode(false); }} 
+                                                                className="text-[9px] text-white/30 uppercase tracking-widest hover:text-white underline"
+                                                            >
+                                                                Back to handle input
+                                                            </button>
+                                                        </div>
+                                                        <Button
+                                                            onClick={showYtCode ? handleYouTubeVerify : handleInstagramVerify}
+                                                            disabled={isVerifyingSocial}
+                                                            className="w-full py-4 rounded-xl bg-white text-black text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl hover:scale-[1.02] transition-all"
+                                                        >
+                                                            {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
+                                                            Check {showYtCode ? 'YouTube' : 'Instagram'} Bio Now
+                                                        </Button>
+                                                    </div>
                                                 ) : (
                                                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                         <div className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl text-center space-y-3">

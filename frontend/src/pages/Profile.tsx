@@ -150,6 +150,7 @@ export const Profile = () => {
     const [youtubeUrl, setYoutubeUrl] = useState('');
     const [instagramHandle, setInstagramHandle] = useState('');
     const [showCode, setShowCode] = useState(false);
+    const [showIgCode, setShowIgCode] = useState(false);
     const [verifyCode] = useState(() => 'CLPNIC-' + Math.random().toString(36).substring(2, 8).toUpperCase());
 
     const handleManualVerify = async () => {
@@ -189,28 +190,36 @@ export const Profile = () => {
             Toast.fire({ title: 'Error', text: 'Please enter your Instagram handle', icon: 'error' });
             return;
         }
+
+        if (!showIgCode) {
+            setShowIgCode(true);
+            return;
+        }
+
         setIsVerifying(true);
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-instagram`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-instagram-bio`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    handle: instagramHandle
+                    handle: instagramHandle,
+                    code: verifyCode
                 })
             });
 
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
+            if (!res.ok) throw data;
 
             Toast.fire({ title: 'Success', text: 'Instagram account verified!', icon: 'success' });
-            setShowCode(false);
+            setShowIgCode(false);
             setInstagramHandle('');
             fetchSync();
         } catch (err: any) {
-            Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
+            setVerifyError(err.details || err.error || err.message || 'Verification failed');
+            Toast.fire({ title: 'Error', text: err.error || err.message || 'Verification failed', icon: 'error' });
         } finally {
             setIsVerifying(false);
         }
@@ -931,28 +940,54 @@ export const Profile = () => {
                                             </div>
 
                                             <div className="w-full space-y-4">
-                                                <div className="text-center space-y-2 mb-4">
-                                                    <h3 className="font-bold text-white uppercase text-[10px] tracking-widest">Link Instagram</h3>
-                                                    <p className="text-xs text-white/40 px-4 leading-relaxed">Enter your Instagram handle to link your account.</p>
-                                                </div>
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">Instagram Handle</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="@yourhandle"
-                                                        value={instagramHandle}
-                                                        onChange={(e) => setInstagramHandle(e.target.value)}
-                                                        className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 transition-all placeholder:text-white/10"
-                                                    />
-                                                </div>
-                                                <Button
-                                                    disabled={isVerifying}
-                                                    className="w-full rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90 flex items-center justify-center gap-2"
-                                                    onClick={handleManualInstagramVerify}
-                                                >
-                                                    {isVerifying && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
-                                                    {isVerifying ? 'Linking...' : 'Link Account'}
-                                                </Button>
+                                                {!showIgCode ? (
+                                                    <div className="space-y-4">
+                                                        <div className="text-center space-y-2 mb-4">
+                                                            <h3 className="font-bold text-white uppercase text-[10px] tracking-widest">Link Instagram</h3>
+                                                            <p className="text-xs text-white/40 px-4 leading-relaxed">Enter your Instagram handle to link your account.</p>
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">Instagram Handle</label>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="@yourhandle"
+                                                                value={instagramHandle}
+                                                                onChange={(e) => setInstagramHandle(e.target.value)}
+                                                                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 transition-all placeholder:text-white/10"
+                                                            />
+                                                        </div>
+                                                        <Button
+                                                            className="w-full rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90"
+                                                            onClick={() => {
+                                                                if (!instagramHandle) return Toast.fire({ title: 'Error', text: 'Enter handle first', icon: 'error' });
+                                                                setShowIgCode(true);
+                                                            }}
+                                                        >
+                                                            Next: Generate Code
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-4">
+                                                        <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center space-y-3">
+                                                            <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Add to your profile bio</p>
+                                                            <div className="bg-black/40 border border-white/5 p-3 rounded-xl font-mono text-emerald-400 text-lg tracking-wider">
+                                                                {verifyCode}
+                                                            </div>
+                                                            <p className="text-[10px] text-white/40 leading-relaxed italic">Add this code to your Instagram bio, then click verify.</p>
+                                                        </div>
+                                                        <div className="flex gap-3 pt-2">
+                                                            <Button variant="secondary" className="flex-1 rounded-2xl py-3 text-xs bg-white/10 border border-white/10 hover:bg-white/20" onClick={() => setShowIgCode(false)}>Back</Button>
+                                                            <Button
+                                                                disabled={isVerifying}
+                                                                className="flex-[2] rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90 flex items-center justify-center gap-2"
+                                                                onClick={handleManualInstagramVerify}
+                                                            >
+                                                                {isVerifying && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
+                                                                {isVerifying ? 'Verifying...' : 'Check Bio Now'}
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <button

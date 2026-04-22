@@ -16,7 +16,7 @@ export class AuthService {
         role,
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' })
-      .select()
+      .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_handle, youtube_channels, youtube_verified, instagram_handle, instagram_verified, is_blocked, bio, created_at')
       .single();
 
     if (error) {

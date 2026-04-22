@@ -134,11 +134,10 @@ export class SubmissionService {
     } else if (validated.platform === 'instagram') {
         if (!channelId) throw new Error("Could not verify Instagram owner. Ensure the reel is public.");
         
-        const { data: userRaw } = await supabase.from('users').select('instagram_handle, instagram_handles').eq('id', userId).single();
+        const { data: userRaw } = await supabase.from('users').select('instagram_handle').eq('id', userId).single();
         const linkedHandle = userRaw?.instagram_handle?.toLowerCase();
-        const linkedHandles = userRaw?.instagram_handles || [];
         
-        const isOwner = linkedHandle === channelId || linkedHandles.some((h: string) => h.toLowerCase() === channelId);
+        const isOwner = linkedHandle === channelId;
         if (!isOwner) throw new Error(`This reel belongs to ${channelId}, but you have linked ${linkedHandle || 'no account'}.`);
     }
 

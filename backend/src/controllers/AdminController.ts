@@ -32,7 +32,7 @@ export class AdminController {
       const { id } = req.params;
       const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_handle, youtube_channels, youtube_verified, instagram_handle, instagram_verified, is_blocked, bio, created_at')
         .eq('id', id)
         .single();
       if (error) throw error;
