@@ -188,10 +188,10 @@ const Layout = () => {
     const location = useLocation();
 
     useEffect(() => {
-        const syncBackend = async (session: any) => {
+        const syncBackend = async (session: any, isInitial = false) => {
             if (session) {
                 setIsSyncing(true);
-                // 1. Instantly update store with metadata from the login session
+                // 1. Update store with metadata ONLY if we don't have a user or if it's the same user
                 const metadata = session.user.user_metadata;
                 const instantUser = {
                     id: session.user.id,
@@ -203,17 +203,21 @@ const Layout = () => {
                     role: (metadata?.role as 'admin' | 'user') || 'user'
                 };
 
-                // Set initial state from session metadata
-                // We use updateUser if we already have a user in the store (e.g. from persistence)
-                // to avoid overwriting detailed verification flags with basic session info.
                 const { user: currentUser, login: storeLogin, updateUser } = useAuthStore.getState();
+                
+                // CRITICAL: Only overwrite if we don't have a user or if the IDs match 
+                // BUT don't downgrade an existing 'admin' role with 'user' metadata
                 if (currentUser && currentUser.id === session.user.id) {
-                    updateUser(instantUser);
+                    const safeUpdate = { ...instantUser };
+                    if (currentUser.role === 'admin' && instantUser.role === 'user') {
+                        delete (safeUpdate as any).role; // Preserve admin role from store
+                    }
+                    updateUser(safeUpdate);
                 } else {
                     storeLogin(instantUser, session.access_token);
                 }
 
-                // 2. Sync with backend in the background to ensure DB is up to date
+                // 2. Sync with backend in the background
                 try {
                     const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/sync`, {
                         headers: {
@@ -222,7 +226,6 @@ const Layout = () => {
                     });
                     const result = await response.json();
                     if (result.success) {
-                        // Map snake_case from DB to camelCase for the frontend
                         const userData = {
                             ...result.data,
                             avatarUrl: result.data.avatar_url,
@@ -240,24 +243,25 @@ const Layout = () => {
                     console.error('Failed to sync with backend:', err);
                 } finally {
                     setIsSyncing(false);
+                    if (isInitial) setLoading(false);
                 }
             } else {
                 logout();
                 setIsSyncing(false);
+                if (isInitial) setLoading(false);
             }
         };
 
         // Check current session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
-            syncBackend(session);
-            setLoading(false);
+            // We await the FIRST sync to ensure we don't flicker unverified content
+            syncBackend(session, true);
         });
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             setSession(session);
-            // Only trigger a full sync on specific events to avoid flickering on visible change
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
                 syncBackend(session);
             } else if (event === 'SIGNED_OUT') {
