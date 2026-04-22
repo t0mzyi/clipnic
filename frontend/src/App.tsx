@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import {
     LayoutGrid,
@@ -14,9 +14,7 @@ import {
     Settings,
     LogOut,
     Shield,
-    Menu,
-    ChevronUp,
-    ChevronDown
+    Menu
 } from 'lucide-react';
 import { CampaignsFeed } from './pages/CampaignsFeed';
 import { CampaignDetails } from './pages/CampaignDetails';
