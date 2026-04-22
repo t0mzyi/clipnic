@@ -19,7 +19,11 @@ interface Campaign {
     min_views: number;
     end_date: string;
     banner_url?: string;
-    requires_verification: boolean;
+    requires_verification: boolean; // Legacy
+    allowed_platforms: string[];
+    requires_dedicated_social: boolean;
+    requires_discord: boolean;
+    rules: string[];
     status: string;
     view_progress: number;
     target_views: number;
@@ -49,6 +53,12 @@ export const CampaignDetails = () => {
     const { token, user } = useAuthStore();
     const [campaign, setCampaign] = useState<Campaign | null>(null);
     const [loading, setLoading] = useState(true);
+    
+    // Joint State
+    const [isJoined, setIsJoined] = useState(false);
+    const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+    const [joinStep, setJoinStep] = useState(1);
+    const [linkedHandle, setLinkedHandle] = useState('');
     
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
     const [submissionUrl, setSubmissionUrl] = useState('');
@@ -89,9 +99,24 @@ export const CampaignDetails = () => {
             } catch (err) { console.error('Failed to fetch leaderboard:', err); }
         };
 
+        const checkParticipation = async () => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/participations`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                if (json.success && Array.isArray(json.data)) {
+                    setIsJoined(json.data.includes(id));
+                }
+            } catch (err) { console.error(err); }
+        };
+
         if (id) {
             fetchCampaign();
-            if (token) fetchSubmissions();
+            if (token) {
+                fetchSubmissions();
+                checkParticipation();
+            }
             fetchLeaderboard();
         }
     }, [id, token]);
@@ -117,16 +142,32 @@ export const CampaignDetails = () => {
         </div>
     );
 
-    const progressPercentage = campaign.target_views > 0
-        ? Math.round((campaign.view_progress / campaign.target_views) * 100)
-        : 0;
     const budgetPercent = campaign.total_budget > 0
         ? Math.round((campaign.budget_used / campaign.total_budget) * 100)
         : 0;
     const daysLeft = Math.max(0, Math.ceil((new Date(campaign.end_date).getTime() - Date.now()) / 86400000));
-    const requiresVerification = campaign.requires_verification;
-    const isUserVerified = !!(user?.discordVerified && user?.youtubeVerified);
     const banner = campaign.banner_url || FALLBACK_BANNERS[0];
+
+    const handleJoinSubmit = async () => {
+        setIsSubmitting(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}/join`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ linkedHandle })
+            });
+            const json = await res.json();
+            if (!json.success) throw new Error(json.error);
+            
+            setIsJoined(true);
+            setJoinStep(3); // Success
+            Toast.fire({ title: 'Welcome Aboard!', text: 'You are now part of this campaign.', icon: 'success' });
+        } catch (err: any) {
+            Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const handleSubmitClip = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -184,15 +225,15 @@ export const CampaignDetails = () => {
                         </div>
                         
                         {/* Dynamic Top Button */}
-                        {requiresVerification && !isUserVerified ? (
-                            <Link to="/profile" className="flex items-center gap-2 bg-red-500/20 text-red-500 hover:bg-red-500/30 border border-red-500/30 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full text-xs sm:text-base">
-                                <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
-                                Go Verify
-                            </Link>
-                        ) : (
+                        {isJoined ? (
                             <Button variant="primary" onClick={() => setIsSubmitModalOpen(true)} className="flex items-center gap-2 bg-white text-black hover:bg-white/90 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base">
                                 <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
                                 Submit Clip
+                            </Button>
+                        ) : (
+                            <Button variant="primary" onClick={() => { setJoinStep(1); setIsJoinModalOpen(true); }} className="flex items-center gap-2 bg-emerald-500 text-white hover:bg-emerald-600 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base">
+                                <Rocket className="w-4 h-4 sm:w-5 sm:h-5" />
+                                Join Campaign
                             </Button>
                         )}
                     </div>
@@ -211,15 +252,9 @@ export const CampaignDetails = () => {
                     <p className="text-[10px] font-mono text-white/20">{budgetPercent}% used</p>
                 </div>
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
-                    <div className="flex items-center gap-2 text-white/30"><Eye className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Views</span></div>
+                    <div className="flex items-center gap-2 text-white/30"><Eye className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Total Views</span></div>
                     <p className="text-2xl font-mono font-bold text-white">{campaign.view_progress.toLocaleString()}</p>
-                    <p className="text-[10px] font-mono text-white/20">
-                        {campaign.min_views > 0 ? (
-                            <>Need <span className="text-emerald-400/80 font-bold">{campaign.min_views.toLocaleString()}</span> to earn</>
-                        ) : (
-                            <>{progressPercentage}% of goal</>
-                        )}
-                    </p>
+                    <p className="text-[10px] font-mono text-white/20">{campaign.min_views > 0 ? `${campaign.min_views.toLocaleString()} min views` : 'No min views'}</p>
                 </div>
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
                     <div className="flex items-center gap-2 text-amber-500/60"><Clock className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Deadline</span></div>
@@ -267,7 +302,17 @@ export const CampaignDetails = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/[0.03]">
-                                    {submissions.length === 0 ? (
+                                    {!isJoined ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-12 text-center space-y-4">
+                                                <div className="flex flex-col items-center">
+                                                    <Shield className="w-10 h-10 text-white/5 mb-4" />
+                                                    <p className="text-sm font-bold text-white/40">You must join this campaign to see submissions.</p>
+                                                    <Button variant="outline" onClick={() => setIsJoinModalOpen(true)} className="mt-4 text-[10px] uppercase tracking-widest py-2 rounded-xl">Join Now</Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : submissions.length === 0 ? (
                                         <tr>
                                             <td colSpan={4} className="px-6 py-8 text-center text-[10px] uppercase tracking-widest text-white/30">
                                                 No submissions yet. Add your first clip!
@@ -324,7 +369,7 @@ export const CampaignDetails = () => {
                                                     <img src={user.avatar_url} alt={user.name} className="w-9 h-9 rounded-xl border border-white/[0.06] object-cover" />
                                                 ) : (
                                                     <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[10px] font-bold text-white/50">
-                                                        {user.name.charAt(0)}
+                                                        {user.name?.charAt(0) || '?'}
                                                     </div>
                                                 )}
                                                 <div>
@@ -383,28 +428,146 @@ export const CampaignDetails = () => {
                         <p className="text-sm text-white/60 leading-relaxed">{campaign.description}</p>
                     </div>
 
-                    {/* Guidelines (Moved to Right Col) */}
+                    {/* Requirements Badge Area */}
+                    <div className="p-7 rounded-3xl bg-[#0c0c0c] border border-white/[0.06] space-y-4">
+                        <h3 className="text-sm font-bold text-white/40 uppercase tracking-[0.15em]">Requirements</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {campaign.allowed_platforms?.map(p => (
+                                <span key={p} className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-tight text-white/50">{p}</span>
+                            ))}
+                            {campaign.requires_dedicated_social && <span className="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-tight text-emerald-400">Dedicated Social Required</span>}
+                        </div>
+                    </div>
+
+                    {/* Guidelines */}
                     <div className="p-8 rounded-3xl bg-[#0c0c0c] border border-white/[0.06]">
                         <h3 className="text-sm font-bold text-white/40 uppercase tracking-[0.15em] mb-5">Campaign Rules</h3>
                         <div className="space-y-4">
-                            {[
-                                "Original content only. Stolen clips result in permanent ban.",
-                                "Our system flags suspicious view velocity and bot patterns.",
-                                "Payouts finalize upon campaign expiry or budget exhaustion."
-                            ].map((rule, i) => (
+                            {campaign.rules?.length > 0 ? campaign.rules.map((rule, i) => (
                                 <div key={i} className="flex gap-3 items-start">
                                     <div className="mt-0.5 w-5 h-5 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0">
                                         <span className="text-[9px] font-mono font-bold text-white/30">{i + 1}</span>
                                     </div>
                                     <p className="text-xs text-white/40 leading-relaxed">{rule}</p>
                                 </div>
-                            ))}
+                            )) : (
+                                <p className="text-xs text-white/10 italic">No specific rules listed.</p>
+                            )}
                         </div>
                     </div>
 
 
                 </div>
             </div>
+
+            {/* Joining Modal */}
+            <AnimatePresence>
+                {isJoinModalOpen && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[110] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4"
+                        onClick={(e) => { if (e.target === e.currentTarget && joinStep !== 3) setIsJoinModalOpen(false); }}>
+                        <motion.div initial={{ y: 24, scale: 0.95, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 24, scale: 0.95, opacity: 0 }}
+                            className="bg-[#0c0c0c] border border-white/10 rounded-[40px] p-10 max-w-lg w-full shadow-2xl relative text-center">
+                            
+                            {joinStep < 3 && (
+                                <button onClick={() => setIsJoinModalOpen(false)} className="absolute top-8 right-8 p-2 rounded-full text-white/20 hover:text-white hover:bg-white/5 transition-all">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            )}
+
+                            {joinStep === 1 && (
+                                <div className="space-y-8">
+                                    <div className="mx-auto w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+                                        <Shield className="w-10 h-10 text-emerald-400" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h2 className="text-3xl font-bold tracking-tight text-white">Join & Commit</h2>
+                                        <p className="text-white/30 text-sm">Review the rules before joining this mission.</p>
+                                    </div>
+                                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 text-left space-y-4 max-h-[240px] overflow-y-auto">
+                                        {campaign.rules?.map((rule, idx) => (
+                                            <div key={idx} className="flex gap-3">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 mt-1.5 shrink-0" />
+                                                <p className="text-xs text-white/60 leading-relaxed">{rule}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Button onClick={() => setJoinStep(2)} className="w-full py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl">
+                                        I Agree to the Rules
+                                    </Button>
+                                </div>
+                            )}
+
+                            {joinStep === 2 && (
+                                <div className="space-y-8">
+                                    <div className="mx-auto w-20 h-20 rounded-3xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+                                        <Target className="w-10 h-10 text-blue-400" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h2 className="text-3xl font-bold tracking-tight text-white">Verification</h2>
+                                        <p className="text-white/30 text-sm">Link your social handle to participate.</p>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        {campaign.requires_discord && !user?.discordVerified && (
+                                            <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-400 text-xs flex items-center gap-3">
+                                                <X className="w-4 h-4 shrink-0" />
+                                                Discord verification required first. Link it in your Profile.
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-1.5 text-left">
+                                            <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Social Handle</label>
+                                            <input 
+                                                value={linkedHandle}
+                                                onChange={e => setLinkedHandle(e.target.value)}
+                                                placeholder={campaign.requires_dedicated_social ? "@new_channel_handle" : "@your_handle"}
+                                                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-white/20 transition-all font-mono"
+                                            />
+                                            {campaign.requires_dedicated_social && (
+                                                <p className="text-[10px] text-amber-500/60 mt-2 flex items-center gap-2">
+                                                    <Shield className="w-3 h-3" />
+                                                    This mission requires a fresh, dedicated account.
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        <Button variant="outline" onClick={() => setJoinStep(1)} className="flex-1 py-5 rounded-2xl border-white/10 text-white/40">Back</Button>
+                                        <Button 
+                                            disabled={isSubmitting || (campaign.requires_discord && !user?.discordVerified) || !linkedHandle} 
+                                            onClick={handleJoinSubmit}
+                                            className="flex-[2] py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-sm hover:scale-[1.02] disabled:opacity-30 transition-all"
+                                        >
+                                            {isSubmitting ? 'Joining...' : 'Finalize & Join'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {joinStep === 3 && (
+                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8">
+                                    <div className="mx-auto w-24 h-24 rounded-full bg-emerald-500 flex items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.3)]">
+                                        <Upload className="w-12 h-12 text-black" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h2 className="text-4xl font-bold tracking-tight text-white">You're In!</h2>
+                                        <p className="text-white/40 text-sm">Mission activated. Your progress is being tracked.</p>
+                                    </div>
+                                    <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 flex items-center justify-center gap-3">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                        <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Active Participation</p>
+                                    </div>
+                                    <Button onClick={() => setIsJoinModalOpen(false)} className="w-full py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-sm">
+                                        Start Clipping
+                                    </Button>
+                                </motion.div>
+                            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Submit Modal */}
             <AnimatePresence>

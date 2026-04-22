@@ -56,6 +56,38 @@ export class CampaignController {
     }
   }
 
+  static async joinCampaign(req: Request, res: Response, next: NextFunction) {
+      try {
+          const { id } = req.params;
+          const { linkedHandle } = req.body;
+          const userId = (req as any).user.id;
+          const data = await CampaignService.joinCampaign(userId, id, linkedHandle);
+          res.json({ success: true, data });
+      } catch (error) {
+          next(error);
+      }
+  }
+
+  static async getJoined(req: Request, res: Response, next: NextFunction) {
+      try {
+          const userId = (req as any).user.id;
+          const campaigns = await CampaignService.getJoinedCampaigns(userId);
+          res.json({ success: true, data: campaigns });
+      } catch (error) {
+          next(error);
+      }
+  }
+
+  static async getParticipations(req: Request, res: Response, next: NextFunction) {
+      try {
+          const userId = (req as any).user.id;
+          const campaignIds = await CampaignService.getParticipations(userId);
+          res.json({ success: true, data: campaignIds });
+      } catch (error) {
+          next(error);
+      }
+  }
+
   static async deleteCampaign(req: Request, res: Response, next: NextFunction) {
     try {
       await CampaignService.delete(req.params.id as string);

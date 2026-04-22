@@ -17,17 +17,20 @@ const createCampaignSchema = z.object({
   per_video_cap: z.number().positive().optional().nullable(),
   requires_verification: z.boolean().optional().default(false),
   is_featured: z.boolean().optional().default(false),
+  allowed_platforms: z.array(z.string()).optional().default(['youtube', 'instagram', 'tiktok']),
+  requires_dedicated_social: z.boolean().optional().default(false),
+  requires_discord: z.boolean().optional().default(false),
+  rules: z.array(z.string()).optional().default([]),
 }).refine(
   (data) => {
     if (typeof data.per_clipper_cap === 'number' && typeof data.per_video_cap === 'number') {
-      // Both caps are set, clipper cap must be >= video cap
       return data.per_clipper_cap >= data.per_video_cap;
     }
     return true;
   },
   {
     message: "Per Clipper Cap cannot be less than Per Video Cap",
-    path: ["per_clipper_cap"], // Attach the error to this field
+    path: ["per_clipper_cap"],
   }
 );
 
@@ -54,6 +57,48 @@ export class CampaignService {
     return data;
   }
 
+  static async getParticipations(userId: string) {
+    const { data, error } = await supabase
+      .from('campaign_participations')
+      .select('campaign_id')
+      .eq('user_id', userId);
+    if (error) throw error;
+    return data.map(p => p.campaign_id);
+  }
+
+  static async getJoinedCampaigns(userId: string) {
+      const { data, error } = await supabase
+          .from('campaign_participations')
+          .select('*, campaigns(*)')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data.map(p => ({
+          ...p.campaigns,
+          joined_at: p.created_at,
+          linked_handle: p.linked_handle
+      }));
+  }
+
+  static async joinCampaign(userId: string, campaignId: string, linkedHandle?: string) {
+      const { data, error } = await supabase
+          .from('campaign_participations')
+          .insert({
+              user_id: userId,
+              campaign_id: campaignId,
+              linked_handle: linkedHandle || null
+          })
+          .select()
+          .single();
+      
+      if (error) {
+          if (error.code === '23505') throw new Error("You have already joined this campaign.");
+          throw error;
+      }
+      return data;
+  }
+
   static async create(data: any) {
     const validated = createCampaignSchema.parse(data);
     const { data: campaign, error } = await supabase
@@ -72,6 +117,10 @@ export class CampaignService {
         per_video_cap: validated.per_video_cap ?? null,
         requires_verification: validated.requires_verification,
         is_featured: validated.is_featured,
+        allowed_platforms: validated.allowed_platforms,
+        requires_dedicated_social: validated.requires_dedicated_social,
+        requires_discord: validated.requires_discord,
+        rules: validated.rules,
         status: 'Active',
         view_progress: 0,
         target_views: Math.floor(validated.total_budget / (validated.cpm_rate / 1000)),
@@ -99,6 +148,10 @@ export class CampaignService {
         per_video_cap: validated.per_video_cap ?? null,
         requires_verification: validated.requires_verification,
         is_featured: validated.is_featured,
+        allowed_platforms: validated.allowed_platforms,
+        requires_dedicated_social: validated.requires_dedicated_social,
+        requires_discord: validated.requires_discord,
+        rules: validated.rules,
         target_views: Math.floor(validated.total_budget / (validated.cpm_rate / 1000)),
       })
       .eq('id', id)

@@ -78,34 +78,7 @@ export class SubmissionService {
   static async create(userId: string, data: any) {
     const validated = createSubmissionSchema.parse(data);
     
-    // Fetch live views and channel ID via external APIs before inserting
-    const { views, channelId } = await this.fetchLiveViews(validated.url, validated.platform);
-    
-    if (validated.platform === 'youtube') {
-        if (!channelId) {
-            throw new Error("Could not pull channel details for this video.");
-        }
-        
-        // Fetch user's linked youtube channels
-        const { data: userRaw } = await supabase.from('users').select('youtube_channels').eq('id', userId).single();
-        const existingChannels = userRaw?.youtube_channels || [];
-        
-        if (existingChannels.length === 0) {
-            throw new Error("You must link a YouTube channel in your Profile first.");
-        }
-        
-        const isOwner = existingChannels.some((c: any) => c.channelId === channelId);
-        if (!isOwner) {
-            throw new Error("This video does not belong to any of your verified channels.");
-        }
-    } else if (validated.platform === 'instagram') {
-        const { data: userRaw } = await supabase.from('users').select('instagram_verified').eq('id', userId).single();
-        if (!userRaw?.instagram_verified) {
-            throw new Error("You must verify your Instagram account in your Profile first.");
-        }
-    }
-    
-    // Fetch campaign to calculate current earnings based on views & caps
+    // 1. Fetch campaign and participation
     const { data: campaign, error: capErr } = await supabase
         .from('campaigns')
         .select('*')
@@ -113,8 +86,40 @@ export class SubmissionService {
         .single();
     
     if (capErr || !campaign) throw new Error("Campaign not found");
+
+    // 2. Check if user is joined
+    const { data: participation } = await supabase
+        .from('campaign_participants')
+        .select('*')
+        .eq('campaign_id', validated.campaign_id)
+        .eq('user_id', userId)
+        .single();
     
-    // Calculate potential earnings
+    if (!participation) {
+        throw new Error("You must join this campaign before submitting clips.");
+    }
+
+    // 3. Check platform restrictions
+    if (campaign.allowed_platforms && !campaign.allowed_platforms.includes(validated.platform)) {
+        throw new Error(`This mission only allows: ${campaign.allowed_platforms.join(', ')}`);
+    }
+
+    // 4. Fetch live views and channel ID via external APIs
+    const { views, channelId } = await this.fetchLiveViews(validated.url, validated.platform);
+    
+    if (validated.platform === 'youtube') {
+        if (!channelId) throw new Error("Could not pull channel details for this video.");
+        
+        const { data: userRaw } = await supabase.from('users').select('youtube_channels').eq('id', userId).single();
+        const existingChannels = userRaw?.youtube_channels || [];
+        
+        if (existingChannels.length === 0) throw new Error("Link a YouTube channel in Profile first.");
+        
+        const isOwner = existingChannels.some((c: any) => c.channelId === channelId);
+        if (!isOwner) throw new Error("This video does not belong to your verified channels.");
+    }
+
+    // 5. Calculate potential earnings
     let earnings = 0;
     if (campaign.min_views) {
         if (views >= campaign.min_views) {
@@ -128,6 +133,7 @@ export class SubmissionService {
         earnings = campaign.per_video_cap;
     }
 
+    // 6. Final Insert
     const { data: submission, error } = await supabase
       .from('submissions')
       .insert({
@@ -143,10 +149,7 @@ export class SubmissionService {
       .single();
       
     if (error) {
-       // Postgres Unique Violation code for duplicate constraint
-       if (error.code === '23505') { 
-           throw new Error("You have already submitted this specific video link to this campaign.");
-       }
+       if (error.code === '23505') throw new Error("You have already submitted this specific video link.");
        throw error;
     }
     return submission;

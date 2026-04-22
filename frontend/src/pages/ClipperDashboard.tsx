@@ -90,50 +90,7 @@ export const ClipperDashboard = () => {
 
     const recentActivity = submissions.slice(0, 5);
 
-    // Onboarding State
-    const [currentStep, setCurrentStep] = useState(0);
-    const [showOnboardingModal, setShowOnboardingModal] = useState(!user?.discordVerified || !user?.youtubeVerified);
-
-    const onboardingSteps = [
-        {
-            id: 'verify',
-            title: 'Step 1: Link Socials',
-            description: 'Link your YouTube and Discord accounts to start earning and tracking your progress.',
-            icon: ShieldCheck,
-            buttonText: 'Go to Profile',
-            link: '/profile',
-            isExternal: false,
-            checkpoint: !!(user?.discordVerified && user?.youtubeVerified)
-        },
-        {
-            id: 'discord',
-            title: 'Step 2: Join Discord',
-            description: 'Our community shares the best hooks, high-CPM niches, and daily clipping tips.',
-            icon: MessageSquare,
-            buttonText: 'Join Server',
-            link: 'https://discord.gg/rzhvv9Rf42',
-            isExternal: true,
-            checkpoint: !!user?.discordVerified
-        },
-        {
-            id: 'campaign',
-            title: 'Step 3: Pick a Mission',
-            description: 'Browse active campaigns and find the perfect video to clip and monetize.',
-            icon: Rocket,
-            buttonText: 'Browse Missions',
-            link: '/campaigns',
-            isExternal: false,
-            checkpoint: submissions.length > 0
-        }
-    ];
-
-    const handleNext = () => {
-        if (currentStep < onboardingSteps.length - 1) {
-            setCurrentStep(prev => prev + 1);
-        } else {
-            setShowOnboardingModal(false);
-        }
-    };
+    const recentActivity = submissions.slice(0, 5);
 
 
     return (
@@ -195,90 +152,7 @@ export const ClipperDashboard = () => {
                 </div>
             ) : (
                 <>
-                    {/* Onboarding Modal Overlay */}
-                    <AnimatePresence>
-                        {showOnboardingModal && (
-                            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-6 bg-black/80 backdrop-blur-md">
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                                    className="relative w-full max-w-xl bg-gradient-to-br from-[#121212] to-black border border-white/10 rounded-[40px] shadow-2xl overflow-hidden p-8 sm:p-12 text-center"
-                                >
-                                    {/* Exit button */}
-                                    <button 
-                                        onClick={() => setShowOnboardingModal(false)}
-                                        className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 text-white/20 hover:text-white/60 transition-all"
-                                    >
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                                    </button>
 
-                                    {/* Progress Dots */}
-                                    <div className="flex justify-center gap-1.5 mb-10">
-                                        {onboardingSteps.map((_, i) => (
-                                            <div 
-                                                key={i} 
-                                                className={`h-1 rounded-full transition-all duration-500 ${i === currentStep ? 'w-8 bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]' : 'w-2 bg-white/10'}`}
-                                            />
-                                        ))}
-                                    </div>
-
-                                    <AnimatePresence mode="wait">
-                                        <motion.div
-                                            key={currentStep}
-                                            initial={{ opacity: 0, x: 20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: -20 }}
-                                            transition={{ duration: 0.3 }}
-                                            className="space-y-6"
-                                        >
-                                            <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 mb-6">
-                                                {(() => {
-                                                    const Icon = onboardingSteps[currentStep].icon;
-                                                    return <Icon className="w-8 h-8 text-emerald-400" />
-                                                })()}
-                                            </div>
-
-                                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-3">
-                                                {onboardingSteps[currentStep].title}
-                                            </h2>
-                                            <p className="text-white/40 text-sm sm:text-base max-w-sm mx-auto leading-relaxed">
-                                                {onboardingSteps[currentStep].description}
-                                            </p>
-
-                                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-                                                {onboardingSteps[currentStep].isExternal ? (
-                                                    <a 
-                                                        href={onboardingSteps[currentStep].link}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-white text-black font-bold text-sm tracking-tight hover:scale-105 active:scale-95 transition-all"
-                                                    >
-                                                        {onboardingSteps[currentStep].buttonText}
-                                                    </a>
-                                                ) : (
-                                                    <Link 
-                                                        to={onboardingSteps[currentStep].link}
-                                                        className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-white text-black font-bold text-sm tracking-tight hover:scale-105 active:scale-95 transition-all"
-                                                    >
-                                                        {onboardingSteps[currentStep].buttonText}
-                                                    </Link>
-                                                )}
-                                                
-                                                <button 
-                                                    onClick={handleNext}
-                                                    className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-sm tracking-tight hover:bg-white/10 transition-all flex items-center justify-center gap-2 group"
-                                                >
-                                                    {currentStep === onboardingSteps.length - 1 ? "Finish" : "Next Step"}
-                                                    <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                                                </button>
-                                            </div>
-                                        </motion.div>
-                                    </AnimatePresence>
-                                </motion.div>
-                            </div>
-                        )}
-                    </AnimatePresence>
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

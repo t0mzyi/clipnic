@@ -40,8 +40,12 @@ const defaultForm = {
     min_views: '',
     per_clipper_cap: '',
     per_video_cap: '',
-    requires_verification: false,
+    requires_verification: false, // Legacy field, keeping for compat if needed but using newer ones
     is_featured: false,
+    allowed_platforms: ['youtube', 'instagram', 'tiktok'],
+    requires_dedicated_social: false,
+    requires_discord: false,
+    rules: ['Follow brand guidelines', 'No artificial engagement'],
 };
 
 const InputField = ({ label, required = false, ...props }: any) => (
@@ -75,6 +79,7 @@ export const AdminCampaigns = () => {
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [step, setStep] = useState(1);
     const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
     const [form, setForm] = useState(defaultForm);
     const [submitting, setSubmitting] = useState(false);
@@ -94,8 +99,10 @@ export const AdminCampaigns = () => {
 
     useEffect(() => { fetchCampaigns(); }, []);
 
-    const set = (key: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm(p => ({ ...p, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
+    const set = (key: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const val = (e.target as HTMLInputElement).type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
+        setForm(p => ({ ...p, [key]: val }));
+    }
 
     const fetchCampaigns = async () => {
         try {
@@ -108,26 +115,18 @@ export const AdminCampaigns = () => {
         finally { setLoading(false); }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         setSubmitting(true);
         setFormError('');
         try {
-            const { brand: _brand, ...rest } = form as any;
             const payload: any = {
-                ...rest,
+                ...form,
                 cpm_rate: parseFloat(form.cpm_rate),
                 total_budget: parseFloat(form.total_budget),
                 min_views: form.min_views ? parseInt(form.min_views, 10) : null,
                 per_clipper_cap: form.per_clipper_cap ? parseFloat(form.per_clipper_cap) : null,
                 per_video_cap: form.per_video_cap ? parseFloat(form.per_video_cap) : null,
             };
-
-            if (payload.per_clipper_cap !== null && payload.per_video_cap !== null) {
-                if (payload.per_video_cap > payload.per_clipper_cap) {
-                    throw new Error("Per Video Cap cannot be greater than Per Clipper Cap.");
-                }
-            }
 
             const url = editingCampaign 
                 ? `${import.meta.env.VITE_API_URL}/campaigns/${editingCampaign.id}`
@@ -145,21 +144,22 @@ export const AdminCampaigns = () => {
             
             if (editingCampaign) {
                 setCampaigns(prev => prev.map(c => c.id === editingCampaign.id ? json.data : c));
-                Toast.fire({ title: 'Campaign Updated!', text: `"${json.data.title}" saved successfully.`, icon: 'success' });
+                Toast.fire({ title: 'Campaign Updated!', icon: 'success' });
             } else {
                 setCampaigns(prev => [json.data, ...prev]);
-                Toast.fire({ title: 'Campaign Created!', text: `"${json.data.title}" is now live.`, icon: 'success' });
+                Toast.fire({ title: 'Campaign Created!', icon: 'success' });
             }
             
             setIsModalOpen(false);
             setEditingCampaign(null);
             setForm(defaultForm);
+            setStep(1);
         } catch (err: any) {
             setFormError(err.message);
         } finally { setSubmitting(false); }
     };
 
-    const handleEditClick = (campaign: Campaign) => {
+    const handleEditClick = (campaign: any) => {
         setEditingCampaign(campaign);
         setForm({
             title: campaign.title,
@@ -174,7 +174,12 @@ export const AdminCampaigns = () => {
             per_video_cap: campaign.per_video_cap ? campaign.per_video_cap.toString() : '',
             requires_verification: campaign.requires_verification,
             is_featured: campaign.is_featured,
+            allowed_platforms: campaign.allowed_platforms || ['youtube', 'instagram', 'tiktok'],
+            requires_dedicated_social: campaign.requires_dedicated_social || false,
+            requires_discord: campaign.requires_discord || false,
+            rules: campaign.rules || ['Follow brand guidelines'],
         });
+        setStep(1);
         setIsModalOpen(true);
     };
 
@@ -209,6 +214,15 @@ export const AdminCampaigns = () => {
         }
     };
 
+    const togglePlatform = (p: string) => {
+        setForm(prev => ({
+            ...prev,
+            allowed_platforms: prev.allowed_platforms.includes(p)
+                ? prev.allowed_platforms.filter(x => x !== p)
+                : [...prev.allowed_platforms, p]
+        }));
+    };
+
     return (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }} className="space-y-6">
@@ -219,7 +233,7 @@ export const AdminCampaigns = () => {
                     <h1 className="text-3xl font-bold tracking-tight text-white/90 mb-1">Campaigns</h1>
                     <p className="text-white/30 text-sm font-light">Create and manage clipping campaigns.</p>
                 </div>
-                <Button variant="primary" onClick={() => setIsModalOpen(true)}
+                <Button variant="primary" onClick={() => { setEditingCampaign(null); setForm(defaultForm); setStep(1); setIsModalOpen(true); }}
                     className="flex items-center gap-2 rounded-xl px-5 py-3 bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-white/90">
                     <Plus className="w-4 h-4" /> New Campaign
                 </Button>
@@ -288,13 +302,9 @@ export const AdminCampaigns = () => {
                                                 backgroundRepeat: 'no-repeat'
                                             } : undefined}>
                                             <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <p className="text-sm font-medium text-white/90">{camp.title}</p>
-                                                </div>
+                                                <div className="flex items-center gap-3 font-medium text-white/90">{camp.title}</div>
                                             </td>
-                                            <td className="px-4 py-4">
-                                                <span className="font-mono text-sm font-bold text-emerald-400">${camp.cpm_rate.toFixed(2)}</span>
-                                            </td>
+                                            <td className="px-4 py-4 text-emerald-400 font-mono font-bold">${camp.cpm_rate.toFixed(2)}</td>
                                             <td className="px-4 py-4">
                                                 <div className="space-y-1.5 min-w-[120px]">
                                                     <div className="flex justify-between text-[10px]">
@@ -321,199 +331,197 @@ export const AdminCampaigns = () => {
                                                     </div>
                                                 </div>
                                             </td>
+                                            <td className="px-4 py-4 text-white/70 font-mono text-sm">{camp.view_progress.toLocaleString()}</td>
                                             <td className="px-4 py-4">
-                                                <span className="font-mono text-sm text-white/70">{camp.view_progress.toLocaleString()}</span>
-                                            </td>
-                                            <td className="px-4 py-4">
-                                                <div>
-                                                    <p className="text-xs text-white/60 font-mono">{new Date(camp.end_date).toLocaleDateString()}</p>
-                                                    <p className={`text-[10px] mt-0.5 ${daysLeft < 3 ? 'text-red-400' : 'text-white/20'}`}>{daysLeft > 0 ? `${daysLeft}d left` : 'Expired'}</p>
-                                                </div>
+                                                <p className="text-xs text-white/60 font-mono">{new Date(camp.end_date).toLocaleDateString()}</p>
+                                                <p className={`text-[10px] mt-0.5 ${daysLeft < 3 ? 'text-red-400' : 'text-white/20'}`}>{daysLeft > 0 ? `${daysLeft}d left` : 'Expired'}</p>
                                             </td>
                                             <td className="px-4 py-4 text-center">
-                                                {camp.is_featured ? (
-                                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-medium border bg-amber-500/20 text-amber-500 border-amber-500/20">YES</span>
-                                                ) : (
-                                                    <span className="text-white/10 text-[10px]">No</span>
-                                                )}
+                                                {camp.is_featured ? <span className="px-2.5 py-0.5 rounded-full text-xs font-medium border bg-amber-500/20 text-amber-500 border-amber-500/20">YES</span> : <span className="text-white/10 text-[10px]">No</span>}
                                             </td>
                                             <td className="px-4 py-4"><Badge status={camp.status} /></td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2 relative z-10">
-                                                    <Link to={`/campaigns/${camp.id}`} target="_blank"
-                                                        className="p-2 rounded-lg text-white/20 hover:text-white/60 hover:bg-white/[0.04] transition-all">
-                                                        <Eye className="w-4 h-4" />
-                                                    </Link>
-                                                    <button onClick={() => handleToggleStatus(camp)}
-                                                        className="p-2 rounded-lg text-white/20 hover:text-white/60 hover:bg-white/[0.04] transition-all">
-                                                        {camp.status === 'Active' ? <ToggleRight className="w-4 h-4 text-emerald-400" /> : <ToggleLeft className="w-4 h-4" />}
-                                                    </button>
-                                                    <button onClick={() => handleEditClick(camp)}
-                                                        className="p-2 rounded-lg text-white/20 hover:text-amber-400 hover:bg-white/[0.04] transition-all">
-                                                        <Pencil className="w-4 h-4" />
-                                                    </button>
-                                                    <button onClick={() => handleDelete(camp)}
-                                                        className="p-2 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/[0.06] transition-all">
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
+                                            <td className="px-6 py-4 text-right flex items-center justify-end gap-2 relative z-10">
+                                                <Link to={`/campaigns/${camp.id}`} target="_blank" className="p-2 text-white/20 hover:text-white/60"><Eye className="w-4 h-4" /></Link>
+                                                <button onClick={() => handleToggleStatus(camp)} className="p-2 text-white/20 hover:text-white/60">{camp.status === 'Active' ? <ToggleRight className="w-4 h-4 text-emerald-400" /> : <ToggleLeft className="w-4 h-4" />}</button>
+                                                <button onClick={() => handleEditClick(camp)} className="p-2 text-white/20 hover:text-amber-400"><Pencil className="w-4 h-4" /></button>
+                                                <button onClick={() => handleDelete(camp)} className="p-2 text-white/20 hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
                                             </td>
                                         </tr>
                                     );
                                 })}
-                                {filteredCampaigns.length === 0 && (
-                                    <tr><td colSpan={8} className="py-20 text-center text-white/20 text-sm font-light italic">No matching campaigns found.</td></tr>
-                                )}
                             </tbody>
                         </table>
                     </div>
                 )}
             </div>
 
-            {/* Create Campaign Modal */}
+            {/* Create Campaign Modal (Wizard) */}
             <AnimatePresence>
                 {isModalOpen && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
                         onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}>
                         <motion.div initial={{ y: 24, scale: 0.97, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 24, scale: 0.97, opacity: 0 }}
-                            className="bg-[#0D0D0D] border border-white/10 rounded-3xl p-8 max-w-xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+                            className="bg-[#0D0D0D] border border-white/10 rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative overflow-hidden">
+                            
+                            {/* Stepper Header */}
+                            <div className="flex items-center gap-4 mb-8">
+                                {[1, 2, 3, 4].map((s) => (
+                                    <div key={s} className="flex-1 h-1.5 rounded-full bg-white/[0.03] overflow-hidden relative">
+                                        {step >= s && <motion.div layoutId="step" className="absolute inset-0 bg-white" />}
+                                    </div>
+                                ))}
+                            </div>
 
-                            <div className="flex items-center justify-between mb-7">
+                            <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <h2 className="text-2xl font-bold tracking-tight">{editingCampaign ? 'Edit Campaign' : 'New Campaign'}</h2>
-                                    <p className="text-white/30 text-xs mt-1">{editingCampaign ? 'Modify campaign parameters and caps.' : 'Fill in the details to launch a clipping campaign.'}</p>
+                                    <h2 className="text-2xl font-bold tracking-tight">Step {step} of 4</h2>
+                                    <p className="text-white/30 text-xs mt-1">
+                                        {step === 1 && "Basic Info & Editorial Rules"}
+                                        {step === 2 && "Platform & Social Requirements"}
+                                        {step === 3 && "Financials & Caps"}
+                                        {step === 4 && "Final Review"}
+                                    </p>
                                 </div>
-                                <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-full text-white/20 hover:text-white hover:bg-white/5 transition-all">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white/5 rounded-full">
+                                    <Plus className="w-5 h-5 rotate-45 text-white/20" />
                                 </button>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                {/* Section: Identity */}
-                                <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em] pt-1">Campaign Identity</p>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="col-span-2">
-                                        <InputField label="Campaign Name" required placeholder="e.g. Summer Skincare Launch" value={form.title} onChange={set('title')} />
-                                    </div>
-                                    <div className="col-span-2 space-y-1.5">
-                                        <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">About This Campaign <span className="text-red-400">*</span></label>
-                                        <textarea required value={(form as any).description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-                                            placeholder="Tell clippers what this campaign is about, what kind of content to make, tips, etc."
-                                            rows={3}
-                                            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-white/25 transition-all resize-none" />
-                                    </div>
-                                    <div className="col-span-2 space-y-1.5">
-                                        <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Discord Channel Link <span className="text-red-400">*</span></label>
-                                        <div className="relative">
-                                            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5865F2]/60" viewBox="0 0 127.14 96.36" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.71,32.65-1.82,56.6.39,80.21a105.73,105.73,0,0,0,32.77,16.15,77.7,77.7,0,0,0,7.07-11.41,68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,7.09,11.4,105.25,105.25,0,0,0,32.78-16.17C126.89,56.51,122.34,32.57,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5.18-12.69,11.43-12.69S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5.18-12.69,11.44-12.69S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
-                                            <input required type="url" placeholder="https://discord.com/channels/..." value={(form as any).discord_channel} onChange={set('discord_channel')}
-                                                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-white/20 font-mono focus:outline-none focus:border-[#5865F2]/40 transition-all" />
-                                        </div>
-                                        <p className="text-[9px] text-white/20">Clippers will see this link to find content to clip</p>
-                                    </div>
-                                    <InputField label="Banner Image URL" type="url" placeholder="https://... (wide image)" value={form.banner_url} onChange={set('banner_url')} />
-                                </div>
+                            {formError && <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">{formError}</div>}
 
-                                {/* Section: Financials */}
-                                <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em] pt-2 border-t border-white/[0.05] mt-2">Budget & Payouts</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">CPM Rate ($) <span className="text-red-400">*</span></label>
-                                        <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 text-sm font-mono">$</span>
-                                            <input required type="number" step="0.01" min="0.01" placeholder="0.40"
-                                                value={form.cpm_rate} onChange={set('cpm_rate')}
-                                                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-8 pr-4 py-3 text-sm text-white placeholder-white/20 font-mono focus:outline-none focus:border-white/25 transition-all" />
+                            <div className="min-h-[400px]">
+                                {/* Step 1: Basics */}
+                                {step === 1 && (
+                                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
+                                        <InputField label="Campaign Name" required value={form.title} onChange={set('title')} placeholder="e.g. Summer Skincare Launch" />
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">About This Campaign</label>
+                                            <textarea className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white" rows={3} value={form.description} onChange={set('description')} />
                                         </div>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Total Budget ($) <span className="text-red-400">*</span></label>
-                                        <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 text-sm font-mono">$</span>
-                                            <input required type="number" step="1" min="1" placeholder="10000"
-                                                value={form.total_budget} onChange={set('total_budget')}
-                                                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-8 pr-4 py-3 text-sm text-white placeholder-white/20 font-mono focus:outline-none focus:border-white/25 transition-all" />
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Rules & Guidelines</label>
+                                            <div className="space-y-2">
+                                                {form.rules.map((rule, idx) => (
+                                                    <div key={idx} className="flex gap-2">
+                                                        <input className="flex-1 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-2 text-xs text-white" value={rule} onChange={e => {
+                                                            const newRules = [...form.rules];
+                                                            newRules[idx] = e.target.value;
+                                                            setForm(p => ({ ...p, rules: newRules }));
+                                                        }} />
+                                                        <button onClick={() => setForm(p => ({ ...p, rules: p.rules.filter((_, i) => i !== idx) }))} className="p-2 text-red-400/40 hover:text-red-400 bg-red-400/5 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                                    </div>
+                                                ))}
+                                                <button onClick={() => setForm(p => ({ ...p, rules: [...p.rules, ''] }))} className="text-[10px] text-white/40 hover:text-white flex items-center gap-1.5 mt-2">+ Add Rule</button>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-
-                                {/* Section: Caps */}
-                                <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em] pt-2 border-t border-white/[0.05] mt-2">Earnings Caps <span className="text-white/15 normal-case font-normal">(optional)</span></p>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest flex items-center gap-1.5">
-                                            <Eye className="w-3 h-3 text-emerald-400/60" /> Min Views
-                                        </label>
-                                        <input type="number" step="1" min="0" placeholder="e.g. 1000"
-                                            value={form.min_views ?? ''} onChange={set('min_views')}
-                                            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 font-mono focus:outline-none focus:border-white/25 transition-all" />
-                                        <p className="text-[9px] text-white/20">Views needed before earnings count</p>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest flex items-center gap-1.5">
-                                            <Users className="w-3 h-3 text-blue-400/60" /> Per Clipper Cap ($)
-                                        </label>
-                                        <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 text-sm font-mono">$</span>
-                                            <input type="number" step="0.01" min="0" placeholder="No cap"
-                                                value={form.per_clipper_cap ?? ''} onChange={set('per_clipper_cap')}
-                                                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-8 pr-4 py-3 text-sm text-white placeholder-white/20 font-mono focus:outline-none focus:border-white/25 transition-all" />
-                                        </div>
-                                        <p className="text-[9px] text-white/20">Max total per clipper</p>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest flex items-center gap-1.5">
-                                            <Film className="w-3 h-3 text-purple-400/60" /> Per Video Cap ($)
-                                        </label>
-                                        <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 text-sm font-mono">$</span>
-                                            <input type="number" step="0.01" min="0" placeholder="No cap"
-                                                value={form.per_video_cap ?? ''} onChange={set('per_video_cap')}
-                                                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl pl-8 pr-4 py-3 text-sm text-white placeholder-white/20 font-mono focus:outline-none focus:border-white/25 transition-all" />
-                                        </div>
-                                        <p className="text-[9px] text-white/20">Max per single video</p>
-                                    </div>
-                                </div>
-
-                                {/* Section: Rules */}
-                                <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em] pt-2 border-t border-white/[0.05] mt-2">Rules & Deadline</p>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="col-span-2">
-                                        <InputField label="End Date" required type="date"
-                                            min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
-                                            value={form.end_date} onChange={set('end_date')} />
-                                    </div>
-                                    <div className="col-span-2 space-y-3 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setForm(p => ({ ...p, is_featured: !p.is_featured }))}>
-                                            <input type="checkbox" id="is_featured" checked={form.is_featured} readOnly className="w-4 h-4 accent-amber-500" />
-                                            <label htmlFor="is_featured" className="text-sm text-white/60 cursor-pointer flex items-center gap-2">
-                                                Featured Campaign <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 uppercase tracking-widest font-bold">Recommended</span>
-                                            </label>
-                                        </div>
-                                        <div className="h-px bg-white/[0.05]" />
-                                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setForm(p => ({ ...p, requires_verification: !p.requires_verification }))}>
-                                            <input type="checkbox" id="req_verify" checked={form.requires_verification} readOnly className="w-4 h-4 accent-white" />
-                                            <label htmlFor="req_verify" className="text-sm text-white/60 cursor-pointer">
-                                                Require Discord + Social verification to join
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {formError && (
-                                    <p className="text-xs text-red-400 bg-red-500/5 border border-red-500/10 px-4 py-3 rounded-xl">{formError}</p>
+                                    </motion.div>
                                 )}
 
-                                <div className="flex gap-3 pt-2">
-                                    <Button type="button" variant="outline" onClick={() => { setIsModalOpen(false); setEditingCampaign(null); }}
-                                        className="flex-1 rounded-xl py-3 text-xs border-white/10 text-white/50 hover:bg-white/5">Cancel</Button>
-                                    <Button type="submit" variant="primary" disabled={submitting}
-                                        className="flex-1 rounded-xl py-3 text-xs bg-white text-black font-bold uppercase tracking-widest hover:bg-white/90 disabled:opacity-50">
-                                        {submitting ? 'Saving...' : editingCampaign ? '💾 Save Changes' : '🚀 Launch Campaign'}
+                                {/* Step 2: Platform */}
+                                {step === 2 && (
+                                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+                                        <div className="space-y-3">
+                                            <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Allowed Platforms</label>
+                                            <div className="grid grid-cols-3 gap-3">
+                                                {['youtube', 'instagram', 'tiktok'].map(p => (
+                                                    <button key={p} onClick={() => togglePlatform(p)} className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${form.allowed_platforms.includes(p) ? 'bg-white/10 border-white/20' : 'bg-white/[0.02] border-white/[0.05] grayscale opacity-40'}`}>
+                                                        <span className="text-xs uppercase font-bold tracking-widest">{p}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4 pt-4 border-t border-white/[0.05]">
+                                            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                                <div>
+                                                    <p className="text-sm font-bold text-white/90">Require Dedicated Social</p>
+                                                    <p className="text-[10px] text-white/30 mt-0.5">Clippers must link a fresh account specifically for this campaign.</p>
+                                                </div>
+                                                <button onClick={() => setForm(p => ({ ...p, requires_dedicated_social: !p.requires_dedicated_social }))}>
+                                                    {form.requires_dedicated_social ? <ToggleRight className="text-emerald-400 w-8 h-8" /> : <ToggleLeft className="text-white/10 w-8 h-8" />}
+                                                </button>
+                                            </div>
+                                            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                                <div>
+                                                    <p className="text-sm font-bold text-white/90">Require Discord Link</p>
+                                                    <p className="text-[10px] text-white/30 mt-0.5">Users must have a linked Discord to participate.</p>
+                                                </div>
+                                                <button onClick={() => setForm(p => ({ ...p, requires_discord: !p.requires_discord }))}>
+                                                    {form.requires_discord ? <ToggleRight className="text-emerald-400 w-8 h-8" /> : <ToggleLeft className="text-white/10 w-8 h-8" />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <InputField label="Source Asset / Discord Channel" required value={form.discord_channel} onChange={set('discord_channel')} placeholder="Discord link where assets are kept" />
+                                    </motion.div>
+                                )}
+
+                                {/* Step 3: Financials */}
+                                {step === 3 && (
+                                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <InputField label="CPM Rate ($)" required type="number" step="0.01" value={form.cpm_rate} onChange={set('cpm_rate')} />
+                                            <InputField label="Total Budget ($)" required type="number" value={form.total_budget} onChange={set('total_budget')} />
+                                        </div>
+                                        <InputField label="End Date" required type="date" value={form.end_date} onChange={set('end_date')} />
+                                        
+                                        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-4">
+                                            <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest border-b border-white/5 pb-2">Earnings Caps</p>
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <InputField label="Min Views" type="number" value={form.min_views} onChange={set('min_views')} />
+                                                <InputField label="Max / Person ($)" type="number" value={form.per_clipper_cap} onChange={set('per_clipper_cap')} />
+                                                <InputField label="Max / Video ($)" type="number" value={form.per_video_cap} onChange={set('per_video_cap')} />
+                                            </div>
+                                        </div>
+                                        <InputField label="Banner URL" type="url" value={form.banner_url} onChange={set('banner_url')} />
+                                    </motion.div>
+                                )}
+
+                                {/* Step 4: Final Review */}
+                                {step === 4 && (
+                                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 overflow-y-auto max-h-[400px] pr-2">
+                                        <div className="space-y-1">
+                                            <h3 className="text-xl font-bold">{form.title}</h3>
+                                            <p className="text-white/40 text-xs line-clamp-2">{form.description}</p>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                                                <p className="text-[9px] text-white/30 uppercase font-bold">Financials</p>
+                                                <div className="mt-1 flex items-end gap-1">
+                                                    <span className="text-lg font-bold text-emerald-400">${form.cpm_rate}</span>
+                                                    <span className="text-[10px] text-white/20 pb-1">CPM</span>
+                                                </div>
+                                            </div>
+                                            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                                                <p className="text-[9px] text-white/30 uppercase font-bold">Total Budget</p>
+                                                <div className="mt-1 text-lg font-bold">${parseFloat(form.total_budget).toLocaleString()}</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <p className="text-[9px] text-white/30 uppercase font-bold">Requirements</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {form.allowed_platforms.map(p => <span key={p} className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-[10px] font-bold uppercase">{p}</span>)}
+                                                {form.requires_dedicated_social && <span className="px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-tight">Dedicated Account Required</span>}
+                                                {form.requires_discord && <span className="px-2 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-tight">Discord Link Required</span>}
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </div>
+
+                            <div className="mt-8 pt-6 border-t border-white/[0.05] flex gap-3">
+                                {step > 1 && <Button variant="outline" onClick={() => setStep(s => s - 1)} className="px-8 py-3 rounded-xl text-xs">Back</Button>}
+                                {step < 4 ? (
+                                    <Button variant="primary" onClick={() => setStep(s => s + 1)} className="flex-1 bg-white text-black py-4 rounded-xl font-bold uppercase tracking-widest text-xs">Continue</Button>
+                                ) : (
+                                    <Button variant="primary" onClick={handleSubmit} disabled={submitting} className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs disabled:opacity-50">
+                                        {submitting ? "Launching..." : editingCampaign ? "Save Changes" : "🚀 Launch Campaign"}
                                     </Button>
-                                </div>
-                            </form>
+                                )}
+                            </div>
                         </motion.div>
                     </motion.div>
                 )}

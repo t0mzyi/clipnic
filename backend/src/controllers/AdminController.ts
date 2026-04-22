@@ -120,17 +120,91 @@ export class AdminController {
       }
   }
 
-  /**
-   * GET /admin/users/:id/earnings
-   * Returns a user's full earnings breakdown for admin view.
-   */
-  static async getUserEarnings(req: Request, res: Response, next: NextFunction) {
+  static async getDashboardStats(req: Request, res: Response, next: NextFunction) {
       try {
-          const { id } = req.params;
-          const data = await SubmissionService.getUserEarningsSummary(id as string);
-          res.json({ success: true, data });
+          // 1. Basic Counts
+          const { count: activeCampaigns } = await supabase.from('campaigns').select('*', { count: 'exact', head: true }).eq('status', 'Active');
+          const { data: campaignFinancials } = await supabase.from('campaigns').select('total_budget, budget_used');
+          
+          const totalBudget = (campaignFinancials || []).reduce((acc, c) => acc + Number(c.total_budget), 0);
+          const totalSpent = (campaignFinancials || []).reduce((acc, c) => acc + Number(c.budget_used), 0);
+
+          // 2. Pending & Verified
+          const { data: verifiedSubmissions } = await supabase.from('submissions').select('earnings').eq('status', 'Verified');
+          const pendingPayout = (verifiedSubmissions || []).reduce((acc, s) => acc + Number(s.earnings), 0);
+
+          // 3. Burn Rate (Last 7 Days)
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+          
+          const { data: burnRaw } = await supabase
+              .from('submissions')
+              .select('earnings, created_at')
+              .gte('created_at', sevenDaysAgo.toISOString())
+              .not('status', 'eq', 'Rejected');
+
+          const burnData: Record<string, number> = {};
+          for (let i = 0; i < 7; i++) {
+              const d = new Date();
+              d.setDate(d.getDate() - i);
+              burnData[d.toISOString().split('T')[0]] = 0;
+          }
+
+          (burnRaw || []).forEach(s => {
+              const day = s.created_at.split('T')[0];
+              if (burnData[day] !== undefined) {
+                  burnData[day] += Number(s.earnings || 0);
+              }
+          });
+
+          const burnChart = Object.entries(burnData)
+              .map(([name, burn]) => ({ name: new Date(name).toLocaleDateString('en-US', { weekday: 'short' }), burn }))
+              .reverse();
+
+          // 4. Top Clippers
+          const { data: topRaw } = await supabase
+              .from('submissions')
+              .select('earnings, views, user_id, users(name, avatar_url)')
+              .not('status', 'eq', 'Rejected');
+
+          const usersMap: Record<string, any> = {};
+          (topRaw || []).forEach(s => {
+              const uid = s.user_id;
+              if (!usersMap[uid]) {
+                  const userData = Array.isArray(s.users) ? s.users[0] : s.users;
+                  usersMap[uid] = { 
+                      name: userData?.name || 'Anonymous', 
+                      avatar_url: userData?.avatar_url,
+                      views: 0, 
+                      earnings: 0 
+                  };
+              }
+              usersMap[uid].views += s.views;
+              usersMap[uid].earnings += Number(s.earnings);
+          });
+
+          const topClippers = Object.values(usersMap)
+              .sort((a: any, b: any) => b.earnings - a.earnings)
+              .slice(0, 5);
+
+          res.json({
+              success: true,
+              data: {
+                  kpis: [
+                      { label: 'Active Campaigns', value: activeCampaigns?.toString() || '0', change: '+1', icon: 'Target' },
+                      { label: 'Total Budget', value: `$${(totalBudget/1000).toFixed(1)}k`, change: '+$2k', icon: 'Landmark' },
+                      { label: 'Pending Payouts', value: `$${pendingPayout.toLocaleString()}`, change: '+$400', icon: 'Users' },
+                      { label: 'Platform Throughput', value: `${totalBudget > 0 ? ((totalSpent / totalBudget)*100).toFixed(1) : 0}%`, change: '0%', icon: 'TrendingUp' }
+                  ],
+                  burnChart,
+                  topClippers
+              }
+          });
       } catch (error) {
           next(error);
       }
   }
-}
+
+  /**
+   * GET /admin/users/:id/earnings
+
