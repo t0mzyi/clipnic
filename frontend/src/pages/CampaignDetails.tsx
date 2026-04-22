@@ -60,7 +60,6 @@ export const CampaignDetails = () => {
     const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
     const [joinStep, setJoinStep] = useState(1);
     const [isDiscordTransitioning, setIsDiscordTransitioning] = useState(false);
-    const [activeStep1Tab, setActiveStep1Tab] = useState<'rules' | 'terms'>('rules');
     const [linkedHandle, setLinkedHandle] = useState('');
 
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
@@ -349,6 +348,7 @@ export const CampaignDetails = () => {
     };
 
     const handleSubmitClip = async (e: React.FormEvent) => {
+        e.preventDefault();
         if (!platform) {
             Toast.fire({ title: 'Invalid Link', text: 'Please provide a valid YouTube, Instagram, or TikTok link.', icon: 'error' });
             setIsSubmitting(false);
@@ -719,7 +719,6 @@ export const CampaignDetails = () => {
                                                 href="#" 
                                                 onClick={(e) => {
                                                     e.preventDefault();
-                                                    setActiveStep1Tab('terms');
                                                     // In a real app, you might show a separate modal or scroll to terms
                                                     Swal.fire({
                                                         title: 'Terms & Conditions',
