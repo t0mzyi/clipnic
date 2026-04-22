@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, PlaySquare, CheckCircle, Wallet, Eye, TrendingUp } from 'lucide-react';
+import { Activity, PlaySquare, CheckCircle, Wallet, Eye, TrendingUp, ShieldCheck, MessageSquare, Rocket, DollarSign, ChevronRight, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { useAuthStore } from '../store/useAuthStore';
 
@@ -89,6 +90,52 @@ export const ClipperDashboard = () => {
 
     const recentActivity = submissions.slice(0, 5);
 
+    // Onboarding Logic
+    const onboardingSteps = [
+        {
+            id: 'verify',
+            title: 'Verify Socials',
+            description: 'Link Discord & YouTube to unlock payouts.',
+            icon: ShieldCheck,
+            completed: !!(user?.discordVerified && user?.youtubeVerified),
+            link: '/profile',
+            actionLabel: 'Go to Profile'
+        },
+        {
+            id: 'discord',
+            title: 'Join Community',
+            description: 'Get daily tips and high-CPM hooks in Discord.',
+            icon: MessageSquare,
+            completed: !!user?.discordVerified, // Assuming Discord verification means they joined
+            link: 'https://discord.gg/rzhvv9Rf42',
+            isExternal: true,
+            actionLabel: 'Open Server'
+        },
+        {
+            id: 'submit',
+            title: 'Submit first clip',
+            description: 'Pick a high-performing campaign and post.',
+            icon: Rocket,
+            completed: submissions.length > 0,
+            link: '/campaigns',
+            actionLabel: 'Browse Campaigns'
+        },
+        {
+            id: 'earn',
+            title: 'Earn first $1',
+            description: 'Watch your clips go viral and stack earnings.',
+            icon: DollarSign,
+            completed: (earnings?.totalEarnings ?? 0) >= 1,
+            link: '/earnings',
+            actionLabel: 'View Earnings'
+        }
+    ];
+
+    const completedSteps = onboardingSteps.filter(s => s.completed).length;
+    const isFullyBoarded = completedSteps === onboardingSteps.length;
+    const showOnboarding = !isFullyBoarded || (submissions.length === 0);
+
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -137,6 +184,93 @@ export const ClipperDashboard = () => {
                 </div>
             ) : (
                 <>
+                    {/* Onboarding Guide */}
+                    {showOnboarding && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="relative p-6 sm:p-8 rounded-[32px] bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.08] shadow-2xl overflow-hidden group"
+                        >
+                            {/* Abstract Background Glow */}
+                            <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/10 blur-[100px] pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-700" />
+                            
+                            <div className="relative z-10">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/20">
+                                                <Sparkles className="w-4 h-4 text-emerald-400" />
+                                            </div>
+                                            <h2 className="text-xl font-bold tracking-tight text-white">Your Path to Profit</h2>
+                                        </div>
+                                        <p className="text-sm text-white/40">Complete these steps to maximize your clipping potential.</p>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-1.5 w-32 bg-white/5 rounded-full overflow-hidden">
+                                            <motion.div 
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${(completedSteps / onboardingSteps.length) * 100}%` }}
+                                                className="h-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]"
+                                            />
+                                        </div>
+                                        <span className="text-xs font-mono font-bold text-white/60">
+                                            {completedSteps}/{onboardingSteps.length} Steps
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {onboardingSteps.map((step, idx) => {
+                                        const Icon = step.icon;
+                                        return (
+                                            <div 
+                                                key={step.id}
+                                                className={`p-5 rounded-2xl border transition-all duration-500 ${step.completed ? 'bg-emerald-500/[0.02] border-emerald-500/10 opacity-60' : 'bg-white/[0.02] border-white/5 hover:border-white/20'}`}
+                                            >
+                                                <div className="flex items-start justify-between mb-4">
+                                                    <div className={`p-2 rounded-xl ${step.completed ? 'bg-emerald-500/10 text-emerald-500' : 'bg-white/5 text-white/30'}`}>
+                                                        <Icon className="w-5 h-5" />
+                                                    </div>
+                                                    {step.completed && (
+                                                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                                    )}
+                                                </div>
+                                                <h3 className="text-sm font-bold text-white mb-1">{step.title}</h3>
+                                                <p className="text-[10px] text-white/30 leading-relaxed mb-5 min-h-[30px]">{step.description}</p>
+                                                
+                                                {step.completed ? (
+                                                    <div className="flex items-center gap-2 text-[9px] font-bold text-emerald-500/50 uppercase tracking-widest pt-1">
+                                                        Completed
+                                                    </div>
+                                                ) : (
+                                                    step.isExternal ? (
+                                                        <a 
+                                                            href={step.link} 
+                                                            target="_blank" 
+                                                            rel="noreferrer"
+                                                            className="inline-flex items-center gap-1.5 text-[9px] font-bold text-white uppercase tracking-widest hover:gap-2.5 transition-all group/link"
+                                                        >
+                                                            {step.actionLabel}
+                                                            <ChevronRight className="w-3 h-3 text-white/30 group-hover/link:text-white transition-colors" />
+                                                        </a>
+                                                    ) : (
+                                                        <Link 
+                                                            to={step.link}
+                                                            className="inline-flex items-center gap-1.5 text-[9px] font-bold text-white uppercase tracking-widest hover:gap-2.5 transition-all group/link"
+                                                        >
+                                                            {step.actionLabel}
+                                                            <ChevronRight className="w-3 h-3 text-white/30 group-hover/link:text-white transition-colors" />
+                                                        </Link>
+                                                    )
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {stats.map((stat, idx) => {
