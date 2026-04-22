@@ -84,7 +84,7 @@ export const CampaignsFeed = () => {
                                 <Link 
                                     to={`/campaigns/${c.id}`}
                                     key={`${c.id}-${i}`}
-                                    className="relative w-[320px] md:w-[480px] h-[220px] md:h-[280px] rounded-[32px] overflow-hidden border border-white/10 group/item flex-shrink-0"
+                                    className="relative w-[280px] sm:w-[320px] md:w-[480px] h-[200px] sm:h-[220px] md:h-[280px] rounded-[32px] overflow-hidden border border-white/10 group/item flex-shrink-0"
                                 >
                                     <img
                                         src={c.banner_url || FALLBACK_BANNERS[i % FALLBACK_BANNERS.length]}
@@ -107,7 +107,7 @@ export const CampaignsFeed = () => {
             )}
 
             {/* Section Header */}
-            <div className="flex items-end justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-white/90">All Campaigns</h1>
                     <p className="text-white/30 text-sm font-light tracking-tight mt-1">Browse and join active marketing opportunities.</p>

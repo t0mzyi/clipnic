@@ -23,7 +23,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
     const location = useLocation();
     
     return (
-        <aside className={`fixed left-0 top-0 h-screen w-64 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-300 md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <aside className={`fixed left-0 top-0 h-[100dvh] w-64 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-300 md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
             <div className="flex items-center justify-between mb-8">
                 <img src="/logo.webp" alt="Clipnic Logo" className="h-10 w-auto object-contain" />
                 <button onClick={closeMenu} className="md:hidden text-white/50 hover:text-white">
@@ -222,7 +222,7 @@ const Layout = () => {
             )}
 
             <main className="flex-1 md:ml-64 min-h-screen overflow-x-hidden">
-               <div className="px-6 md:px-12 pt-8 md:pt-16 pb-24 max-w-7xl mx-auto">
+               <div className="px-4 sm:px-6 md:px-12 pt-6 md:pt-16 pb-24 max-w-7xl mx-auto">
                    <AnimatePresence mode="wait">
                      <Routes>
                        <Route path="/" element={<Navigate to="/dashboard" replace />} />

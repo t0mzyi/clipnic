@@ -239,10 +239,10 @@ export const Profile = () => {
             >
                 <div className="pb-8 border-b border-white/[0.08] relative">
                     <div className="absolute top-1/2 left-0 -translate-y-1/2 w-80 h-32 bg-white/[0.02] blur-[100px] pointer-events-none rounded-full" />
-                    <div className="flex items-center justify-between relative z-10">
-                        <div className="flex items-center gap-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                        <div className="flex items-center gap-4 sm:gap-6">
                             {/* Avatar */}
-                            <div className="w-20 h-20 rounded-3xl overflow-hidden bg-white/[0.03] border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl overflow-hidden bg-white/[0.03] border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] shrink-0">
                                 {user?.avatarUrl ? (
                                     <img
                                         src={user.avatarUrl}
@@ -260,25 +260,25 @@ export const Profile = () => {
                             </div>
                             <div>
                                 <div className="flex items-center gap-4">
-                                    <h1 className="text-4xl font-bold tracking-tight text-white/90">Account Profile</h1>
+                                    <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-white/90">Account Profile</h1>
                                     {user?.discordVerified && user?.youtubeVerified ? (
-                                        <div className="flex items-center gap-1.5 px-3 py-1 self-end mb-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
-                                            <ShieldCheck className="w-4 h-4" />
-                                            <span className="text-[10px] font-bold uppercase tracking-widest">Verified Creator</span>
+                                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 shrink-0">
+                                            <ShieldCheck className="w-3.5 h-3.5" />
+                                            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Verified Creator</span>
                                         </div>
                                     ) : (
-                                        <div className="flex items-center gap-1.5 px-3 py-1 self-end mb-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-500">
-                                            <span className="text-[10px] font-bold uppercase tracking-widest">Unverified</span>
+                                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 shrink-0">
+                                            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Unverified</span>
                                         </div>
                                     )}
                                 </div>
-                                <p className="text-white/40 text-lg font-light tracking-tight mt-1">Creator since {memberSince}</p>
+                                <p className="text-white/40 text-base sm:text-lg font-light tracking-tight mt-1">Creator since {memberSince}</p>
                             </div>
                         </div>
                         <Button
                             onClick={() => setIsSettingsOpen(true)}
                             variant="outline"
-                            className="rounded-2xl border-white/10 hover:bg-white/5 text-white/70 h-12 px-6 text-sm font-bold uppercase tracking-wider"
+                            className="w-full md:w-auto rounded-2xl border-white/10 hover:bg-white/5 text-white/70 h-12 px-6 text-sm font-bold uppercase tracking-wider mt-4 md:mt-0"
                         >
                             Edit Profile
                         </Button>

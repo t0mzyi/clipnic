@@ -30,8 +30,8 @@ export const AdminDashboard = () => {
         >
             <div className="pb-6 border-b border-white/[0.08] relative">
                 <div className="absolute top-1/2 left-3/4 -translate-y-1/2 w-80 h-32 bg-white/[0.02] blur-[100px] pointer-events-none rounded-full" />
-                <h1 className="text-4xl font-bold tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/50 mb-2 relative z-10">Platform Overview</h1>
-                <p className="text-white/40 text-lg tracking-tight relative z-10 font-light">Global metrics and financial health.</p>
+                <h1 className="text-3xl sm:text-4xl font-bold tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/50 mb-2 relative z-10">Platform Overview</h1>
+                <p className="text-white/40 text-base sm:text-lg tracking-tight relative z-10 font-light">Global metrics and financial health.</p>
             </div>
 
             {/* KPI Grid */}
@@ -39,7 +39,7 @@ export const AdminDashboard = () => {
                 {kpis.map((kpi, idx) => {
                     const Icon = kpi.icon;
                     return (
-                        <div key={idx} className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
+                        <div key={idx} className="p-6 sm:p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
                             <div className="flex items-center justify-between mb-5">
                                 <p className="text-white/50 text-xs font-semibold uppercase tracking-widest flex items-center gap-2.5">
                                     <Icon className="w-5 h-5 text-white/40 group-hover:text-white/80 transition-colors" />
@@ -60,7 +60,7 @@ export const AdminDashboard = () => {
             {/* Advanced Charts Area */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
-                <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] h-[400px] flex flex-col">
+                <div className="p-6 sm:p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] h-[400px] flex flex-col">
                     <div className="flex items-center justify-between mb-8">
                         <h3 className="text-lg font-medium tracking-tight text-white/90">Daily Budget Burn</h3>
                     </div>

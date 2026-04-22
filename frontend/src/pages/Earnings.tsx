@@ -132,7 +132,7 @@ export const Earnings = () => {
                     </div>
 
                     {/* Breakdown Table */}
-                    <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                    <div className="p-4 sm:p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                         <div className="flex items-center justify-between mb-8">
                             <h3 className="text-lg font-medium tracking-tight text-white/90">Earnings Breakdown</h3>
                             <span className="text-[10px] text-white/30 uppercase tracking-widest font-bold">{data?.breakdown?.length || 0} submissions</span>

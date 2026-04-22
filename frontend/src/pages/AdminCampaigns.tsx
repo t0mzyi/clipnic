@@ -413,7 +413,7 @@ export const AdminCampaigns = () => {
 
                                 {/* Section: Financials */}
                                 <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em] pt-2 border-t border-white/[0.05] mt-2">Budget & Payouts</p>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div className="space-y-1.5">
                                         <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">CPM Rate ($) <span className="text-red-400">*</span></label>
                                         <div className="relative">
@@ -436,7 +436,7 @@ export const AdminCampaigns = () => {
 
                                 {/* Section: Caps */}
                                 <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em] pt-2 border-t border-white/[0.05] mt-2">Earnings Caps <span className="text-white/15 normal-case font-normal">(optional)</span></p>
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                     <div className="space-y-1.5">
                                         <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest flex items-center gap-1.5">
                                             <Eye className="w-3 h-3 text-emerald-400/60" /> Min Views

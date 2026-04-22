@@ -168,30 +168,30 @@ export const CampaignDetails = () => {
             </Link>
 
             {/* Banner */}
-            <div className="relative h-[320px] md:h-[420px] rounded-[40px] overflow-hidden border border-white/10 group shadow-2xl">
+            <div className="relative h-[280px] sm:h-[320px] md:h-[420px] rounded-[32px] sm:rounded-[40px] overflow-hidden border border-white/10 group shadow-2xl">
                 <img src={banner} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={campaign.title} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-black/10" />
-                <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-                    <div className="space-y-3">
+                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 md:p-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div className="space-y-3 text-left">
                         <Badge status={campaign.status} />
-                        <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white drop-shadow-2xl">{campaign.title}</h1>
+                        <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight text-white drop-shadow-2xl">{campaign.title}</h1>
                     </div>
                     
-                    <div className="flex gap-4 items-center">
-                        <div className="bg-black/50 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl text-center min-w-[140px]">
-                            <p className="text-[9px] text-white/40 mb-1 uppercase tracking-[0.3em] font-bold">CPM Rate</p>
-                            <p className="text-4xl font-mono font-bold text-emerald-400">${campaign.cpm_rate.toFixed(2)}</p>
+                    <div className="flex gap-3 sm:gap-4 items-center">
+                        <div className="bg-black/50 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-white/10 shadow-2xl text-center min-w-[100px] sm:min-w-[140px]">
+                            <p className="text-[8px] sm:text-[9px] text-white/40 mb-1 uppercase tracking-[0.3em] font-bold">CPM Rate</p>
+                            <p className="text-2xl sm:text-4xl font-mono font-bold text-emerald-400">${campaign.cpm_rate.toFixed(2)}</p>
                         </div>
                         
                         {/* Dynamic Top Button */}
                         {requiresVerification && !isUserVerified ? (
-                            <Link to="/profile" className="flex items-center gap-2 bg-red-500/20 text-red-500 hover:bg-red-500/30 border border-red-500/30 font-bold uppercase tracking-widest px-8 py-6 rounded-3xl transition-all h-full">
-                                <Shield className="w-5 h-5" />
+                            <Link to="/profile" className="flex items-center gap-2 bg-red-500/20 text-red-500 hover:bg-red-500/30 border border-red-500/30 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full text-xs sm:text-base">
+                                <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
                                 Go Verify
                             </Link>
                         ) : (
-                            <Button variant="primary" onClick={() => setIsSubmitModalOpen(true)} className="flex items-center gap-2 bg-white text-black hover:bg-white/90 font-bold uppercase tracking-widest px-8 py-6 rounded-3xl transition-all h-full shadow-2xl">
-                                <Upload className="w-5 h-5" />
+                            <Button variant="primary" onClick={() => setIsSubmitModalOpen(true)} className="flex items-center gap-2 bg-white text-black hover:bg-white/90 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base">
+                                <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
                                 Submit Clip
                             </Button>
                         )}

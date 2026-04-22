@@ -286,7 +286,7 @@ export const AdminUserDetails = () => {
                 {/* Details Section */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Social Verification Card */}
-                    <div className="p-10 rounded-[48px] bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                    <div className="p-6 sm:p-10 rounded-[32px] sm:rounded-[48px] bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                         <h3 className="text-lg font-medium text-white/90 mb-8 flex items-center gap-3">
                             <Shield className="w-5 h-5 text-white/40" />
                             Verification Status
@@ -330,7 +330,7 @@ export const AdminUserDetails = () => {
                     </div>
 
                     {/* Earnings Card */}
-                    <div className="p-10 rounded-[48px] bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                    <div className="p-6 sm:p-10 rounded-[32px] sm:rounded-[48px] bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                         <h3 className="text-lg font-medium text-white/90 mb-8 flex items-center gap-3">
                             <DollarSign className="w-5 h-5 text-white/40" />
                             Earnings Overview
@@ -338,7 +338,7 @@ export const AdminUserDetails = () => {
 
                         {earnings ? (
                             <>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                                     {[
                                         { label: 'Total', value: earnings.totalEarnings, icon: TrendingUp, color: 'text-blue-500' },
                                         { label: 'Available', value: earnings.availableBalance, icon: Wallet, color: 'text-emerald-500' },
@@ -398,14 +398,14 @@ export const AdminUserDetails = () => {
                     </div>
 
                     {/* Metadata Card */}
-                    <div className="p-10 rounded-[48px] bg-white/[0.02] border border-white/[0.05]">
+                    <div className="p-6 sm:p-10 rounded-[32px] sm:rounded-[48px] bg-white/[0.02] border border-white/[0.05]">
                         <h3 className="text-lg font-medium text-white/90 mb-8 flex items-center gap-3">
                             <Mail className="w-5 h-5 text-white/40" />
                             Account Metadata
                         </h3>
                         
                         <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                                 <div className="space-y-2">
                                     <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">External Reference</p>
                                     <p className="text-sm font-mono text-white/60 truncate">{user.id}</p>

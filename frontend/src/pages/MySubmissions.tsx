@@ -92,7 +92,7 @@ export const MySubmissions = () => {
             </div>
 
             {/* KPIs - Premium Design */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                 <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
                     <p className="text-xs text-white/40 mb-3 uppercase tracking-widest font-semibold flex items-center gap-2.5">
                         <Layers className="w-5 h-5" />
@@ -125,7 +125,7 @@ export const MySubmissions = () => {
             </div>
 
             {/* Content Area */}
-            <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+            <div className="p-4 sm:p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                 <div className="flex flex-col lg:flex-row items-center gap-6">
                     <div className="relative w-full lg:w-auto lg:flex-1">
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
