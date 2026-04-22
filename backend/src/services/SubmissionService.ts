@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase';
 import { z } from 'zod';
+import { CampaignService } from './CampaignService';
 
 const createSubmissionSchema = z.object({
   campaign_id: z.string().uuid(),
@@ -119,15 +120,8 @@ export class SubmissionService {
         if (!isOwner) throw new Error("This video does not belong to your verified channels.");
     }
 
-    // 5. Calculate potential earnings
-    let earnings = 0;
-    if (campaign.min_views) {
-        if (views >= campaign.min_views) {
-             earnings = (views / 1000) * campaign.cpm_rate;
-        }
-    } else {
-         earnings = (views / 1000) * campaign.cpm_rate;
-    }
+    // 5. Calculate earnings based on current views (Potential earnings)
+    let earnings = (views / 1000) * campaign.cpm_rate;
 
     if (campaign.per_video_cap && earnings > campaign.per_video_cap) {
         earnings = campaign.per_video_cap;
@@ -160,6 +154,17 @@ export class SubmissionService {
         views_add: views
     });
 
+    // 8. Auto-complete mission if budget hit
+    const { data: updatedCampaign } = await supabase
+        .from('campaigns')
+        .select('budget_used, total_budget')
+        .eq('id', validated.campaign_id)
+        .single();
+    
+    if (updatedCampaign && updatedCampaign.budget_used >= updatedCampaign.total_budget) {
+        await CampaignService.updateStatus(validated.campaign_id, 'Completed');
+    }
+
     return submission;
   }
 
@@ -191,22 +196,17 @@ export class SubmissionService {
       // 3. Fetch fresh views
       const { views } = await this.fetchLiveViews(submission.url, submission.platform);
       
-      // 4. Recalculate earnings
-      const campaign = submission.campaigns;
-      let earnings = 0;
-      if (campaign.min_views) {
-          if (views >= campaign.min_views) {
-               earnings = (views / 1000) * campaign.cpm_rate;
-          }
-      } else {
-           earnings = (views / 1000) * campaign.cpm_rate;
-      }
+      // 4. Recalculate earnings (Potential)
+      let earnings = (views / 1000) * campaign.cpm_rate;
 
       if (campaign.per_video_cap && earnings > campaign.per_video_cap) {
           earnings = campaign.per_video_cap;
       }
 
       // 5. Update DB
+      const oldEarnings = Number(submission.earnings || 0);
+      const oldViews = Number(submission.views || 0);
+
       const { data: updated, error: updateErr } = await supabase
           .from('submissions')
           .update({
@@ -219,6 +219,28 @@ export class SubmissionService {
           .single();
       
       if (updateErr) throw updateErr;
+
+      // 6. Sync budget delta (new - old)
+      const deltaEarnings = earnings - oldEarnings;
+      const deltaViews = views - oldViews;
+
+      await supabase.rpc('increment_campaign_stats', {
+          camp_id: submission.campaign_id,
+          earnings_add: deltaEarnings,
+          views_add: deltaViews
+      });
+
+      // 7. Auto-complete mission if budget hit
+      const { data: updatedCampaign } = await supabase
+          .from('campaigns')
+          .select('budget_used, total_budget')
+          .eq('id', submission.campaign_id)
+          .single();
+      
+      if (updatedCampaign && updatedCampaign.budget_used >= updatedCampaign.total_budget) {
+          await CampaignService.updateStatus(submission.campaign_id, 'Completed');
+      }
+
       return updated;
   }
 
@@ -333,6 +355,8 @@ export class SubmissionService {
       .select(`
          *,
          campaigns (
+            status,
+            end_date,
             title,
             cpm_rate,
             min_views,
@@ -344,29 +368,47 @@ export class SubmissionService {
 
     if (error) throw error;
 
-    let availableBalance = 0;
-    let pendingPayout = 0;
-    let claimed = 0;
+    let availableBalance = 0; // Accumulating
+    let pendingPayout = 0;    // Goal Met (Active)
+    let claimableBalance = 0; // Finalized / Ready
+    let claimed = 0;          // Already Paid
+
     const breakdown: any[] = [];
+
+    const now = new Date();
 
     for (const sub of (submissions || [])) {
       const campaign = sub.campaigns;
       const minViews = campaign?.min_views || 0;
       const earnings = Number(sub.earnings || 0);
+      const isPastDeadline = campaign?.end_date ? new Date(campaign.end_date) < now : false;
+      const isCampaignEnded = campaign?.status === 'Completed' || isPastDeadline;
 
-      let earningCategory = 'available'; // default: still accumulating
+      let earningCategory = 'available'; 
 
       if (sub.status === 'Paid') {
         earningCategory = 'claimed';
         claimed += earnings;
       } else if (sub.status === 'Rejected') {
         earningCategory = 'rejected';
-      } else if (minViews > 0 && sub.views < minViews) {
-        earningCategory = 'available';
-        availableBalance += earnings;
+      } else if (isCampaignEnded) {
+         // Mission Over - check if goal was met
+         if (minViews > 0 && sub.views < minViews) {
+            earningCategory = 'failed';
+            // Finalized at 0 if goal missed
+         } else {
+            earningCategory = 'claimable';
+            claimableBalance += earnings;
+         }
       } else {
-        earningCategory = 'pending';
-        pendingPayout += earnings;
+         // Mission Active - check if goal reached
+         if (minViews > 0 && sub.views < minViews) {
+            earningCategory = 'accumulating';
+            availableBalance += earnings;
+         } else {
+            earningCategory = 'pending'; // Goal Met
+            pendingPayout += earnings;
+         }
       }
 
       breakdown.push({
@@ -374,22 +416,22 @@ export class SubmissionService {
         url: sub.url,
         platform: sub.platform,
         views: sub.views,
-        earnings,
+        earnings: earningCategory === 'failed' ? 0 : earnings,
         status: sub.status,
         earningCategory,
         campaignTitle: campaign?.title || 'Unknown',
+        campaignStatus: campaign?.status,
         minViews,
         created_at: sub.created_at,
         updated_at: sub.updated_at
       });
     }
 
-    const totalEarnings = availableBalance + pendingPayout + claimed;
-
     return {
-      totalEarnings,
+      totalEarnings: availableBalance + pendingPayout + claimableBalance + claimed,
       availableBalance,
       pendingPayout,
+      claimableBalance,
       claimed,
       breakdown
     };

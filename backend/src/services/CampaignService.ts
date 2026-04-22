@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase';
 import { z } from 'zod';
+import { NotificationService } from './NotificationService';
 
 const createCampaignSchema = z.object({
   title: z.string().min(1),
@@ -193,6 +194,8 @@ export class CampaignService {
   }
 
   static async updateStatus(id: string, status: string) {
+    const { data: current } = await supabase.from('campaigns').select('status').eq('id', id).single();
+
     const { data, error } = await supabase
       .from('campaigns')
       .update({ status })
@@ -200,6 +203,14 @@ export class CampaignService {
       .select()
       .single();
     if (error) throw error;
+
+    // Trigger notifications if recently completed
+    if (status === 'Completed' && current?.status !== 'Completed') {
+        NotificationService.notifyCampaignCompletion(id).catch(err => {
+            console.error('[CampaignService] Async notification failed:', err);
+        });
+    }
+
     return data;
   }
 

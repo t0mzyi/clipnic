@@ -8,44 +8,35 @@ import { Dropdown } from '../components/Dropdown';
 export const MySubmissions = () => {
     const { token } = useAuthStore();
     const [submissions, setSubmissions] = useState<any[]>([]);
-    const [stats, setStats] = useState({ totalClips: 0, views: 0, earnings: 0, approved: 0 });
-    const [refreshingId, setRefreshingId] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [platformFilter, setPlatformFilter] = useState('All');
-    const [sortOrder, setSortOrder] = useState('Newest');
-
-    const filteredSubmissions = submissions
-        .filter(sub => {
-            const matchesSearch = sub.url.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                sub.campaigns?.title?.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesPlatform = platformFilter === 'All' ? true : sub.platform === platformFilter;
-            return matchesSearch && matchesPlatform;
-        })
-        .sort((a, b) => {
-            if (sortOrder === 'Newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-            if (sortOrder === 'Oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-            if (sortOrder === 'Views') return (b.views || 0) - (a.views || 0);
-            if (sortOrder === 'Earnings') return (b.earnings || 0) - (a.earnings || 0);
-            return 0;
-        });
+    const [summary, setSummary] = useState({ 
+        totalEarnings: 0, 
+        availableBalance: 0, 
+        pendingPayout: 0, 
+        claimableBalance: 0, 
+        claimed: 0 
+    });
 
     const fetchAll = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/my`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/my/summary`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
             if (json.success) {
-               setSubmissions(json.data);
-               let views = 0;
-               let earnings = 0;
+               setSubmissions(json.data.breakdown);
+               setSummary({
+                   totalEarnings: json.data.totalEarnings,
+                   availableBalance: json.data.availableBalance,
+                   pendingPayout: json.data.pendingPayout,
+                   claimableBalance: json.data.claimableBalance,
+                   claimed: json.data.claimed
+               });
+               
                let approved = 0;
-               json.data.forEach((s: any) => {
-                   views += s.views || 0;
-                   earnings += Number(s.earnings || 0);
+               json.data.breakdown.forEach((s: any) => {
                    if (s.status === 'Verified') approved += 1;
                });
-               setStats({ totalClips: json.data.length, views, earnings, approved });
+               setStats(p => ({ ...p, totalClips: json.data.breakdown.length, approved }));
             }
         } catch (err) { console.error('Failed to fetch my submissions:', err); }
     };
@@ -111,35 +102,46 @@ export const MySubmissions = () => {
             </div>
 
             {/* KPIs - Premium Design */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Available / Potential */}
                 <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
-                    <p className="text-xs text-white/40 mb-3 uppercase tracking-widest font-semibold flex items-center gap-2.5">
-                        <Layers className="w-5 h-5" />
-                        Total Clips
+                    <p className="text-[10px] text-white/30 mb-3 uppercase tracking-[0.2em] font-bold flex items-center gap-2.5">
+                        <RotateCw className="w-4 h-4 text-white/20" />
+                        Potential
                     </p>
-                    <p className="text-4xl font-mono tabular-metrics text-white/90">{stats.totalClips}</p>
+                    <p className="text-3xl font-mono tabular-metrics text-white/90">${summary.availableBalance.toFixed(2)}</p>
+                    <p className="text-[10px] text-white/20 mt-2 uppercase tracking-widest leading-relaxed font-medium">Accumulating while mission is active</p>
                 </div>
-                <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
-                    <p className="text-xs text-white/40 mb-3 uppercase tracking-widest font-semibold flex items-center gap-2.5">
-                        <CheckCircle2 className="w-5 h-5 text-green-500/50" />
-                        Approved
+
+                {/* Goal Met / Pending */}
+                <div className="p-6 rounded-3xl bg-blue-500/5 border border-blue-500/10 group hover:bg-blue-500/10 transition-all duration-500">
+                    <p className="text-[10px] text-blue-400 mb-3 uppercase tracking-[0.2em] font-bold flex items-center gap-2.5">
+                        <CheckCircle2 className="w-4 h-4" />
+                        Goal Met
                     </p>
-                    <p className="text-4xl font-mono tabular-metrics text-white/90">{stats.approved}</p>
+                    <p className="text-3xl font-mono tabular-metrics text-blue-400 font-bold">${summary.pendingPayout.toFixed(2)}</p>
+                    <p className="text-[10px] text-blue-400/40 mt-2 uppercase tracking-widest leading-relaxed font-medium italic">Validated & Waiting for final sync</p>
                 </div>
-                <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
-                    <p className="text-xs text-white/40 mb-3 uppercase tracking-widest font-semibold flex items-center gap-2.5">
-                        <Eye className="w-5 h-5 text-white/30" />
-                        Views
+
+                {/* Claimable Balance */}
+                <div className="p-6 rounded-3xl bg-white text-zinc-950 shadow-[0_0_40px_rgba(255,255,255,0.1)] group overflow-hidden relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-black/[0.03] to-transparent pointer-events-none" />
+                    <p className="text-black/40 text-[10px] mb-3 uppercase tracking-[0.2em] font-extrabold flex items-center gap-2.5 relative z-10">
+                        <Wallet className="w-4 h-4" />
+                        Claimable
                     </p>
-                    <p className="text-4xl font-mono tabular-metrics text-white/90">{stats.views.toLocaleString()}</p>
+                    <p className="text-4xl font-mono tabular-metrics font-black relative z-10">${summary.claimableBalance.toFixed(2)}</p>
+                    <p className="text-[10px] text-black/30 mt-2 uppercase tracking-widest leading-relaxed relative z-10 font-bold">Finalized & ready for withdrawal</p>
                 </div>
-                <div className="p-6 rounded-3xl bg-white text-zinc-950 shadow-2xl group overflow-hidden relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-black/[0.05] to-transparent pointer-events-none" />
-                    <p className="text-black/50 text-xs mb-3 uppercase tracking-widest font-bold flex items-center gap-2.5 relative z-10">
-                        <Wallet className="w-5 h-5" />
-                        Earnings
+
+                {/* Total Paid */}
+                <div className="p-6 rounded-3xl bg-emerald-500/5 border border-emerald-500/10 group hover:bg-emerald-500/10 transition-all duration-500">
+                    <p className="text-[10px] text-emerald-500 mb-3 uppercase tracking-[0.2em] font-bold flex items-center gap-2.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        Paid Out
                     </p>
-                    <p className="text-4xl font-mono tabular-metrics font-bold relative z-10">${stats.earnings.toFixed(2)}</p>
+                    <p className="text-3xl font-mono tabular-metrics text-emerald-500 font-bold">${summary.claimed.toFixed(2)}</p>
+                    <p className="text-[10px] text-emerald-500/40 mt-2 uppercase tracking-widest leading-relaxed font-medium">Total earnings sent to your wallet</p>
                 </div>
             </div>
 
@@ -219,15 +221,45 @@ export const MySubmissions = () => {
                                         </div>
                                     </td>
                                     <td className="py-5 border-y border-white/[0.05]">
-                                        <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 ${sub.status === 'Verified' ? 'text-emerald-500' : sub.status === 'Pending' ? 'text-amber-500' : 'text-red-500'}`}>
-                                            {sub.status}
-                                        </span>
+                                        <div className="flex flex-col gap-1.5 items-start">
+                                            {sub.earningCategory === 'failed' && (
+                                                <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-red-400/5 text-red-500/60 border border-red-500/10">Failed Goal</span>
+                                            )}
+                                            {sub.earningCategory === 'accumulating' && (
+                                                <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-white/5 text-white/30 border border-white/5">Accumulating</span>
+                                            )}
+                                            {sub.earningCategory === 'pending' && (
+                                                <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20">Goal Met 🎯</span>
+                                            )}
+                                            {sub.earningCategory === 'claimable' && (
+                                                <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-white text-zinc-950 font-black border border-white/20">Finalized 💰</span>
+                                            )}
+                                            {sub.earningCategory === 'claimed' && (
+                                                <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Paid Out</span>
+                                            )}
+                                            <p className="text-[10px] text-white/10 uppercase tracking-widest font-medium ml-1">Mission: {sub.campaignStatus}</p>
+                                        </div>
                                     </td>
                                     <td className="py-5 border-y border-white/[0.05] font-mono text-sm text-white/60">
-                                        {sub.views?.toLocaleString() || 0}
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-white/80">{sub.views?.toLocaleString() || 0}</span>
+                                            {sub.minViews > 0 && sub.views < sub.minViews && (
+                                                <div className="flex items-center gap-1.5 opacity-40">
+                                                    <div className="w-12 bg-white/5 h-0.5 rounded-full overflow-hidden">
+                                                        <div className="bg-white h-full" style={{ width: `${(sub.views / sub.minViews) * 100}%` }} />
+                                                    </div>
+                                                    <span className="text-[8px] uppercase tracking-tighter">to {sub.minViews / 1000}k</span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="py-5 border-y border-white/[0.05] font-mono text-sm font-bold text-white/90">
-                                        ${Number(sub.earnings || 0).toFixed(2)}
+                                        <div className="flex flex-col items-start">
+                                            <span className={sub.earningCategory === 'failed' ? 'text-white/10 line-through' : ''}>
+                                                ${Number(sub.earnings || 0).toFixed(2)}
+                                            </span>
+                                            {sub.earningCategory === 'accumulating' && <span className="text-[8px] text-white/20 uppercase tracking-widest font-light">Potential</span>}
+                                        </div>
                                     </td>
                                     <td className="py-5 border-y border-white/[0.05] text-[11px] text-white/30 font-medium">
                                         {new Date(sub.created_at).toLocaleDateString()}
