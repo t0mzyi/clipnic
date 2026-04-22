@@ -50,24 +50,37 @@ export class SubmissionService {
              }
            });
 
-           if (res.ok) {
-             const html = await res.text();
-             const ogDescMatch = html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
-             if (ogDescMatch) {
-                const desc = ogDescMatch[1];
-                const viewMatch = desc.match(/([\d,.]+[KMB]?) views/i);
-                if (viewMatch) {
-                    let viewStr = viewMatch[1].replace(/,/g, '');
-                    let viewsNum = 0;
-                    if (viewStr.endsWith('K')) viewsNum = parseFloat(viewStr) * 1000;
-                    else if (viewStr.endsWith('M')) viewsNum = parseFloat(viewStr) * 1000000;
-                    else if (viewStr.endsWith('B')) viewsNum = parseFloat(viewStr) * 1000000000;
-                    else viewsNum = parseInt(viewStr, 10);
+            if (res.ok) {
+              const html = await res.text();
+              const ogDescMatch = html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
+              const ogTitleMatch = html.match(/<meta[^>]*property="og:title"[^>]*content="([^"]+)"/i);
+              
+              let viewsNum = 0;
+              let ownerHandle = null;
 
-                    return { views: viewsNum, channelId: 'ig_post' };
-                }
-             }
-           }
+              if (ogDescMatch) {
+                 const desc = ogDescMatch[1];
+                 const viewMatch = desc.match(/([\d,.]+[KMB]?) views/i);
+                 if (viewMatch) {
+                     let viewStr = viewMatch[1].replace(/,/g, '');
+                     if (viewStr.endsWith('K')) viewsNum = parseFloat(viewStr) * 1000;
+                     else if (viewStr.endsWith('M')) viewsNum = parseFloat(viewStr) * 1000000;
+                     else if (viewStr.endsWith('B')) viewsNum = parseFloat(viewStr) * 1000000000;
+                     else viewsNum = parseInt(viewStr, 10);
+                 }
+              }
+
+              // Extract owner handle from title (e.g., "username on Instagram: 'caption'")
+              if (ogTitleMatch) {
+                 const title = ogTitleMatch[1];
+                 const ownerMatch = title.match(/^([^ ]+) on Instagram/i) || title.match(/^([^ ]+) (@[^)]+) posted on Instagram/i);
+                 if (ownerMatch) {
+                    ownerHandle = `@${ownerMatch[1].replace(/^@/, '')}`.toLowerCase();
+                 }
+              }
+
+              return { views: viewsNum, channelId: ownerHandle };
+            }
         }
       } catch (err) {
         console.error('Instagram Scrape Error:', err);
@@ -118,6 +131,15 @@ export class SubmissionService {
         
         const isOwner = existingChannels.some((c: any) => c.channelId === channelId);
         if (!isOwner) throw new Error("This video does not belong to your verified channels.");
+    } else if (validated.platform === 'instagram') {
+        if (!channelId) throw new Error("Could not verify Instagram owner. Ensure the reel is public.");
+        
+        const { data: userRaw } = await supabase.from('users').select('instagram_handle, instagram_handles').eq('id', userId).single();
+        const linkedHandle = userRaw?.instagram_handle?.toLowerCase();
+        const linkedHandles = userRaw?.instagram_handles || [];
+        
+        const isOwner = linkedHandle === channelId || linkedHandles.some((h: string) => h.toLowerCase() === channelId);
+        if (!isOwner) throw new Error(`This reel belongs to ${channelId}, but you have linked ${linkedHandle || 'no account'}.`);
     }
 
     // 5. Calculate earnings based on current views (Potential earnings)
