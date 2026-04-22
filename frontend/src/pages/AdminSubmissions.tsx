@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Filter, Layers, CheckCircle2, XCircle, ExternalLink, User, Calendar, Eye, Wallet } from 'lucide-react';
+import { Search, Filter, Layers, CheckCircle2, XCircle, ExternalLink, User, Calendar } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 

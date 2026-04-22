@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, PlaySquare, CheckCircle, Wallet, Eye, TrendingUp, ShieldCheck, MessageSquare, Rocket, DollarSign, ChevronRight, Sparkles } from 'lucide-react';
+import { Activity, PlaySquare, CheckCircle, Wallet, Eye, ShieldCheck, MessageSquare, Rocket, DollarSign, ChevronRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { useAuthStore } from '../store/useAuthStore';
@@ -90,50 +90,50 @@ export const ClipperDashboard = () => {
 
     const recentActivity = submissions.slice(0, 5);
 
-    // Onboarding Logic
+    // Onboarding State
+    const [currentStep, setCurrentStep] = useState(0);
+    const [showOnboardingModal, setShowOnboardingModal] = useState(!user?.discordVerified || !user?.youtubeVerified);
+
     const onboardingSteps = [
         {
             id: 'verify',
-            title: 'Verify Socials',
-            description: 'Link Discord & YouTube to unlock payouts.',
+            title: 'Step 1: Link Socials',
+            description: 'Link your YouTube and Discord accounts to start earning and tracking your progress.',
             icon: ShieldCheck,
-            completed: !!(user?.discordVerified && user?.youtubeVerified),
+            buttonText: 'Go to Profile',
             link: '/profile',
-            actionLabel: 'Go to Profile'
+            isExternal: false,
+            checkpoint: !!(user?.discordVerified && user?.youtubeVerified)
         },
         {
             id: 'discord',
-            title: 'Join Community',
-            description: 'Get daily tips and high-CPM hooks in Discord.',
+            title: 'Step 2: Join Discord',
+            description: 'Our community shares the best hooks, high-CPM niches, and daily clipping tips.',
             icon: MessageSquare,
-            completed: !!user?.discordVerified, // Assuming Discord verification means they joined
+            buttonText: 'Join Server',
             link: 'https://discord.gg/rzhvv9Rf42',
             isExternal: true,
-            actionLabel: 'Open Server'
+            checkpoint: !!user?.discordVerified
         },
         {
-            id: 'submit',
-            title: 'Submit first clip',
-            description: 'Pick a high-performing campaign and post.',
+            id: 'campaign',
+            title: 'Step 3: Pick a Mission',
+            description: 'Browse active campaigns and find the perfect video to clip and monetize.',
             icon: Rocket,
-            completed: submissions.length > 0,
+            buttonText: 'Browse Missions',
             link: '/campaigns',
-            actionLabel: 'Browse Campaigns'
-        },
-        {
-            id: 'earn',
-            title: 'Earn first $1',
-            description: 'Watch your clips go viral and stack earnings.',
-            icon: DollarSign,
-            completed: (earnings?.totalEarnings ?? 0) >= 1,
-            link: '/earnings',
-            actionLabel: 'View Earnings'
+            isExternal: false,
+            checkpoint: submissions.length > 0
         }
     ];
 
-    const completedSteps = onboardingSteps.filter(s => s.completed).length;
-    const isFullyBoarded = completedSteps === onboardingSteps.length;
-    const showOnboarding = !isFullyBoarded || (submissions.length === 0);
+    const handleNext = () => {
+        if (currentStep < onboardingSteps.length - 1) {
+            setCurrentStep(prev => prev + 1);
+        } else {
+            setShowOnboardingModal(false);
+        }
+    };
 
 
     return (
@@ -170,9 +170,20 @@ export const ClipperDashboard = () => {
                     </div>
 
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white/90">
-                            Welcome Back{user?.name ? `, ${user.name}` : ''}
-                        </h1>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-3xl font-bold tracking-tight text-white/90">
+                                Welcome Back{user?.name ? `, ${user.name}` : ''}
+                            </h1>
+                            {user?.role === 'admin' && (
+                                <Link 
+                                    to="/admin" 
+                                    className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 group"
+                                >
+                                    Admin Portal
+                                    <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                                </Link>
+                            )}
+                        </div>
                         <p className="text-white/30 text-sm font-light mt-0.5">Your activity and earnings overview.</p>
                     </div>
                 </div>
@@ -184,92 +195,90 @@ export const ClipperDashboard = () => {
                 </div>
             ) : (
                 <>
-                    {/* Onboarding Guide */}
-                    {showOnboarding && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="relative p-6 sm:p-8 rounded-[32px] bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.08] shadow-2xl overflow-hidden group"
-                        >
-                            {/* Abstract Background Glow */}
-                            <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/10 blur-[100px] pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-700" />
-                            
-                            <div className="relative z-10">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-                                    <div className="space-y-1.5">
-                                        <div className="flex items-center gap-2">
-                                            <div className="p-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/20">
-                                                <Sparkles className="w-4 h-4 text-emerald-400" />
-                                            </div>
-                                            <h2 className="text-xl font-bold tracking-tight text-white">Your Path to Profit</h2>
-                                        </div>
-                                        <p className="text-sm text-white/40">Complete these steps to maximize your clipping potential.</p>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-1.5 w-32 bg-white/5 rounded-full overflow-hidden">
-                                            <motion.div 
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${(completedSteps / onboardingSteps.length) * 100}%` }}
-                                                className="h-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]"
-                                            />
-                                        </div>
-                                        <span className="text-xs font-mono font-bold text-white/60">
-                                            {completedSteps}/{onboardingSteps.length} Steps
-                                        </span>
-                                    </div>
-                                </div>
+                    {/* Onboarding Modal Overlay */}
+                    <AnimatePresence>
+                        {showOnboardingModal && (
+                            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-6 bg-black/80 backdrop-blur-md">
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    className="relative w-full max-w-xl bg-gradient-to-br from-[#121212] to-black border border-white/10 rounded-[40px] shadow-2xl overflow-hidden p-8 sm:p-12 text-center"
+                                >
+                                    {/* Exit button */}
+                                    <button 
+                                        onClick={() => setShowOnboardingModal(false)}
+                                        className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 text-white/20 hover:text-white/60 transition-all"
+                                    >
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                    </button>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    {onboardingSteps.map((step, idx) => {
-                                        const Icon = step.icon;
-                                        return (
+                                    {/* Progress Dots */}
+                                    <div className="flex justify-center gap-1.5 mb-10">
+                                        {onboardingSteps.map((_, i) => (
                                             <div 
-                                                key={step.id}
-                                                className={`p-5 rounded-2xl border transition-all duration-500 ${step.completed ? 'bg-emerald-500/[0.02] border-emerald-500/10 opacity-60' : 'bg-white/[0.02] border-white/5 hover:border-white/20'}`}
-                                            >
-                                                <div className="flex items-start justify-between mb-4">
-                                                    <div className={`p-2 rounded-xl ${step.completed ? 'bg-emerald-500/10 text-emerald-500' : 'bg-white/5 text-white/30'}`}>
-                                                        <Icon className="w-5 h-5" />
-                                                    </div>
-                                                    {step.completed && (
-                                                        <CheckCircle className="w-4 h-4 text-emerald-500" />
-                                                    )}
-                                                </div>
-                                                <h3 className="text-sm font-bold text-white mb-1">{step.title}</h3>
-                                                <p className="text-[10px] text-white/30 leading-relaxed mb-5 min-h-[30px]">{step.description}</p>
-                                                
-                                                {step.completed ? (
-                                                    <div className="flex items-center gap-2 text-[9px] font-bold text-emerald-500/50 uppercase tracking-widest pt-1">
-                                                        Completed
-                                                    </div>
-                                                ) : (
-                                                    step.isExternal ? (
-                                                        <a 
-                                                            href={step.link} 
-                                                            target="_blank" 
-                                                            rel="noreferrer"
-                                                            className="inline-flex items-center gap-1.5 text-[9px] font-bold text-white uppercase tracking-widest hover:gap-2.5 transition-all group/link"
-                                                        >
-                                                            {step.actionLabel}
-                                                            <ChevronRight className="w-3 h-3 text-white/30 group-hover/link:text-white transition-colors" />
-                                                        </a>
-                                                    ) : (
-                                                        <Link 
-                                                            to={step.link}
-                                                            className="inline-flex items-center gap-1.5 text-[9px] font-bold text-white uppercase tracking-widest hover:gap-2.5 transition-all group/link"
-                                                        >
-                                                            {step.actionLabel}
-                                                            <ChevronRight className="w-3 h-3 text-white/30 group-hover/link:text-white transition-colors" />
-                                                        </Link>
-                                                    )
-                                                )}
+                                                key={i} 
+                                                className={`h-1 rounded-full transition-all duration-500 ${i === currentStep ? 'w-8 bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]' : 'w-2 bg-white/10'}`}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    <AnimatePresence mode="wait">
+                                        <motion.div
+                                            key={currentStep}
+                                            initial={{ opacity: 0, x: 20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -20 }}
+                                            transition={{ duration: 0.3 }}
+                                            className="space-y-6"
+                                        >
+                                            <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 mb-6">
+                                                {(() => {
+                                                    const Icon = onboardingSteps[currentStep].icon;
+                                                    return <Icon className="w-8 h-8 text-emerald-400" />
+                                                })()}
                                             </div>
-                                        );
-                                    })}
-                                </div>
+
+                                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-3">
+                                                {onboardingSteps[currentStep].title}
+                                            </h2>
+                                            <p className="text-white/40 text-sm sm:text-base max-w-sm mx-auto leading-relaxed">
+                                                {onboardingSteps[currentStep].description}
+                                            </p>
+
+                                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
+                                                {onboardingSteps[currentStep].isExternal ? (
+                                                    <a 
+                                                        href={onboardingSteps[currentStep].link}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-white text-black font-bold text-sm tracking-tight hover:scale-105 active:scale-95 transition-all"
+                                                    >
+                                                        {onboardingSteps[currentStep].buttonText}
+                                                    </a>
+                                                ) : (
+                                                    <Link 
+                                                        to={onboardingSteps[currentStep].link}
+                                                        className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-white text-black font-bold text-sm tracking-tight hover:scale-105 active:scale-95 transition-all"
+                                                    >
+                                                        {onboardingSteps[currentStep].buttonText}
+                                                    </Link>
+                                                )}
+                                                
+                                                <button 
+                                                    onClick={handleNext}
+                                                    className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-sm tracking-tight hover:bg-white/10 transition-all flex items-center justify-center gap-2 group"
+                                                >
+                                                    {currentStep === onboardingSteps.length - 1 ? "Finish" : "Next Step"}
+                                                    <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    </AnimatePresence>
+                                </motion.div>
                             </div>
-                        </motion.div>
-                    )}
+                        )}
+                    </AnimatePresence>
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -349,7 +358,7 @@ export const ClipperDashboard = () => {
                                                 padding: '8px 12px'
                                             }}
                                             itemStyle={{ color: '#10b981', padding: 0 }}
-                                            formatter={(value: number) => [value.toLocaleString(), 'Views']}
+                                            formatter={(value: any) => [Number(value || 0).toLocaleString(), 'Views']}
                                         />
                                         <Area
                                             type="monotone"
@@ -423,10 +432,10 @@ export const ClipperDashboard = () => {
                     {earnings && (
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             {[
-                                { label: 'Available Balance', value: earnings.availableBalance, color: 'text-emerald-400' },
-                                { label: 'Claimable Balance', value: earnings.pendingPayout, color: 'text-amber-400' },
-                                { label: 'Claimed', value: earnings.claimed, color: 'text-purple-400' },
-                            ].map((item, i) => (
+                                { label: 'Available Balance', value: earnings.availableBalance, color: 'text-emerald-400', hint: 'Syncing' },
+                                { label: 'Claimable Balance', value: earnings.pendingPayout, color: 'text-amber-400', hint: 'Ready' },
+                                { label: 'Claimed', value: earnings.claimed, color: 'text-purple-400', hint: 'Paid' },
+                            ].map((item: { label: string, value: number, color: string, hint: string }, i) => (
                                 <motion.div
                                     key={i}
                                     initial={{ opacity: 0, y: 10 }}

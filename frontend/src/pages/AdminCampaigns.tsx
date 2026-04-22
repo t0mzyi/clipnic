@@ -308,6 +308,10 @@ export const AdminCampaigns = () => {
                                             <td className="px-4 py-4">
                                                 <div className="space-y-1">
                                                     <div className="flex items-center gap-1.5 text-[10px] text-white/40">
+                                                        <Eye className="w-3 h-3 text-emerald-400/60" />
+                                                        <span className="font-mono">{camp.min_views ? `${camp.min_views.toLocaleString()} views` : <span className="text-white/20">No min views</span>}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 text-[10px] text-white/40">
                                                         <Users className="w-3 h-3 text-blue-400/60" />
                                                         <span className="font-mono">{camp.per_clipper_cap ? `$${camp.per_clipper_cap}/person` : <span className="text-white/20">No cap</span>}</span>
                                                     </div>

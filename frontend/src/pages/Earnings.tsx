@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, ArrowDownRight, ArrowUpRight, Landmark, History, TrendingUp, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Wallet, Landmark, History, TrendingUp, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 
 interface EarningsData {

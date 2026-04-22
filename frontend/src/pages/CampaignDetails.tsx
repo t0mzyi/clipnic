@@ -213,7 +213,13 @@ export const CampaignDetails = () => {
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
                     <div className="flex items-center gap-2 text-white/30"><Eye className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Views</span></div>
                     <p className="text-2xl font-mono font-bold text-white">{campaign.view_progress.toLocaleString()}</p>
-                    <p className="text-[10px] font-mono text-white/20">{progressPercentage}% of goal</p>
+                    <p className="text-[10px] font-mono text-white/20">
+                        {campaign.min_views > 0 ? (
+                            <>Need <span className="text-emerald-400/80 font-bold">{campaign.min_views.toLocaleString()}</span> to earn</>
+                        ) : (
+                            <>{progressPercentage}% of goal</>
+                        )}
+                    </p>
                 </div>
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
                     <div className="flex items-center gap-2 text-amber-500/60"><Clock className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Deadline</span></div>
