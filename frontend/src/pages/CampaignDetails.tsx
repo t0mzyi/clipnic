@@ -1,8 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, Link } from 'react-router-dom';
+import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useState, useEffect } from 'react';
-import { Shield, Eye, DollarSign, Clock, Target, Upload, ChevronLeft, X, CheckCircle, Globe, LogOut } from 'lucide-react';
+import { Shield, Eye, DollarSign, Clock, Target, Upload, ChevronLeft, X, CheckCircle, Globe, LogOut, Trophy, Award, Medal } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
