@@ -204,4 +204,14 @@ export class AdminController {
           next(error);
       }
   }
+  
+  static async getUserEarnings(req: Request, res: Response, next: NextFunction) {
+      try {
+          const { id } = req.params;
+          const data = await SubmissionService.getUserEarningsSummary(id as string);
+          res.json({ success: true, data });
+      } catch (error) {
+          next(error);
+      }
+  }
 }

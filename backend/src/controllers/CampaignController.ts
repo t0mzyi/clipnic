@@ -61,7 +61,7 @@ export class CampaignController {
           const { id } = req.params;
           const { linkedHandle } = req.body;
           const userId = (req as any).user.id;
-          const data = await CampaignService.joinCampaign(userId, id, linkedHandle);
+          const data = await CampaignService.joinCampaign(userId, id as string, linkedHandle);
           res.json({ success: true, data });
       } catch (error) {
           next(error);
