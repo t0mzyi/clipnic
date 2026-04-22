@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/Button';
-import { ShieldCheck, Mail, CreditCard, ExternalLink, Scissors, Eye, Wallet, Trash2 } from 'lucide-react';
+import { ShieldCheck, Mail, Scissors, Eye, Wallet, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';

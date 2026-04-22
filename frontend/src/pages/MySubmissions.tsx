@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
@@ -15,7 +15,6 @@ export const MySubmissions = () => {
         claimableBalance: 0, 
         claimed: 0 
     });
-    const [stats, setStats] = useState({ totalClips: 0, approved: 0 });
     const [refreshingId, setRefreshingId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [platformFilter, setPlatformFilter] = useState('All');
@@ -70,7 +69,7 @@ export const MySubmissions = () => {
                json.data.breakdown.forEach((s: any) => {
                    if (s.status === 'Verified') approved += 1;
                });
-               setStats(p => ({ ...p, totalClips: json.data.breakdown.length, approved }));
+               // stats removed as it was unused
             }
         } catch (err) { console.error('Failed to fetch my submissions:', err); }
     };
@@ -239,7 +238,7 @@ export const MySubmissions = () => {
                                         No trackable submissions found matching your filters.
                                     </td>
                                 </tr>
-                            ) : filteredSubmissions.map((sub) => (
+                            ) : filteredSubmissions.map((sub: any) => (
                                 <tr key={sub.id} className="group bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all duration-300">
                                     <td className="py-5 pl-6 rounded-l-2xl border-y border-l border-white/[0.05]">
                                         <div className="flex items-center gap-3">
