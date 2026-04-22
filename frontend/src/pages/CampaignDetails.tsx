@@ -222,7 +222,7 @@ export const CampaignDetails = () => {
                 <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 md:p-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="space-y-3 text-left">
                         <Badge status={campaign.status} />
-                        <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight text-white drop-shadow-2xl">{campaign.title}</h1>
+                        <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight text-white drop-shadow-2xl glassy-text">{campaign.title}</h1>
                     </div>
                     
                     <div className="flex gap-3 sm:gap-4 items-center">
@@ -242,7 +242,7 @@ export const CampaignDetails = () => {
                                 variant="primary" 
                                 disabled={campaign.status !== 'Active'}
                                 onClick={() => { setJoinStep(1); setIsJoinModalOpen(true); }} 
-                                className="flex items-center gap-2 bg-emerald-500 text-white hover:bg-emerald-600 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base disabled:opacity-50 disabled:grayscale"
+                                className="flex items-center gap-2 bg-emerald-400 text-black hover:bg-emerald-300 font-extrabold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-[0_0_40px_rgba(52,211,153,0.25)] text-xs sm:text-base disabled:opacity-50 disabled:grayscale"
                             >
                                 <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
                                 {campaign.status === 'Active' ? 'Join Campaign' : 'Missions Paused'}
@@ -320,7 +320,7 @@ export const CampaignDetails = () => {
                                                 <div className="flex flex-col items-center">
                                                     <Shield className="w-10 h-10 text-white/5 mb-4" />
                                                     <p className="text-sm font-bold text-white/40">You must join this campaign to see submissions.</p>
-                                                    <Button variant="outline" onClick={() => setIsJoinModalOpen(true)} className="mt-4 text-[10px] uppercase tracking-widest py-2 rounded-xl">Join Now</Button>
+                                                    <Button variant="primary" onClick={() => setIsJoinModalOpen(true)} className="mt-4 text-[10px] uppercase tracking-widest py-3 px-8 rounded-xl bg-emerald-500 text-white hover:bg-emerald-400">Join Now</Button>
                                                 </div>
                                             </td>
                                         </tr>

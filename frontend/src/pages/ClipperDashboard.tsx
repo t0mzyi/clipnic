@@ -126,7 +126,7 @@ export const ClipperDashboard = () => {
 
                     <div>
                         <div className="flex items-center gap-3">
-                            <h1 className="text-3xl font-bold tracking-tight text-white/90">
+                            <h1 className="text-3xl font-bold tracking-tight text-white/90 glassy-text">
                                 Welcome Back{user?.name ? `, ${user.name}` : ''}
                             </h1>
                             {user?.role === 'admin' && (
@@ -170,7 +170,7 @@ export const ClipperDashboard = () => {
                                         </div>
                                         <span className="text-[9px] font-bold text-white/25 uppercase tracking-widest">{stat.label}</span>
                                     </div>
-                                    <p className={`text-3xl font-mono tracking-tight font-bold ${stat.highlight ? 'text-amber-400' : 'text-white/90'}`}>{stat.value}</p>
+                                    <p className={`text-3xl font-mono tracking-tight font-bold glassy-text ${stat.highlight ? 'text-amber-400' : 'text-white/90'}`}>{stat.value}</p>
                                 </motion.div>
                             );
                         })}

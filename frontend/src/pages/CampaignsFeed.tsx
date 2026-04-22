@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
-import { ArrowUpRight, DollarSign, Wallet, TrendingUp, Star, ChevronLeft, ChevronRight, Search, Play, Camera } from 'lucide-react';
+import { ArrowUpRight, DollarSign, Wallet, TrendingUp, Star, ChevronLeft, ChevronRight, Search, Play, Camera, History } from 'lucide-react';
 
 const TikTokIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-tiktok">
@@ -138,11 +138,11 @@ export const CampaignsFeed = () => {
         >
             {/* Hero Carousel */}
             {!loading && featured.length > 0 && (
-                <div className="relative w-full group">
-                    <div className="flex items-center justify-between mb-4 px-2">
+                <>
+                    <div className="relative w-full group flex items-center justify-between mb-4 px-2">
                         <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <h2 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em]">Featured Opportunities</h2>
+                            <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse" />
+                            <h2 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] glassy-text">Featured Opportunities</h2>
                         </div>
                         {featured.length > 1 && (
                             <div className="flex gap-2">
@@ -182,11 +182,8 @@ export const CampaignsFeed = () => {
                                     <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-end max-w-3xl">
                                         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
                                             <div className="flex items-center gap-3 mb-4">
-                                                <div className="px-3 py-1 rounded-full bg-purple-500/20 backdrop-blur-md border border-purple-500/30 text-[10px] font-bold text-purple-400 flex items-center gap-1.5 shadow-[0_0_20px_rgba(168,85,247,0.2)]">
-                                                    <Star size={12} fill="currentColor" /> FEATURED MISSION
-                                                </div>
-                                                <div className="px-3 py-1 rounded-full bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 text-[10px] font-bold text-emerald-400 flex items-center gap-1.5 align-middle">
-                                                    🔥 HIGH CPM
+                                                <div className="px-3 py-1 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-[10px] font-bold text-white/40 flex items-center gap-1.5 shadow-sm uppercase tracking-wider">
+                                                    <Star size={12} className="text-amber-400" fill="currentColor" /> Featured
                                                 </div>
                                             </div>
                                             <h3 className="text-3xl md:text-6xl font-bold text-premium-white mb-6 leading-[1.1] tracking-tight">{featured[activeIdx].title}</h3>
@@ -226,7 +223,7 @@ export const CampaignsFeed = () => {
                             </div>
                         )}
                     </div>
-                </div>
+                </>
             )}
 
             {/* Discovery & Search Section */}
@@ -271,7 +268,7 @@ export const CampaignsFeed = () => {
             {/* Section Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.05] pb-6">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-white/90">Available Missions</h2>
+                    <h2 className="text-2xl font-bold tracking-tight text-white/90 glassy-text">Available Missions</h2>
                     <p className="text-white/30 text-sm font-light tracking-tight mt-1">Explore all active clipping opportunities matching your search.</p>
                 </div>
                 <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-white/50 uppercase tracking-widest">
@@ -289,8 +286,8 @@ export const CampaignsFeed = () => {
 
             {/* Empty state */}
             {!loading && campaigns.length === 0 && (
-                <div className="py-24 text-center space-y-3">
-                    <p className="text-white/20 text-4xl">📭</p>
+                <div className="py-24 text-center space-y-4">
+                    <History size={40} className="mx-auto text-white/10 mb-4" />
                     <p className="text-white/30 text-sm font-light">No campaigns available right now. Check back soon!</p>
                 </div>
             )}

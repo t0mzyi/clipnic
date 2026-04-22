@@ -119,7 +119,7 @@ export const AdminCampaigns = () => {
     const validateForm = () => {
         if (!form.title.trim()) return "Missions need a catchy title.";
         if (!form.description.trim()) return "Please provide a description so clippers know what to do.";
-        if (!form.discord_channel.trim() || !form.discord_channel.startsWith('http')) return "A valid Discord приглашение link is required.";
+        if (!form.discord_channel.trim() || !form.discord_channel.startsWith('http')) return "A valid Discord invitation link is required.";
         
         const cpm = parseFloat(form.cpm_rate);
         const budget = parseFloat(form.total_budget);
@@ -274,7 +274,7 @@ export const AdminCampaigns = () => {
             {/* Header */}
             <div className="flex items-end justify-between pb-6 border-b border-white/[0.06]">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-white/90 mb-1">Campaigns</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-white/90 mb-1 glassy-text">Campaigns</h1>
                     <p className="text-white/30 text-sm font-light">Create and manage clipping campaigns.</p>
                 </div>
                 <Button variant="primary" onClick={() => { setEditingCampaign(null); setForm(defaultForm); setStep(1); setIsModalOpen(true); }}
@@ -354,7 +354,7 @@ export const AdminCampaigns = () => {
                                                         <span className="text-white/50 font-mono">${camp.budget_used.toFixed(0)} <span className="text-white/20">/ ${camp.total_budget.toLocaleString()}</span></span>
                                                     </div>
                                                     <div className="w-full bg-white/[0.04] h-1 rounded-full overflow-hidden">
-                                                        <div className={`h-full rounded-full ${progress >= 100 ? 'bg-red-500' : 'bg-emerald-500/70'}`} style={{ width: `${Math.min(progress, 100)}%` }} />
+                                                    <div className={`h-full rounded-full ${progress >= 100 ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)]' : 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.3)]'}`} style={{ width: `${Math.min(progress, 100)}%` }} />
                                                     </div>
                                                 </div>
                                             </td>

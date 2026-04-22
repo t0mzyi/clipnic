@@ -59,7 +59,7 @@ export class CampaignService {
 
   static async getParticipations(userId: string) {
     const { data, error } = await supabase
-      .from('campaign_participations')
+      .from('campaign_participants')
       .select('campaign_id')
       .eq('user_id', userId);
     if (error) throw error;
@@ -68,7 +68,7 @@ export class CampaignService {
 
   static async getJoinedCampaigns(userId: string) {
       const { data, error } = await supabase
-          .from('campaign_participations')
+          .from('campaign_participants')
           .select('*, campaigns(*)')
           .eq('user_id', userId)
           .order('created_at', { ascending: false });
@@ -89,7 +89,7 @@ export class CampaignService {
       }
 
       const { data, error } = await supabase
-          .from('campaign_participations')
+          .from('campaign_participants')
           .insert({
               user_id: userId,
               campaign_id: campaignId,

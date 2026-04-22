@@ -56,34 +56,34 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
 
             {!isAdminPortal ? (
                 <>
-                    <nav className="flex flex-col gap-2 text-sm font-medium mb-6">
-                        <Link onClick={closeMenu} to="/campaigns" className={`transition-all py-3 px-4 rounded-2xl flex items-center gap-3 glowing-glass-item ${location.pathname === '/campaigns' ? 'bg-white/10 text-premium-white' : 'text-white/60 hover:text-premium-white'}`}>
-                            <Globe size={18} className="text-emerald-400" />
-                            <span className="font-bold tracking-tight">Active Campaigns</span>
+                    <nav className="flex flex-col gap-2 text-sm font-medium mb-6 mt-8">
+                        <Link onClick={closeMenu} to="/campaigns" className={`transition-all py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/campaigns' ? 'bg-white/15 text-white border border-white/5' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
+                            <Globe size={18} className={location.pathname === '/campaigns' ? 'text-emerald-400' : ''} />
+                            <span className="glassy-text">Active Campaigns</span>
                         </Link>
                     </nav>
 
-                    <div className="mb-4 text-xs font-bold text-white/20 uppercase tracking-[0.2em] px-4 py-2 rounded-xl glassy-glow-premium border border-white/5">Clipper Portal</div>
+                    <div className="mb-4 text-xs font-bold text-white/20 uppercase tracking-[0.2em] px-4 py-2 rounded-xl glassy-glow-premium">Clipper Portal</div>
                     <nav className="flex flex-col gap-2 text-sm font-medium mb-10 overflow-y-auto">
-                        <Link onClick={closeMenu} to="/dashboard" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/dashboard' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link onClick={closeMenu} to="/dashboard" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/dashboard' ? 'bg-white/15 text-white border border-white/5' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
                             <LayoutGrid size={18} />
-                            Dashboard
+                            <span className="glassy-text">Dashboard</span>
                         </Link>
-                        <Link onClick={closeMenu} to="/campaigns/joined" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/campaigns/joined' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link onClick={closeMenu} to="/campaigns/joined" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/campaigns/joined' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <Target size={18} />
-                            My Missions
+                            <span className="glassy-text">My Missions</span>
                         </Link>
-                        <Link onClick={closeMenu} to="/submissions" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/submissions') ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link onClick={closeMenu} to="/submissions" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/submissions') ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <Upload size={18} />
-                            My Submissions
+                            <span className="glassy-text">My Submissions</span>
                         </Link>
-                        <Link onClick={closeMenu} to="/earnings" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/earnings' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link onClick={closeMenu} to="/earnings" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/earnings' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <DollarSign size={18} />
-                            Earnings
+                            <span className="glassy-text">Earnings</span>
                         </Link>
-                        <Link onClick={closeMenu} to="/profile" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/profile' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link onClick={closeMenu} to="/profile" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/profile' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <UserIcon size={18} />
-                            Profile
+                            <span className="glassy-text">Profile</span>
                         </Link>
                     </nav>
                 </>
@@ -118,7 +118,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
 
 const AdminDock = () => {
     const location = useLocation();
-    const { isAdmin } = useAuthStore(s => ({ isAdmin: s.user?.role === 'admin' }));
+    const isAdmin = useAuthStore(s => s.user?.role === 'admin');
     
     if (!isAdmin) return null;
 
@@ -132,23 +132,32 @@ const AdminDock = () => {
     ];
 
     return (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] hidden md:block">
-            <div className="flex items-center gap-1 p-2 rounded-3xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+        <div className="fixed bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-[100] w-max max-w-[95vw]">
+            <div className="ios-glass flex items-center p-1 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative">
+                {/* Surface Shine Gradient */}
+                <div className="absolute inset-x-0 top-0 h-[40%] bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none rounded-t-full" />
+                
                 {items.map((item) => {
                     const isActive = location.pathname === item.to || (item.to !== '/admin' && location.pathname.startsWith(item.to));
+                    // Mobile-responsive icon size
+                    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+                    const iconSize = isMobile ? 18 : 22;
+
                     return (
                         <Link
                             key={item.to}
                             to={item.to}
-                            className={`relative px-4 py-3 rounded-2xl flex flex-col items-center gap-1 transition-all duration-300 group ${isActive ? 'bg-white/10 text-white shadow-inner' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                            className={`relative w-11 sm:w-16 h-11 sm:h-14 flex items-center justify-center transition-all duration-500 rounded-full group ${isActive ? 'bg-white/15 text-white' : 'text-white/60 hover:text-white hover:bg-white/[0.05]'}`}
                         >
-                            <item.icon size={20} className={`${item.color || ''} ${isActive ? 'scale-110' : 'scale-100'} transition-transform`} />
+                            <item.icon size={iconSize} className={`${item.color || ''} ${isActive ? 'scale-110 drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]' : 'scale-100'} transition-transform duration-500`} />
+                            
                             {isActive && (
-                                <motion.div layoutId="dock-indicator" className="absolute -bottom-1 w-1 h-1 bg-emerald-500 rounded-full" />
+                                <motion.div 
+                                    layoutId="dock-indicator" 
+                                    className="absolute bottom-1 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white]" 
+                                    transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                                />
                             )}
-                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg bg-black/90 border border-white/10 text-[10px] font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none transform translate-y-2 group-hover:translate-y-0">
-                                {item.label}
-                            </div>
                         </Link>
                     );
                 })}
@@ -294,18 +303,20 @@ const Layout = () => {
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans flex flex-col md:flex-row">
 
-            {/* Mobile Header */}
-            <div className="md:hidden sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-between px-6">
-                <Link to="/campaigns" className="flex items-center gap-2">
-                    <img src="/logo.webp" alt="Logo" className="h-7 w-auto object-contain" />
-                    <span className="text-lg font-bold tracking-tight text-premium-white">
-                        clipnic.com
-                    </span>
-                </Link>
-                <button onClick={() => setMobileMenuOpen(true)} className="text-white/70 hover:text-white">
-                    <Menu size={24} />
-                </button>
-            </div>
+            {/* Mobile Header - Hidden for Admins as they use the Dock */}
+            {!location.pathname.startsWith('/admin') && (
+                <div className="md:hidden sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-between px-6">
+                    <Link to="/campaigns" className="flex items-center gap-2">
+                        <img src="/logo.webp" alt="Logo" className="h-7 w-auto object-contain" />
+                        <span className="text-lg font-bold tracking-tight text-premium-white">
+                            clipnic.com
+                        </span>
+                    </Link>
+                    <button onClick={() => setMobileMenuOpen(true)} className="text-white/70 hover:text-white">
+                        <Menu size={24} />
+                    </button>
+                </div>
+            )}
 
             <Sidebar isOpen={mobileMenuOpen} closeMenu={() => setMobileMenuOpen(false)} />
             {location.pathname.startsWith('/admin') && <AdminDock />}

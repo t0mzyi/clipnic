@@ -8,7 +8,7 @@ export const Badge: React.FC<BadgeProps> = ({ status }) => {
   const getStyles = () => {
     switch(status) {
       case 'Active':
-        return 'border-white bg-white text-black';
+        return 'border-emerald-500/20 bg-emerald-500/5 text-emerald-400/80';
       case 'Paused':
         return 'border-white/20 bg-transparent text-white/50';
       case 'Completed':
