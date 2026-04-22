@@ -40,12 +40,30 @@ const Toast = Swal.mixin({
     showConfirmButton: false,
     timer: 3000,
     timerProgressBar: true,
-    background: '#0c0c0c',
+    background: '#0D0D0D',
     color: '#fff',
+    customClass: {
+        popup: 'rounded-2xl border border-white/10 shadow-2xl backdrop-blur-md bg-[#0D0D0D]/95',
+        title: 'text-sm font-bold',
+    },
     didOpen: (toast) => {
         toast.onmouseenter = Swal.stopTimer;
         toast.onmouseleave = Swal.resumeTimer;
     }
+});
+
+const GlobalSwal = Swal.mixin({
+    background: '#0D0D0D',
+    color: '#fff',
+    customClass: {
+        popup: 'rounded-[32px] border border-white/10 shadow-2xl bg-[#0D0D0D]',
+        title: 'text-2xl font-bold tracking-tight pt-4',
+        htmlContainer: 'text-sm text-white/40 leading-relaxed px-6',
+        confirmButton: 'bg-white text-black px-10 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/90 transition-all mx-2',
+        cancelButton: 'bg-transparent border border-white/10 text-white/50 px-10 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all mx-2',
+        actions: 'pb-6'
+    },
+    buttonsStyling: false
 });
 
 export const CampaignDetails = () => {
@@ -89,18 +107,32 @@ export const CampaignDetails = () => {
         };
 
         const fetchSubmissions = async () => {
+            if (!id || !token) return;
             try {
                 const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/campaign/${id}/my`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const json = await res.json();
-                if (json.success) setSubmissions(json.data);
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const json = await res.json();
+                    if (json.success) setSubmissions(json.data);
+                } else {
+                    const text = await res.text();
+                    console.error('Failed to fetch submissions (non-JSON):', text.slice(0, 100));
+                }
             } catch (err) { console.error('Failed to fetch my submissions:', err); }
         };
 
         const fetchLeaderboard = async () => {
+            if (!id) return;
             try {
                 const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/campaign/${id}/leaderboard`);
-                const json = await res.json();
-                if (json.success) setLeaderboard(json.data);
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const json = await res.json();
+                    if (json.success) setLeaderboard(json.data);
+                } else {
+                    const text = await res.text();
+                    console.error('Failed to fetch leaderboard (non-JSON):', text.slice(0, 100));
+                }
             } catch (err) { console.error('Failed to fetch leaderboard:', err); }
         };
 
@@ -219,7 +251,7 @@ export const CampaignDetails = () => {
                     youtubeHandle: result.data.youtube_handle,
                     instagramVerified: result.data.instagram_verified,
                     instagramHandle: result.data.instagram_handle,
-                    instagramHandles: result.data.instagram_handles,
+                    instagramHandles: result.data.instagram_handles || (result.data.instagram_handle ? [result.data.instagram_handle] : []),
                     youtubeChannels: result.data.youtube_channels
                 });
             }
@@ -310,19 +342,12 @@ export const CampaignDetails = () => {
     };
 
     const handleLeaveCampaign = async () => {
-        const result = await Swal.fire({
+        const result = await GlobalSwal.fire({
             title: 'Leave Campaign?',
             text: "This will remove you from this mission. Mainly for testing purposes.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#3f3f46',
             confirmButtonText: 'Yes, Leave',
-            background: '#0D0D0D',
-            color: '#fff',
-            customClass: {
-                popup: 'rounded-3xl border border-white/10'
-            }
         });
 
         if (result.isConfirmed) {
@@ -713,34 +738,31 @@ export const CampaignDetails = () => {
                                             )}
                                         </div>
                                         
-                                        <div className="text-center">
-                                            <a 
-                                                href="#" 
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    // In a real app, you might show a separate modal or scroll to terms
-                                                    Swal.fire({
-                                                        title: 'Terms & Conditions',
-                                                        html: `
-                                                            <div class="text-left text-sm space-y-4 text-zinc-400">
-                                                                <p><strong>Content Integrity:</strong> All clips must be organic. Use of bots, view farms, or misleading titles will result in permanent exclusion.</p>
-                                                                <p><strong>Verification Standards:</strong> Claims are only processed for clips that remain active on your linked social profile.</p>
-                                                                <p><strong>Payout Eligibility:</strong> Users must meet the minimum view requirement stated in the mission details.</p>
-                                                            </div>
-                                                        `,
-                                                        background: '#0D0D0D',
-                                                        color: '#fff',
-                                                        confirmButtonColor: '#fff',
-                                                        confirmButtonText: '<span style="color:#000;font-weight:bold;text-transform:uppercase;letter-spacing:1px">Understood</span>',
-                                                        customClass: {
-                                                            popup: 'rounded-[32px] border border-white/10'
-                                                        }
-                                                    });
-                                                }}
-                                                className="text-[10px] font-bold text-white/20 hover:text-white/40 uppercase tracking-widest transition-colors"
-                                            >
-                                                Terms & Conditions Applied
-                                            </a>
+                                        <div className="text-center px-4">
+                                            <p className="text-[10px] text-white/20 leading-relaxed uppercase tracking-wider">
+                                                By participating in the campaign you are agreeing to our 
+                                                <a 
+                                                    href="#" 
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        GlobalSwal.fire({
+                                                            title: 'Terms & Conditions',
+                                                            html: `
+                                                                <div class="text-left text-sm space-y-4 text-zinc-400">
+                                                                    <p><strong>Content Integrity:</strong> All clips must be organic. Use of bots, view farms, or misleading titles will result in permanent exclusion.</p>
+                                                                    <p><strong>Verification Standards:</strong> Claims are only processed for clips that remain active on your linked social profile.</p>
+                                                                    <p><strong>Payout Eligibility:</strong> Users must meet the minimum view requirement stated in the mission details.</p>
+                                                                </div>
+                                                            `,
+                                                            confirmButtonText: 'Understood'
+                                                        });
+                                                    }}
+                                                    className="mx-1 text-white/40 hover:text-white underline underline-offset-4 transition-colors"
+                                                >
+                                                    Terms of Service
+                                                </a> 
+                                                and Privacy Policy
+                                            </p>
                                         </div>
                                     </div>
                                     <Button

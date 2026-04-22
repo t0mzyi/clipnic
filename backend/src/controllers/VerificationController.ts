@@ -572,7 +572,7 @@ export class VerificationController {
       const { data: duplicateUser } = await supabase
         .from('users')
         .select('id')
-        .or(`instagram_handle.eq.@${handle},instagram_handles.cs.{"@${handle}"}`)
+        .eq('instagram_handle', `@${handle}`)
         .neq('id', userId)
         .maybeSingle();
       
@@ -580,22 +580,14 @@ export class VerificationController {
         return res.status(400).json({ success: false, error: 'This Instagram account is already linked to another user.' });
       }
 
-      // 2. Fetch existing handles
-      const { data: userRaw } = await supabase.from('users').select('instagram_handles').eq('id', userId).single();
-      const existingHandles = userRaw?.instagram_handles || [];
       const newHandle = `@${handle}`;
-
-      if (!existingHandles.includes(newHandle)) {
-          existingHandles.push(newHandle);
-      }
 
       // 3. Update Database
       const { error } = await supabase
         .from('users')
         .update({ 
             instagram_verified: true, 
-            instagram_handle: newHandle, // Keep as primary/last added
-            instagram_handles: existingHandles
+            instagram_handle: newHandle 
         })
         .eq('id', userId);
 

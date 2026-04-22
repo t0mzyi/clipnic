@@ -13,12 +13,30 @@ const Toast = Swal.mixin({
     showConfirmButton: false,
     timer: 3000,
     timerProgressBar: true,
-    background: '#0c0c0c',
+    background: '#0D0D0D',
     color: '#fff',
+    customClass: {
+        popup: 'rounded-2xl border border-white/10 shadow-2xl backdrop-blur-md bg-[#0D0D0D]/95',
+        title: 'text-sm font-bold',
+    },
     didOpen: (toast) => {
         toast.onmouseenter = Swal.stopTimer;
         toast.onmouseleave = Swal.resumeTimer;
     }
+});
+
+const GlobalSwal = Swal.mixin({
+    background: '#0D0D0D',
+    color: '#fff',
+    customClass: {
+        popup: 'rounded-[32px] border border-white/10 shadow-2xl bg-[#0D0D0D]',
+        title: 'text-2xl font-bold tracking-tight pt-4',
+        htmlContainer: 'text-sm text-white/40 leading-relaxed px-6',
+        confirmButton: 'bg-white text-black px-10 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/90 transition-all mx-2',
+        cancelButton: 'bg-transparent border border-white/10 text-white/50 px-10 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all mx-2',
+        actions: 'pb-6'
+    },
+    buttonsStyling: false
 });
 
 export const Profile = () => {
@@ -66,7 +84,7 @@ export const Profile = () => {
                     youtubeChannels: result.data.youtube_channels,
                     instagramVerified: result.data.instagram_verified,
                     instagramHandle: result.data.instagram_handle,
-                    instagramHandles: result.data.instagram_handles
+                    instagramHandles: result.data.instagram_handles || (result.data.instagram_handle ? [result.data.instagram_handle] : [])
                 };
                 // Merge metadata to prevent state flicker
                 const { user: currentUser, updateUser } = useAuthStore.getState();
@@ -199,16 +217,12 @@ export const Profile = () => {
     };
 
     const handleRemoveInstagram = async (handle?: string) => {
-        const result = await Swal.fire({
+        const result = await GlobalSwal.fire({
             title: 'Disconnect Instagram?',
             text: `Are you sure you want to remove ${handle || 'your Instagram account'}?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#3f3f46',
             confirmButtonText: 'Yes, disconnect',
-            background: '#0c0c0c',
-            color: '#fff'
         });
 
         if (result.isConfirmed) {
@@ -236,16 +250,12 @@ export const Profile = () => {
     };
 
     const handleRemoveDiscord = async () => {
-        const result = await Swal.fire({
+        const result = await GlobalSwal.fire({
             title: 'Disconnect Discord?',
             text: 'Are you sure you want to remove your Discord account?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#3f3f46',
             confirmButtonText: 'Yes, disconnect',
-            background: '#0c0c0c',
-            color: '#fff'
         });
 
         if (result.isConfirmed) {
@@ -269,16 +279,12 @@ export const Profile = () => {
     };
 
     const handleRemoveChannel = async (channelId: string, handle: string) => {
-        const result = await Swal.fire({
+        const result = await GlobalSwal.fire({
             title: 'Disconnect Channel?',
             text: `Are you sure you want to remove ${handle}?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#3f3f46',
             confirmButtonText: 'Yes, disconnect',
-            background: '#0c0c0c',
-            color: '#fff'
         });
 
         if (result.isConfirmed) {
