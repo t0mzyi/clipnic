@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, PlaySquare, CheckCircle, Wallet, Eye, ShieldCheck, MessageSquare, Rocket, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Activity, PlaySquare, CheckCircle, Wallet, Eye, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { useAuthStore } from '../store/useAuthStore';
@@ -87,8 +87,6 @@ export const ClipperDashboard = () => {
         { label: 'Approved', value: approvedClips.toString(), icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/15' },
         { label: 'Earnings', value: `$${(earnings?.totalEarnings ?? 0).toFixed(2)}`, icon: Wallet, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/15', highlight: true },
     ];
-
-    const recentActivity = submissions.slice(0, 5);
 
     const recentActivity = submissions.slice(0, 5);
 

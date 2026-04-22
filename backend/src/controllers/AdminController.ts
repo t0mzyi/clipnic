@@ -204,7 +204,4 @@ export class AdminController {
           next(error);
       }
   }
-
-  /**
-   * GET /admin/users/:id/earnings
-
+}
