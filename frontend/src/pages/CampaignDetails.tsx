@@ -65,7 +65,7 @@ export const CampaignDetails = () => {
 
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
     const [submissionUrl, setSubmissionUrl] = useState('');
-    const [platform, setPlatform] = useState('youtube');
+    const [platform, setPlatform] = useState<'youtube' | 'instagram' | 'tiktok' | ''>('');
 
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -152,10 +152,15 @@ export const CampaignDetails = () => {
 
     // Auto-detect platform from URL
     useEffect(() => {
-        const url = submissionUrl.toLowerCase();
+        const url = submissionUrl.toLowerCase().trim();
+        if (!url) {
+            setPlatform('');
+            return;
+        }
         if (url.includes('youtube') || url.includes('youtu.be')) setPlatform('youtube');
         else if (url.includes('instagram')) setPlatform('instagram');
         else if (url.includes('tiktok')) setPlatform('tiktok');
+        else setPlatform('');
     }, [submissionUrl]);
 
     // Lock body scroll when any modal is open
@@ -307,9 +312,22 @@ export const CampaignDetails = () => {
     };
 
     const handleSubmitClip = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (isSubmitting) return;
-        setIsSubmitting(true);
+        if (!platform) {
+            Toast.fire({ title: 'Invalid Link', text: 'Please provide a valid YouTube, Instagram, or TikTok link.', icon: 'error' });
+            setIsSubmitting(false);
+            return;
+        }
+
+        if (campaign?.allowed_platforms && !campaign.allowed_platforms.includes(platform)) {
+            Toast.fire({ 
+                title: 'Platform Not Allowed', 
+                text: `This mission only accepts: ${campaign.allowed_platforms.map(p => p === 'youtube' ? 'YouTube Shorts' : p === 'instagram' ? 'Instagram Reels' : 'TikTok').join(', ')}`, 
+                icon: 'error' 
+            });
+            setIsSubmitting(false);
+            return;
+        }
+
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions`, {
                 method: 'POST',
@@ -636,51 +654,56 @@ export const CampaignDetails = () => {
                                     </div>
 
 
-                                    <div className="flex bg-white/[0.03] p-1 rounded-2xl border border-white/5 mx-auto max-w-[240px]">
-                                        <button
-                                            onClick={() => setActiveStep1Tab('rules')}
-                                            className={`flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeStep1Tab === 'rules' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
-                                        >
-                                            Mission Rules
-                                        </button>
-                                        <button
-                                            onClick={() => setActiveStep1Tab('terms')}
-                                            className={`flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeStep1Tab === 'terms' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
-                                        >
-                                            Terms
-                                        </button>
-                                    </div>
-
-                                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-left space-y-4 h-[200px] sm:h-[240px] overflow-y-auto custom-scrollbar">
-                                        {activeStep1Tab === 'rules' ? (
-                                            campaign.rules?.map((rule, idx) => (
-                                                <div key={idx} className="flex gap-3">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 mt-1.5 shrink-0" />
-                                                    <p className="text-xs text-white/60 leading-relaxed">{rule}</p>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="space-y-4">
-                                                <div className="space-y-1">
-                                                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Content Integrity</p>
-                                                    <p className="text-[11px] text-white/40 leading-relaxed italic">All clips must be organic. Use of bots, view farms, or misleading titles will result in permanent exclusion from current and future missions.</p>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Verification Standards</p>
-                                                    <p className="text-[11px] text-white/40 leading-relaxed italic">Claims are only processed for clips that remain active on your linked social profile at the time of verification. Deleting clips before the campaign end date voids the submission.</p>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Payout Eligibility</p>
-                                                    <p className="text-[11px] text-white/40 leading-relaxed italic">Users must meet the minimum view requirement stated in the mission details to be eligible for payout. Payouts are processed manually by admins after review.</p>
-                                                </div>
-                                            </div>
-                                        )}
+                                    <div className="space-y-4">
+                                        <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-left space-y-4 h-[200px] sm:h-[240px] overflow-y-auto custom-scrollbar">
+                                            {campaign.rules?.length ? (
+                                                campaign.rules.map((rule, idx) => (
+                                                    <div key={idx} className="flex gap-3">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 mt-1.5 shrink-0" />
+                                                        <p className="text-xs text-white/60 leading-relaxed">{rule}</p>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-xs text-white/30 italic text-center py-8">No specific rules provided for this campaign.</p>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="text-center">
+                                            <a 
+                                                href="#" 
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    setActiveStep1Tab('terms');
+                                                    // In a real app, you might show a separate modal or scroll to terms
+                                                    Swal.fire({
+                                                        title: 'Terms & Conditions',
+                                                        html: `
+                                                            <div class="text-left text-sm space-y-4 text-zinc-400">
+                                                                <p><strong>Content Integrity:</strong> All clips must be organic. Use of bots, view farms, or misleading titles will result in permanent exclusion.</p>
+                                                                <p><strong>Verification Standards:</strong> Claims are only processed for clips that remain active on your linked social profile.</p>
+                                                                <p><strong>Payout Eligibility:</strong> Users must meet the minimum view requirement stated in the mission details.</p>
+                                                            </div>
+                                                        `,
+                                                        background: '#0D0D0D',
+                                                        color: '#fff',
+                                                        confirmButtonColor: '#fff',
+                                                        confirmButtonText: '<span style="color:#000;font-weight:bold;text-transform:uppercase;letter-spacing:1px">Understood</span>',
+                                                        customClass: {
+                                                            popup: 'rounded-[32px] border border-white/10'
+                                                        }
+                                                    });
+                                                }}
+                                                className="text-[10px] font-bold text-white/20 hover:text-white/40 uppercase tracking-widest transition-colors"
+                                            >
+                                                Terms & Conditions Applied
+                                            </a>
+                                        </div>
                                     </div>
                                     <Button
                                         onClick={handleNextFromRules}
                                         className="w-full py-5 rounded-2xl bg-white text-zinc-950 font-bold uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
                                     >
-                                        I Agree to the Rules
+                                        Accept & Continue
                                     </Button>
                                 </div>
                             )}
@@ -999,11 +1022,28 @@ export const CampaignDetails = () => {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Detected Platform</label>
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Detected Platform</label>
+                                        {campaign?.allowed_platforms && (
+                                            <span className="text-[8px] font-bold text-white/20 uppercase tracking-widest border border-white/10 px-1.5 py-0.5 rounded">
+                                                Allowed: {campaign.allowed_platforms.join(', ')}
+                                            </span>
+                                        )}
+                                    </div>
                                     <div className="w-full bg-white/[0.02] border border-white/[0.04] rounded-xl px-4 py-3 text-sm text-white/50 flex items-center gap-3">
-                                        {platform === 'youtube' && <span className="text-red-500">YouTube Shorts</span>}
-                                        {platform === 'instagram' && <span className="text-pink-500">Instagram Reels</span>}
-                                        {platform === 'tiktok' && <span className="text-cyan-400">TikTok</span>}
+                                        {!platform && <span className="text-white/20 italic">Waiting for link...</span>}
+                                        {platform === 'youtube' && <span className="text-red-500 font-bold">YouTube Shorts</span>}
+                                        {platform === 'instagram' && <span className="text-pink-500 font-bold">Instagram Reels</span>}
+                                        {platform === 'tiktok' && <span className="text-cyan-400 font-bold">TikTok</span>}
+                                        
+                                        {platform && campaign?.allowed_platforms && !campaign.allowed_platforms.includes(platform) && (
+                                            <span className="ml-auto text-[10px] text-red-400 font-bold bg-red-400/10 px-2 py-0.5 rounded-md">Wrong Platform</span>
+                                        )}
+                                        {platform && campaign?.allowed_platforms && campaign.allowed_platforms.includes(platform) && (
+                                            <div className="ml-auto w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                                                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
