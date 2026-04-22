@@ -64,7 +64,8 @@ export const Profile = () => {
                     youtubeHandle: result.data.youtube_handle,
                     youtubeChannels: result.data.youtube_channels,
                     instagramVerified: result.data.instagram_verified,
-                    instagramHandle: result.data.instagram_handle
+                    instagramHandle: result.data.instagram_handle,
+                    instagramHandles: result.data.instagram_handles
                 };
                 // Merge metadata to prevent state flicker
                 const { user: currentUser, updateUser } = useAuthStore.getState();
@@ -196,6 +197,76 @@ export const Profile = () => {
         }
     };
 
+    const handleRemoveInstagram = async (handle?: string) => {
+        const result = await Swal.fire({
+            title: 'Disconnect Instagram?',
+            text: `Are you sure you want to remove ${handle || 'your Instagram account'}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#3f3f46',
+            confirmButtonText: 'Yes, disconnect',
+            background: '#0c0c0c',
+            color: '#fff'
+        });
+
+        if (result.isConfirmed) {
+            setIsVerifying(true);
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/instagram`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ handle })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                Toast.fire({ title: 'Disconnected', text: 'Instagram account removed.', icon: 'success' });
+                fetchSync();
+
+                if (user?.instagramHandles?.length === 1) {
+                    setIsVerifyOpen(false);
+                }
+            } catch (err: any) {
+                Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
+            } finally {
+                setIsVerifying(false);
+            }
+        }
+    };
+
+    const handleRemoveDiscord = async () => {
+        const result = await Swal.fire({
+            title: 'Disconnect Discord?',
+            text: 'Are you sure you want to remove your Discord account?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#3f3f46',
+            confirmButtonText: 'Yes, disconnect',
+            background: '#0c0c0c',
+            color: '#fff'
+        });
+
+        if (result.isConfirmed) {
+            setIsVerifying(true);
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/discord`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                Toast.fire({ title: 'Disconnected', text: 'Discord account removed.', icon: 'success' });
+                fetchSync();
+                setIsVerifyOpen(false);
+            } catch (err: any) {
+                Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
+            } finally {
+                setIsVerifying(false);
+            }
+        }
+    };
+
     const handleRemoveChannel = async (channelId: string, handle: string) => {
         const result = await Swal.fire({
             title: 'Disconnect Channel?',
@@ -216,17 +287,17 @@ export const Profile = () => {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
+
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error);
 
                 Toast.fire({ title: 'Disconnected', text: `${handle} has been removed.`, icon: 'success' });
-                
+
                 // Close modal if that was the last channel causing them to become unverified
                 if (user?.youtubeChannels?.length === 1) {
                     setIsVerifyOpen(false);
                 }
-                
+
                 fetchSync();
             } catch (error: any) {
                 Toast.fire({ title: 'Error', text: error.message, icon: 'error' });
@@ -272,7 +343,7 @@ export const Profile = () => {
                                     {user?.discordVerified ? (
                                         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 shrink-0">
                                             <ShieldCheck className="w-3.5 h-3.5" />
-                                            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Verified Creator</span>
+                                            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Verified Clipper</span>
                                         </div>
                                     ) : (
                                         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-200 text-red-500 shrink-0">
@@ -321,7 +392,7 @@ export const Profile = () => {
                             Balance
                         </p>
                         <p className="text-4xl font-mono tracking-tight font-bold">{stats.currentBalance}</p>
-                        <button 
+                        <button
                             onClick={() => setIsWithdrawOpen(true)}
                             className="mt-6 w-full py-3 bg-black text-white rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-black/90 transition-colors"
                         >
@@ -456,17 +527,17 @@ export const Profile = () => {
                                     </p>
                                 </div>
                                 <div className="pt-4 flex flex-col gap-3">
-                                    <a 
-                                        href="https://discord.com/channels/1298616616459702282/1495081184118444265" 
-                                        target="_blank" 
+                                    <a
+                                        href="https://discord.com/channels/1298616616459702282/1495081184118444265"
+                                        target="_blank"
                                         rel="noreferrer"
                                         className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-2xl py-4 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
                                     >
                                         Open Ticket on Discord
                                     </a>
-                                    <Button 
-                                        variant="outline" 
-                                        className="w-full rounded-2xl py-4 text-xs border-white/10 text-white/50 hover:bg-white/5" 
+                                    <Button
+                                        variant="outline"
+                                        className="w-full rounded-2xl py-4 text-xs border-white/10 text-white/50 hover:bg-white/5"
                                         onClick={() => setIsWithdrawOpen(false)}
                                     >
                                         Close
@@ -535,7 +606,6 @@ export const Profile = () => {
                                                     });
 
                                                     if (!res.ok) {
-                                                        // Attempt to parse json failure
                                                         let errText = 'Failed to start verification';
                                                         try {
                                                             const json = await res.json();
@@ -554,31 +624,82 @@ export const Profile = () => {
                                         >
                                             {isVerifying ? 'Redirecting...' : 'Verify'}
                                         </Button>
+
+                                        {user?.discordVerified && (
+                                            <button
+                                                onClick={handleRemoveDiscord}
+                                                className="w-full text-[10px] text-red-500/40 uppercase tracking-widest hover:text-red-500 transition-colors pt-2 flex items-center justify-center gap-2"
+                                            >
+                                                <Trash2 className="w-3 h-3" /> Disconnect Discord
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ) : (
                                 <div className="space-y-6">
                                     {selectedSocial === 'instagram' && user?.instagramVerified ? (
-                                        <div className="space-y-6 flex flex-col items-center justify-center py-4">
-                                            <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-500/20">
-                                                <ShieldCheck className="w-8 h-8" />
+                                        <div className="space-y-6 flex flex-col py-4 w-full">
+                                            <div className="flex flex-col items-center justify-center space-y-4">
+                                                <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-500/20">
+                                                    <ShieldCheck className="w-8 h-8" />
+                                                </div>
+                                                <div className="text-center space-y-2">
+                                                    <h2 className="text-xl font-bold tracking-tight text-white">Instagram Accounts Linked</h2>
+                                                </div>
                                             </div>
-                                            <div className="text-center space-y-2">
-                                                <h2 className="text-xl font-bold tracking-tight text-white">Instagram Linked</h2>
-                                                <p className="text-xs text-white/40 leading-relaxed">
-                                                    Connected as <span className="text-white font-mono">{user.instagramHandle}</span>.
-                                                </p>
+
+                                            <div className="w-full space-y-3 mt-4 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
+                                                {user?.instagramHandles && user.instagramHandles.length > 0 ? (
+                                                    user.instagramHandles.map((handle: string, idx: number) => (
+                                                        <div key={idx} className="flex justify-between items-center bg-white/5 border border-white/10 p-3 rounded-xl group">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center">
+                                                                    <svg className="w-4 h-4 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+                                                                </div>
+                                                                <span className="text-white text-sm font-mono">{handle}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-medium px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                                                                    <ShieldCheck className="w-3 h-3" /> Verified
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => handleRemoveInstagram(handle)}
+                                                                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all focus:opacity-100"
+                                                                    title="Disconnect Account"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="flex justify-between items-center bg-white/5 border border-white/10 p-3 rounded-xl group">
+                                                        <span className="text-white text-sm font-mono">{user?.instagramHandle}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-medium px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                                                                <ShieldCheck className="w-3 h-3" /> Verified
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleRemoveInstagram(user?.instagramHandle)}
+                                                                className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all focus:opacity-100"
+                                                                title="Disconnect Legacy Account"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
+
                                             <div className="w-full pt-4 space-y-3 flex flex-col items-center">
-                                                <Button variant="secondary" className="w-full rounded-2xl py-3 text-xs bg-white/10 hover:bg-white/20" onClick={() => setIsVerifyOpen(false)}>Close</Button>
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedSocial('');
-                                                    }}
-                                                    className="text-[10px] text-white/30 uppercase tracking-widest hover:text-white transition-colors pt-2"
+                                                <Button
+                                                    variant="secondary"
+                                                    className="w-full rounded-2xl py-3 text-xs bg-white/10 text-white hover:bg-white/20"
+                                                    onClick={() => setSelectedSocial('')}
                                                 >
-                                                    Change Account
-                                                </button>
+                                                    + Link Another Account
+                                                </Button>
+                                                <Button variant="secondary" className="w-full rounded-2xl py-3 text-xs bg-transparent border border-white/10 text-white/50 hover:bg-white/5" onClick={() => setIsVerifyOpen(false)}>Close</Button>
                                             </div>
                                         </div>
                                     ) : selectedSocial === 'youtube' && user?.youtubeVerified ? (
@@ -598,7 +719,7 @@ export const Profile = () => {
                                                         <div key={idx} className="flex justify-between items-center bg-white/5 border border-white/10 p-3 rounded-xl group">
                                                             <div className="flex items-center gap-2">
                                                                 <div className="w-8 h-8 rounded-full bg-[#FF0000]/20 flex items-center justify-center">
-                                                                    <svg className="w-4 h-4 text-[#FF0000]" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                                                    <svg className="w-4 h-4 text-[#FF0000]" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
                                                                 </div>
                                                                 <span className="text-white text-sm font-mono">{channel.handle}</span>
                                                             </div>
@@ -606,7 +727,7 @@ export const Profile = () => {
                                                                 <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-medium px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
                                                                     <ShieldCheck className="w-3 h-3" /> Verified
                                                                 </div>
-                                                                <button 
+                                                                <button
                                                                     onClick={() => handleRemoveChannel(channel.channelId, channel.handle)}
                                                                     className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all focus:opacity-100"
                                                                     title="Disconnect Channel"
@@ -621,9 +742,9 @@ export const Profile = () => {
                                                         <span className="text-white text-sm font-mono">{user?.youtubeHandle}</span>
                                                         <div className="flex items-center gap-2">
                                                             <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-medium px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
-                                                                <ShieldCheck className="w-3 h-3" /> Legacy Verified
+                                                                <ShieldCheck className="w-3 h-3" /> Verified
                                                             </div>
-                                                            <button 
+                                                            <button
                                                                 onClick={() => handleRemoveChannel('legacy', user?.youtubeHandle || 'Old Account')}
                                                                 className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all focus:opacity-100"
                                                                 title="Disconnect Legacy Account"
@@ -670,7 +791,7 @@ export const Profile = () => {
 
                                             <div className="space-y-1.5 min-w-[200px]">
                                                 <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">Platform</label>
-                                                <Dropdown 
+                                                <Dropdown
                                                     value={selectedSocial}
                                                     onChange={setSelectedSocial}
                                                     placeholder="Select network"
@@ -696,7 +817,7 @@ export const Profile = () => {
 
                                             {settings?.youtube_auth_mode === 'manual' ? (
                                                 <div className="w-full space-y-6">
-                                                     {!showCode ? (
+                                                    {!showCode ? (
                                                         <div className="space-y-4">
                                                             <div className="text-center space-y-2 mb-4">
                                                                 <h3 className="font-bold text-white uppercase text-[10px] tracking-widest">Manual Verification</h3>
@@ -704,7 +825,7 @@ export const Profile = () => {
                                                             </div>
                                                             <div className="space-y-1.5">
                                                                 <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">YouTube Handle</label>
-                                                                <input 
+                                                                <input
                                                                     type="text"
                                                                     placeholder="@yourhandle"
                                                                     value={youtubeUrl}
@@ -722,7 +843,7 @@ export const Profile = () => {
                                                                 Next: Generate Code
                                                             </Button>
                                                         </div>
-                                                     ) : (
+                                                    ) : (
                                                         <div className="space-y-4">
                                                             <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center space-y-3">
                                                                 <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Add to your channel bio</p>
@@ -733,16 +854,16 @@ export const Profile = () => {
                                                             </div>
                                                             <div className="flex gap-3 pt-2">
                                                                 <Button variant="secondary" className="flex-1 rounded-2xl py-3 text-xs bg-white/10 border border-white/10 hover:bg-white/20" onClick={() => setShowCode(false)}>Back</Button>
-                                                                <Button 
+                                                                <Button
                                                                     disabled={isVerifying}
-                                                                    className="flex-[2] rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90" 
+                                                                    className="flex-[2] rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90"
                                                                     onClick={handleManualVerify}
                                                                 >
                                                                     {isVerifying ? 'Verifying...' : 'Check Bio Now'}
                                                                 </Button>
                                                             </div>
                                                         </div>
-                                                     )}
+                                                    )}
                                                 </div>
                                             ) : (
                                                 <div className="w-full space-y-6">
@@ -773,18 +894,18 @@ export const Profile = () => {
                                                     </Button>
                                                 </div>
                                             )}
-                                            
+
                                             {verifyError && (
                                                 <div className="w-full p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs text-center animate-pulse">
                                                     {verifyError}
                                                 </div>
                                             )}
 
-                                            <button 
+                                            <button
                                                 onClick={() => {
                                                     setSelectedSocial('');
                                                     setShowCode(false);
-                                                }} 
+                                                }}
                                                 className="text-[10px] text-white/30 uppercase tracking-widest hover:text-white transition-colors pt-2"
                                             >
                                                 Cancel
@@ -809,7 +930,7 @@ export const Profile = () => {
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">Instagram Handle</label>
-                                                    <input 
+                                                    <input
                                                         type="text"
                                                         placeholder="@yourhandle"
                                                         value={instagramHandle}
@@ -827,11 +948,11 @@ export const Profile = () => {
                                                 </Button>
                                             </div>
 
-                                            <button 
+                                            <button
                                                 onClick={() => {
                                                     setSelectedSocial('');
                                                     setShowCode(false);
-                                                }} 
+                                                }}
                                                 className="text-[10px] text-white/30 uppercase tracking-widest hover:text-white transition-colors pt-2"
                                             >
                                                 Cancel

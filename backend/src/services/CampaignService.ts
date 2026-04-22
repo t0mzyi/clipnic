@@ -72,14 +72,19 @@ export class CampaignService {
           .from('campaign_participants')
           .select('*, campaigns(*)')
           .eq('user_id', userId)
-          .order('created_at', { ascending: false });
+          .order('joined_at', { ascending: false });
       
-      if (error) throw error;
-      return data.map(p => ({
-          ...p.campaigns,
-          joined_at: p.created_at,
-          linked_handle: p.linked_handle
-      }));
+      if (error) {
+          console.error('[CampaignService] Error fetching joined campaigns:', error);
+          throw error;
+      }
+      return data
+          .filter(p => p.campaigns)
+          .map(p => ({
+              ...p.campaigns,
+              joined_at: p.joined_at,
+              linked_handle: p.linked_handle
+          }));
   }
 
   static async joinCampaign(userId: string, campaignId: string, linkedHandle?: string) {
@@ -100,6 +105,7 @@ export class CampaignService {
           .single();
       
       if (error) {
+          console.error('[CampaignService] Join error:', error);
           if (error.code === '23505') throw new Error("You have already joined this campaign.");
           throw error;
       }

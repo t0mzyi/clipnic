@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { 
     CheckCircle2, ArrowRight,
     Search,
-    AlertCircle, Wallet, Calendar
+    AlertCircle, Wallet, Calendar, DollarSign, Users
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 

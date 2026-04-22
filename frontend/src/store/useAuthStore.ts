@@ -14,6 +14,7 @@ interface User {
   youtubeChannels?: any[];
   instagramVerified?: boolean;
   instagramHandle?: string;
+  instagramHandles?: string[];
   bio?: string;
   created_at?: string;
 }

@@ -4,6 +4,7 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useState, useEffect } from 'react';
 import { Shield, Trophy, Eye, DollarSign, Clock, Target, Upload, ChevronLeft, X, Award, Medal, CheckCircle, Globe } from 'lucide-react';
+import { Dropdown } from '../components/Dropdown';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 
@@ -53,7 +54,7 @@ export const CampaignDetails = () => {
     const { token, user } = useAuthStore();
     const [campaign, setCampaign] = useState<Campaign | null>(null);
     const [loading, setLoading] = useState(true);
-    
+
     // Joint State
     const [isJoined, setIsJoined] = useState(false);
     const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
@@ -61,11 +62,11 @@ export const CampaignDetails = () => {
     const [isDiscordTransitioning, setIsDiscordTransitioning] = useState(false);
     const [activeStep1Tab, setActiveStep1Tab] = useState<'rules' | 'terms'>('rules');
     const [linkedHandle, setLinkedHandle] = useState('');
-    
+
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
     const [submissionUrl, setSubmissionUrl] = useState('');
     const [platform, setPlatform] = useState('youtube');
-    
+
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [leaderboard, setLeaderboard] = useState<any[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,7 +99,7 @@ export const CampaignDetails = () => {
         };
 
         const fetchLeaderboard = async () => {
-             try {
+            try {
                 const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/campaign/${id}/leaderboard`);
                 const json = await res.json();
                 if (json.success) setLeaderboard(json.data);
@@ -157,6 +158,18 @@ export const CampaignDetails = () => {
         else if (url.includes('tiktok')) setPlatform('tiktok');
     }, [submissionUrl]);
 
+    // Lock body scroll when any modal is open
+    useEffect(() => {
+        if (isJoinModalOpen || isSubmitModalOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isJoinModalOpen, isSubmitModalOpen]);
+
     if (loading) return (
         <div className="min-h-[60vh] flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-white/10 border-t-white/40 rounded-full animate-spin" />
@@ -181,24 +194,12 @@ export const CampaignDetails = () => {
         setTimeout(() => {
             setIsDiscordTransitioning(false);
             setJoinStep(2);
-        }, 1800);
+        }, 800);
     };
 
     const handleNextFromDiscord = () => {
         setJoinStep(3);
     };
-
-    // Lock body scroll when any modal is open
-    useEffect(() => {
-        if (isJoinModalOpen || isSubmitModalOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
-        }
-        return () => {
-            document.body.style.overflow = 'unset';
-        };
-    }, [isJoinModalOpen, isSubmitModalOpen]);
 
     const fetchSync = async () => {
         if (!token) return;
@@ -215,6 +216,7 @@ export const CampaignDetails = () => {
                     youtubeHandle: result.data.youtube_handle,
                     instagramVerified: result.data.instagram_verified,
                     instagramHandle: result.data.instagram_handle,
+                    instagramHandles: result.data.instagram_handles,
                     youtubeChannels: result.data.youtube_channels
                 });
             }
@@ -269,7 +271,7 @@ export const CampaignDetails = () => {
 
             Toast.fire({ title: 'Success', text: 'YouTube channel linked!', icon: 'success' });
             await fetchSync();
-            handleJoinSubmit(); 
+            handleJoinSubmit();
         } catch (err: any) {
             setSocialVerifyError(err.message);
         } finally {
@@ -281,7 +283,7 @@ export const CampaignDetails = () => {
         setIsSubmitting(true);
         try {
             const finalHandle = handleOverride || linkedHandle;
-            
+
             if (campaign?.status !== 'Active') {
                 throw new Error("This campaign is currently not accepting new participants.");
             }
@@ -293,7 +295,7 @@ export const CampaignDetails = () => {
             });
             const json = await res.json();
             if (!json.success) throw new Error(json.error);
-            
+
             setIsJoined(true);
             setJoinStep(4); // Success
             Toast.fire({ title: 'Welcome Aboard!', text: 'You are now part of this campaign.', icon: 'success' });
@@ -315,9 +317,9 @@ export const CampaignDetails = () => {
                 body: JSON.stringify({ campaign_id: id, url: submissionUrl, platform })
             });
             const json = await res.json();
-            
+
             if (!json.success) throw new Error(json.error);
-            
+
             Toast.fire({ title: 'Clip Submitted!', text: 'Your clip is now in review.', icon: 'success' });
             setSubmissions(prev => [json.data, ...prev]);
             setIsSubmitModalOpen(false);
@@ -352,13 +354,13 @@ export const CampaignDetails = () => {
                         <Badge status={campaign.status} />
                         <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight text-white drop-shadow-2xl glassy-text">{campaign.title}</h1>
                     </div>
-                    
+
                     <div className="flex gap-3 sm:gap-4 items-center">
                         <div className="bg-black/50 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-white/10 shadow-2xl text-center min-w-[100px] sm:min-w-[140px]">
                             <p className="text-[8px] sm:text-[9px] text-white/40 mb-1 uppercase tracking-[0.3em] font-bold">CPM Rate</p>
                             <p className="text-2xl sm:text-4xl font-mono font-bold text-emerald-400">${campaign.cpm_rate.toFixed(2)}</p>
                         </div>
-                        
+
                         {/* Dynamic Top Button */}
                         {isJoined ? (
                             <Button variant="primary" onClick={() => setIsSubmitModalOpen(true)} className="flex items-center gap-2 bg-white text-zinc-950 hover:bg-white/90 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base">
@@ -366,10 +368,10 @@ export const CampaignDetails = () => {
                                 Submit Clip
                             </Button>
                         ) : (
-                            <Button 
-                                variant="primary" 
+                            <Button
+                                variant="primary"
                                 disabled={campaign.status !== 'Active'}
-                                onClick={() => { setJoinStep(user?.discordVerified ? 3 : 1); setIsJoinModalOpen(true); }} 
+                                onClick={() => { setJoinStep(1); setIsJoinModalOpen(true); }}
                                 className="flex items-center gap-2 bg-emerald-400 text-black hover:bg-emerald-300 font-extrabold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-[0_0_40px_rgba(52,211,153,0.25)] text-xs sm:text-base disabled:opacity-50 disabled:grayscale"
                             >
                                 <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -418,7 +420,7 @@ export const CampaignDetails = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Submissions & Leaderboard */}
                 <div className="lg:col-span-2 space-y-8">
-                    
+
                     {/* My Submissions */}
                     <div className="rounded-3xl bg-[#0c0c0c] border border-white/[0.06] overflow-hidden">
                         <div className="p-6 border-b border-white/[0.05] flex items-center justify-between">
@@ -430,7 +432,7 @@ export const CampaignDetails = () => {
                             </h3>
                             <span className="text-[9px] font-bold text-emerald-400/60 uppercase tracking-[0.2em] bg-emerald-500/5 px-3 py-1 rounded-full border border-emerald-500/10">Live Tracking</span>
                         </div>
-                        
+
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
@@ -505,9 +507,9 @@ export const CampaignDetails = () => {
                                         <div key={user.user_id} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:border-white/10 transition-all group">
                                             <div className="flex items-center gap-3">
                                                 <span className="w-7 flex items-center justify-center">
-                                                    {i === 0 ? <Trophy className="w-5 h-5 text-amber-400" /> : 
-                                                     i === 1 ? <Award className="w-5 h-5 text-slate-300" /> : 
-                                                     <Medal className="w-5 h-5 text-amber-700" />}
+                                                    {i === 0 ? <Trophy className="w-5 h-5 text-amber-400" /> :
+                                                        i === 1 ? <Award className="w-5 h-5 text-slate-300" /> :
+                                                            <Medal className="w-5 h-5 text-amber-700" />}
                                                 </span>
                                                 {user.avatar_url ? (
                                                     <img src={user.avatar_url} alt={user.name} className="w-9 h-9 rounded-xl border border-white/[0.06] object-cover" />
@@ -524,7 +526,7 @@ export const CampaignDetails = () => {
                                             <p className="text-sm font-mono font-bold text-emerald-400">${Number(user.earnings || 0).toFixed(2)}</p>
                                         </div>
                                     ))}
-                                    
+
                                     {leaderboard.length > 3 && (
                                         <div className="pt-2 space-y-2">
                                             {leaderboard.slice(3).map((user, i) => (
@@ -552,7 +554,7 @@ export const CampaignDetails = () => {
                     <div className="p-7 rounded-3xl bg-[#5865F2]/[0.06] border border-[#5865F2]/20 space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-[#5865F2]/20 flex items-center justify-center">
-                                <svg className="w-5 h-5 text-[#5865F2]" viewBox="0 0 127.14 96.36" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.71,32.65-1.82,56.6.39,80.21a105.73,105.73,0,0,0,32.77,16.15,77.7,77.7,0,0,0,7.07-11.41,68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,7.09,11.4,105.25,105.25,0,0,0,32.78-16.17C126.89,56.51,122.34,32.57,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5.18-12.69,11.43-12.69S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5.18-12.69,11.44-12.69S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+                                <svg className="w-5 h-5 text-[#5865F2]" viewBox="0 0 127.14 96.36" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.71,32.65-1.82,56.6.39,80.21a105.73,105.73,0,0,0,32.77,16.15,77.7,77.7,0,0,0,7.07-11.41,68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,7.09,11.4,105.25,105.25,0,0,0,32.78-16.17C126.89,56.51,122.34,32.57,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5.18-12.69,11.43-12.69S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5.18-12.69,11.44-12.69S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" /></svg>
                             </div>
                             <div>
                                 <p className="text-sm font-bold text-white/90">Get Content Here</p>
@@ -561,7 +563,7 @@ export const CampaignDetails = () => {
                         </div>
                         <a href={campaign.discord_channel} target="_blank" rel="noreferrer"
                             className="w-full flex items-center justify-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white font-bold text-xs uppercase tracking-widest rounded-2xl py-3.5 transition-all">
-                            <svg className="w-4 h-4" viewBox="0 0 127.14 96.36" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.71,32.65-1.82,56.6.39,80.21a105.73,105.73,0,0,0,32.77,16.15,77.7,77.7,0,0,0,7.07-11.41,68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,7.09,11.4,105.25,105.25,0,0,0,32.78-16.17C126.89,56.51,122.34,32.57,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5.18-12.69,11.43-12.69S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5.18-12.69,11.44-12.69S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+                            <svg className="w-4 h-4" viewBox="0 0 127.14 96.36" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.71,32.65-1.82,56.6.39,80.21a105.73,105.73,0,0,0,32.77,16.15,77.7,77.7,0,0,0,7.07-11.41,68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,7.09,11.4,105.25,105.25,0,0,0,32.78-16.17C126.89,56.51,122.34,32.57,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5.18-12.69,11.43-12.69S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5.18-12.69,11.44-12.69S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" /></svg>
                             Open Discord Channel
                         </a>
                     </div>
@@ -611,29 +613,37 @@ export const CampaignDetails = () => {
                         className="fixed inset-0 z-[110] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4"
                         onClick={(e) => { if (e.target === e.currentTarget && joinStep !== 3) setIsJoinModalOpen(false); }}>
                         <motion.div initial={{ y: 24, scale: 0.95, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 24, scale: 0.95, opacity: 0 }}
-                            className="bg-[#0c0c0c] border border-white/10 rounded-[40px] p-10 max-w-lg w-full shadow-2xl relative text-center">
-                            
+                            className="bg-[#0c0c0c] border border-white/10 rounded-[32px] sm:rounded-[40px] p-4 sm:p-8 max-w-md w-full shadow-2xl relative text-center">
+
+                            {/* Close Button */}
+                            <button
+                                onClick={() => setIsJoinModalOpen(false)}
+                                className="absolute top-6 right-6 p-2 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all z-20"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
                             {joinStep === 1 && !isDiscordTransitioning && (
-                                <div className="space-y-8">
-                                    <div className="mx-auto w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)] text-emerald-400">
-                                        <Shield className="w-10 h-10" />
+                                <div className="space-y-6 sm:space-y-8">
+                                    <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)] text-emerald-400">
+                                        <Shield className="w-8 h-8 sm:w-10 sm:h-10" />
                                     </div>
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-center gap-2 mb-1">
-                                            <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-white/40 uppercase">Step 1 of 3</span>
+                                            <span className="px-2 py-0.5 rounded-md bg-white/10 text-[9px] sm:text-[10px] font-bold text-white/40 uppercase">Step 1 of 3</span>
                                         </div>
-                                        <h2 className="text-3xl font-bold tracking-tight text-white">Review & Agree</h2>
-                                        <p className="text-white/30 text-sm">Please study the campaign terms carefully.</p>
+                                        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Review & Agree</h2>
+                                        <p className="text-white/30 text-xs sm:text-sm">Please study the campaign terms carefully.</p>
                                     </div>
 
+
                                     <div className="flex bg-white/[0.03] p-1 rounded-2xl border border-white/5 mx-auto max-w-[240px]">
-                                        <button 
+                                        <button
                                             onClick={() => setActiveStep1Tab('rules')}
                                             className={`flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeStep1Tab === 'rules' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
                                         >
                                             Mission Rules
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => setActiveStep1Tab('terms')}
                                             className={`flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeStep1Tab === 'terms' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
                                         >
@@ -641,7 +651,7 @@ export const CampaignDetails = () => {
                                         </button>
                                     </div>
 
-                                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 text-left space-y-4 h-[240px] overflow-y-auto custom-scrollbar">
+                                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-left space-y-4 h-[200px] sm:h-[240px] overflow-y-auto custom-scrollbar">
                                         {activeStep1Tab === 'rules' ? (
                                             campaign.rules?.map((rule, idx) => (
                                                 <div key={idx} className="flex gap-3">
@@ -666,8 +676,8 @@ export const CampaignDetails = () => {
                                             </div>
                                         )}
                                     </div>
-                                    <Button 
-                                        onClick={handleNextFromRules} 
+                                    <Button
+                                        onClick={handleNextFromRules}
                                         className="w-full py-5 rounded-2xl bg-white text-zinc-950 font-bold uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
                                     >
                                         I Agree to the Rules
@@ -676,36 +686,68 @@ export const CampaignDetails = () => {
                             )}
 
                             {isDiscordTransitioning && (
-                                <motion.div 
+                                <motion.div
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    className="space-y-8 py-10"
+                                    className="space-y-8 py-16"
                                 >
-                                    <div className="relative mx-auto w-24 h-24">
-                                        <div className="absolute inset-0 bg-[#5865F2]/20 rounded-full animate-ping" />
-                                        <div className="relative w-full h-full rounded-full bg-[#5865F2]/10 border border-[#5865F2]/20 flex items-center justify-center text-[#5865F2] shadow-[0_0_40px_rgba(88,101,242,0.2)]">
-                                            <Shield className="w-10 h-10" />
-                                        </div>
+                                    <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
+                                        <motion.div
+                                            animate={{
+                                                scale: [1, 1.1, 1],
+                                                opacity: [0.3, 0.6, 0.3]
+                                            }}
+                                            transition={{
+                                                duration: 2,
+                                                repeat: Infinity,
+                                                ease: "easeInOut"
+                                            }}
+                                            className="absolute inset-0 bg-[#5865F2]/20 rounded-full blur-xl"
+                                        />
+                                        <motion.div
+                                            animate={{
+                                                y: [0, -8, 0]
+                                            }}
+                                            transition={{
+                                                duration: 1.5,
+                                                repeat: Infinity,
+                                                ease: "easeInOut"
+                                            }}
+                                            className="relative text-[#5865F2]"
+                                        >
+                                            <svg className="w-16 h-16 drop-shadow-[0_0_15px_rgba(88,101,242,0.5)]" viewBox="0 0 127.14 96.36" fill="currentColor">
+                                                <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.71,32.65-1.82,56.6.39,80.21a105.73,105.73,0,0,0,32.77,16.15,77.7,77.7,0,0,0,7.07-11.41,68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,7.09,11.4,105.25,105.25,0,0,0,32.78-16.17C126.89,56.51,122.34,32.57,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5.18-12.69,11.43-12.69S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5.18-12.69,11.44-12.69S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" />
+                                            </svg>
+                                        </motion.div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <h3 className="text-2xl font-bold tracking-tight text-white animate-pulse">Syncing Discord...</h3>
-                                        <p className="text-white/30 text-xs font-mono uppercase tracking-[0.2em]">Initiating Creator Handshake</p>
+                                    <div className="space-y-3">
+                                        <h3 className="text-xl font-bold tracking-tight text-white/90">Connecting to Discord</h3>
+                                        <div className="flex items-center justify-center gap-1.5">
+                                            {[0, 1, 2].map((i) => (
+                                                <motion.div
+                                                    key={i}
+                                                    animate={{ opacity: [0.2, 1, 0.2] }}
+                                                    transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                                                    className="w-1.5 h-1.5 rounded-full bg-[#5865F2]"
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
                                 </motion.div>
                             )}
-
                             {joinStep === 2 && !isDiscordTransitioning && (
-                                <div className="space-y-8">
-                                    <div className="mx-auto w-20 h-20 rounded-3xl bg-[#5865F2]/10 flex items-center justify-center border border-[#5865F2]/20 shadow-[0_0_30px_rgba(88,101,242,0.1)] text-[#5865F2]">
-                                        <Shield className="w-10 h-10" />
+                                <div className="space-y-6 sm:space-y-8">
+                                    <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#5865F2]/10 flex items-center justify-center border border-[#5865F2]/20 shadow-[0_0_30px_rgba(88,101,242,0.1)] text-[#5865F2]">
+                                        <Shield className="w-8 h-8 sm:w-10 sm:h-10" />
                                     </div>
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-center gap-2 mb-1">
-                                            <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-white/40 uppercase">Step 2 of 3</span>
+                                            <span className="px-2 py-0.5 rounded-md bg-white/10 text-[9px] sm:text-[10px] font-bold text-white/40 uppercase">Step 2 of 3</span>
                                         </div>
-                                        <h2 className="text-3xl font-bold tracking-tight text-white">Discord Link</h2>
-                                        <p className="text-white/30 text-sm">Ensure you are part of our creator community.</p>
+                                        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Discord Link</h2>
+                                        <p className="text-white/30 text-xs sm:text-sm">Ensure you are part of our creator community.</p>
                                     </div>
+
 
                                     <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.06] text-left space-y-4">
                                         {user?.discordVerified ? (
@@ -721,7 +763,7 @@ export const CampaignDetails = () => {
                                         ) : (
                                             <>
                                                 <p className="text-xs text-white/50 leading-relaxed text-center">This campaign requires you to be in our Discord server. Link your account to continue.</p>
-                                                <Button 
+                                                <Button
                                                     onClick={async () => {
                                                         try {
                                                             const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/discord?redirectTo=${encodeURIComponent(window.location.href)}`, {
@@ -743,7 +785,7 @@ export const CampaignDetails = () => {
 
                                     <div className="flex gap-3">
                                         <Button variant="outline" onClick={() => setJoinStep(1)} className="flex-1 py-5 rounded-2xl border-white/10 text-white/40">Back</Button>
-                                        <Button 
+                                        <Button
                                             disabled={!user?.discordVerified}
                                             onClick={handleNextFromDiscord}
                                             className="flex-[2] py-5 rounded-2xl bg-white text-zinc-950 font-bold uppercase tracking-widest text-sm hover:scale-[1.02] disabled:opacity-30 transition-all shadow-xl"
@@ -753,28 +795,27 @@ export const CampaignDetails = () => {
                                     </div>
                                 </div>
                             )}
-
                             {joinStep === 3 && (
-                                <div className="space-y-8">
-                                    <div className="mx-auto w-20 h-20 rounded-3xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 shadow-[0_0_30px_rgba(245,158,11,0.1)] text-amber-500">
-                                        <Globe className="w-10 h-10" />
-                                    </div>
+                                <div className="space-y-4 sm:space-y-6">
                                     <div className="space-y-2">
-                                        <div className="flex items-center justify-center gap-2 mb-1">
-                                            <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-white/40 uppercase">Step 3 of 3</span>
+                                        <div className="flex items-center justify-center gap-2">
+                                            <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 text-amber-500">
+                                                <Globe className="w-4 h-4" />
+                                            </div>
+                                            <span className="px-2 py-0.5 rounded-md bg-white/10 text-[9px] font-bold text-white/40 uppercase">Step 3/3</span>
                                         </div>
-                                        <h2 className="text-3xl font-bold tracking-tight text-white">Social Linking</h2>
-                                        <p className="text-white/30 text-sm">Target platform for this campaign.</p>
+                                        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">Social Linking</h2>
                                     </div>
 
-                                    <div className="space-y-6 text-left">
-                                        <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.06] space-y-5">
+
+                                    <div className="space-y-3 sm:space-y-4 text-left">
+                                        <div className="p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/[0.02] border border-white/[0.06] space-y-3 sm:space-y-4">
                                             <div className="flex items-center justify-between">
                                                 <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Select Platform</p>
                                                 <div className="flex gap-2">
                                                     {campaign.allowed_platforms?.includes('youtube') && (
                                                         <div className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center" title="YouTube Allowed">
-                                                            <svg className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                                            <svg className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
                                                         </div>
                                                     )}
                                                     {campaign.allowed_platforms?.includes('instagram') && (
@@ -785,76 +826,102 @@ export const CampaignDetails = () => {
                                                 </div>
                                             </div>
 
-                                            {(!campaign.requires_dedicated_social && ((campaign.allowed_platforms?.includes('instagram') && user?.instagramVerified) || (campaign.allowed_platforms?.includes('youtube') && user?.youtubeVerified))) ? (
-                                                <div className="py-4 space-y-4">
-                                                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-                                                        <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
-                                                            <CheckCircle className="w-5 h-5" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm font-bold text-white">Account Ready</p>
-                                                            <p className="text-[10px] text-white/30 uppercase tracking-widest">{user.instagramVerified ? user.instagramHandle : user.youtubeHandle}</p>
-                                                        </div>
-                                                    </div>
-                                                    <p className="text-[10px] text-white/20 text-center uppercase tracking-widest italic">You are verified and ready to join.</p>
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-4">
-                                                    {!showYtCode ? (
-                                                        <>
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Social Handle</label>
-                                                                <input 
-                                                                    value={linkedHandle}
-                                                                    onChange={e => setLinkedHandle(e.target.value)}
-                                                                    placeholder="@your_handle"
-                                                                    className="w-full bg-white/[0.03] border border-white/[0.1] rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-white/30 transition-all font-mono"
-                                                                />
-                                                            </div>
-
-                                                            {campaign.allowed_platforms?.includes('youtube') && (
-                                                                <Button 
-                                                                    variant="outline" 
-                                                                    onClick={() => setShowYtCode(true)}
-                                                                    className="w-full py-4 rounded-xl border-red-500/20 text-red-400 hover:bg-red-500/5 text-[10px] font-bold uppercase tracking-widest"
-                                                                >
-                                                                    Link via YouTube Bio
-                                                                </Button>
-                                                            )}
-                                                            
-                                                            {campaign.allowed_platforms?.includes('instagram') && (
-                                                                <Button 
-                                                                    variant="outline" 
-                                                                    onClick={handleInstagramVerify}
-                                                                    disabled={isVerifyingSocial || !linkedHandle}
-                                                                    className="w-full py-4 rounded-xl border-pink-500/20 text-pink-400 hover:bg-pink-500/5 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2"
-                                                                >
-                                                                    {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-pink-400/20 border-t-pink-400 animate-spin" />}
-                                                                    Link Instagram Handle
-                                                                </Button>
-                                                            )}
-                                                        </>
-                                                    ) : (
-                                                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                            <div className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl text-center space-y-3">
-                                                                <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest leading-relaxed">Add this code to your YouTube channel bio</p>
-                                                                <div className="bg-black/60 border border-white/10 p-4 rounded-xl font-mono text-emerald-400 text-xl tracking-widest shadow-inner">
-                                                                    {verifyCode}
-                                                                </div>
-                                                                <button onClick={() => setShowYtCode(false)} className="text-[9px] text-white/30 uppercase tracking-widest hover:text-white underline">Back to handle input</button>
-                                                            </div>
-                                                            <Button 
-                                                                onClick={handleYouTubeVerify}
-                                                                disabled={isVerifyingSocial}
-                                                                className="w-full py-4 rounded-xl bg-white text-black text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl hover:scale-[1.02] transition-all"
-                                                            >
-                                                                {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
-                                                                Check YouTube Bio Now
-                                                            </Button>
-                                                        </div>
-                                                    )}
+                                            {/* Disclaimer for Dedicated Account */}
+                                            {campaign.requires_dedicated_social && (
+                                                <div className="p-2 rounded-xl bg-amber-500/5 border border-amber-500/10 flex items-center justify-center gap-2">
+                                                    <Shield className="w-3 h-3 text-amber-500" />
+                                                    <p className="text-[9px] text-amber-200/60 uppercase tracking-widest font-bold">Dedicated Account Required</p>
                                                 </div>
                                             )}
+
+                                            <div className="space-y-4">
+                                                {/* Selection UI if accounts exist */}
+                                                {((campaign.allowed_platforms?.includes('instagram') && ((user?.instagramHandles?.length || 0) > 0 || user?.instagramHandle)) ||
+                                                    (campaign.allowed_platforms?.includes('youtube') && ((user?.youtubeChannels?.length || 0) > 0 || user?.youtubeHandle))) ? (
+                                                    <div className="space-y-3">
+                                                        <label className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Choose Linked Account</label>
+                                                        <Dropdown
+                                                            value={linkedHandle}
+                                                            onChange={(val) => {
+                                                                setLinkedHandle(val);
+                                                                // Infer platform from prefix or user data
+                                                                if (val.startsWith('@')) setPlatform('instagram');
+                                                                else setPlatform('youtube');
+                                                            }}
+                                                            placeholder="Select account"
+                                                            options={[
+                                                                ...(campaign.allowed_platforms?.includes('instagram') ? (user?.instagramHandles || (user?.instagramHandle ? [user.instagramHandle] : [])).map((h: string) => ({
+                                                                    label: h,
+                                                                    value: h,
+                                                                    icon: <svg className="w-3.5 h-3.5 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+                                                                })) : []),
+                                                                ...(campaign.allowed_platforms?.includes('youtube') ? (user?.youtubeChannels?.map((c: any) => c.handle) || (user?.youtubeHandle ? [user.youtubeHandle] : [])).map((h: string) => ({
+                                                                    label: h,
+                                                                    value: h,
+                                                                    icon: <svg className="w-3.5 h-3.5 text-[#FF0000]" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
+                                                                })) : [])
+                                                            ]}
+                                                        />
+                                                        <div className="pt-2 text-center">
+                                                            <p className="text-[9px] text-white/20 uppercase tracking-[0.1em]">Or link a new one below</p>
+                                                        </div>
+                                                    </div>
+                                                ) : null}
+
+                                                {!showYtCode ? (
+                                                    <>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Social Handle</label>
+                                                            <input
+                                                                value={linkedHandle}
+                                                                onChange={e => setLinkedHandle(e.target.value)}
+                                                                placeholder="@your_handle"
+                                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white placeholder:text-white/10 focus:outline-none focus:border-white/20 transition-all font-mono"
+                                                            />
+                                                        </div>
+                                                        {campaign.allowed_platforms?.includes('youtube') && (
+                                                            <Button
+                                                                variant="outline"
+                                                                onClick={() => setShowYtCode(true)}
+                                                                className="w-full py-3 rounded-xl border-red-500/20 text-red-400 hover:bg-red-500/5 text-[9px] font-bold uppercase tracking-widest"
+                                                            >
+                                                                Link via YouTube Bio
+                                                            </Button>
+                                                        )}
+                                                        {campaign.allowed_platforms?.includes('instagram') && (
+                                                            <Button
+                                                                variant="outline"
+                                                                onClick={handleInstagramVerify}
+                                                                disabled={isVerifyingSocial || !linkedHandle}
+                                                                className="w-full py-3 rounded-xl border-pink-500/20 text-pink-400 hover:bg-pink-500/5 text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2"
+                                                            >
+                                                                {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-pink-400/20 border-t-pink-400 animate-spin" />}
+                                                                Link Instagram
+                                                            </Button>
+                                                        )}
+
+
+                                                    </>
+                                                ) : (
+                                                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                        <div className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl text-center space-y-3">
+                                                            <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest leading-relaxed">Add this code to your YouTube channel bio</p>
+                                                            <div className="bg-black/60 border border-white/10 p-4 rounded-xl font-mono text-emerald-400 text-xl tracking-widest shadow-inner">
+                                                                {verifyCode}
+                                                            </div>
+                                                            <button onClick={() => setShowYtCode(false)} className="text-[9px] text-white/30 uppercase tracking-widest hover:text-white underline">Back to handle input</button>
+                                                        </div>
+                                                        <Button
+                                                            onClick={handleYouTubeVerify}
+                                                            disabled={isVerifyingSocial}
+                                                            className="w-full py-4 rounded-xl bg-white text-black text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl hover:scale-[1.02] transition-all"
+                                                        >
+                                                            {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
+                                                            Check YouTube Bio Now
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </div>
 
                                             {socialVerifyError && (
                                                 <p className="text-[10px] text-red-500 font-medium text-center bg-red-500/5 p-2 rounded-lg border border-red-500/10 italic">
@@ -862,19 +929,12 @@ export const CampaignDetails = () => {
                                                 </p>
                                             )}
                                         </div>
-
-                                        {campaign.requires_dedicated_social && (
-                                            <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex gap-3 items-center">
-                                                <Target className="w-4 h-4 text-amber-500" />
-                                                <p className="text-[10px] text-amber-500/80 leading-relaxed font-bold uppercase tracking-wider">Dedicated Account Required for this campaign</p>
-                                            </div>
-                                        )}
                                     </div>
 
                                     <div className="flex gap-3">
                                         <Button variant="outline" onClick={() => setJoinStep(2)} className="flex-1 py-5 rounded-2xl border-white/10 text-white/40">Back</Button>
-                                        <Button 
-                                            disabled={isSubmitting || isVerifyingSocial || (!user?.instagramVerified && !user?.youtubeVerified)} 
+                                        <Button
+                                            disabled={isSubmitting || isVerifyingSocial || (!user?.instagramVerified && !user?.youtubeVerified)}
                                             onClick={() => handleJoinSubmit()}
                                             className="flex-[2] py-5 rounded-2xl bg-emerald-500 text-black font-bold uppercase tracking-widest text-sm hover:scale-[1.02] disabled:opacity-30 transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)]"
                                         >
@@ -903,11 +963,11 @@ export const CampaignDetails = () => {
                                 </motion.div>
                             )}
 
-                             {/* End of Join Modal Steps */}
-                         </motion.div>
-                     </motion.div>
-                 )}
-             </AnimatePresence>
+                            {/* End of Join Modal Steps */}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Submit Modal */}
             <AnimatePresence>
@@ -917,7 +977,7 @@ export const CampaignDetails = () => {
                         onClick={(e) => { if (e.target === e.currentTarget) setIsSubmitModalOpen(false); }}>
                         <motion.div initial={{ y: 24, scale: 0.97, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 24, scale: 0.97, opacity: 0 }}
                             className="bg-[#0D0D0D] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl relative">
-                            
+
                             <button onClick={() => setIsSubmitModalOpen(false)} className="absolute top-6 right-6 p-2 rounded-full text-white/20 hover:text-white hover:bg-white/5 transition-all">
                                 <X className="w-5 h-5" />
                             </button>
@@ -928,16 +988,16 @@ export const CampaignDetails = () => {
                             <form onSubmit={handleSubmitClip} className="space-y-6">
                                 <div className="space-y-1.5">
                                     <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Video URL <span className="text-red-400">*</span></label>
-                                    <input 
+                                    <input
                                         required
-                                        type="url" 
+                                        type="url"
                                         value={submissionUrl}
                                         onChange={(e) => setSubmissionUrl(e.target.value)}
-                                        placeholder="https://..." 
-                                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/20 transition-all font-mono placeholder:text-white/10" 
+                                        placeholder="https://..."
+                                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/20 transition-all font-mono placeholder:text-white/10"
                                     />
                                 </div>
-                                
+
                                 <div className="space-y-1.5">
                                     <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Detected Platform</label>
                                     <div className="w-full bg-white/[0.02] border border-white/[0.04] rounded-xl px-4 py-3 text-sm text-white/50 flex items-center gap-3">

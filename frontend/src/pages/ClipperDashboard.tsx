@@ -21,7 +21,7 @@ export const ClipperDashboard = () => {
 
     useEffect(() => {
         if (token) {
-            Promise.all([fetchEarnings(), fetchSubmissions(), fetchCampaigns()]).finally(() => setLoading(false));
+            Promise.all([fetchEarnings(), fetchSubmissions()]).finally(() => setLoading(false));
         }
     }, [token]);
 
@@ -35,27 +35,15 @@ export const ClipperDashboard = () => {
         } catch (err) { console.error(err); }
     };
 
-    const fetchCampaigns = async () => {
-        try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const json = await res.json();
-            if (json.success) setAllCampaigns(json.data || []);
-        } catch (err) { console.error(err); }
-    };
-
     const fetchSubmissions = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/my/summary`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/my`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
-            if (json.success) setSubmissions(json.data.breakdown || []);
+            if (json.success) setSubmissions(json.data || []);
         } catch (err) { console.error(err); }
     };
-
-    const [, setAllCampaigns] = useState<any[]>([]);
 
     // Build chart data: group views by date (last 14 days)
     const chartData = useMemo(() => {

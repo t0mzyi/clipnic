@@ -550,6 +550,9 @@ export class VerificationController {
    * Uses a claim-based system with duplicate protection since Instagram
    * pages are fully JS-rendered and bio scraping is not feasible server-side.
    */
+  /**
+   * Links an Instagram account to the user's profile.
+   */
   static async verifyInstagram(req: any, res: Response, next: NextFunction) {
     try {
       const { id: userId } = req.user;
@@ -559,7 +562,6 @@ export class VerificationController {
         return res.status(400).json({ success: false, error: 'Instagram handle is required.' });
       }
 
-      // Cleanup handle
       handle = handle.trim().replace(/^@/, '').toLowerCase();
       
       if (handle.length < 1 || handle.length > 30) {
@@ -570,7 +572,7 @@ export class VerificationController {
       const { data: duplicateUser } = await supabase
         .from('users')
         .select('id')
-        .eq('instagram_handle', `@${handle}`)
+        .or(`instagram_handle.eq.@${handle},instagram_handles.cs.{"@${handle}"}`)
         .neq('id', userId)
         .maybeSingle();
       
@@ -578,18 +580,76 @@ export class VerificationController {
         return res.status(400).json({ success: false, error: 'This Instagram account is already linked to another user.' });
       }
 
-      // 2. Update Database
+      // 2. Fetch existing handles
+      const { data: userRaw } = await supabase.from('users').select('instagram_handles').eq('id', userId).single();
+      const existingHandles = userRaw?.instagram_handles || [];
+      const newHandle = `@${handle}`;
+
+      if (!existingHandles.includes(newHandle)) {
+          existingHandles.push(newHandle);
+      }
+
+      // 3. Update Database
       const { error } = await supabase
         .from('users')
         .update({ 
             instagram_verified: true, 
-            instagram_handle: `@${handle}`
+            instagram_handle: newHandle, // Keep as primary/last added
+            instagram_handles: existingHandles
         })
         .eq('id', userId);
 
       if (error) throw error;
 
       res.json({ success: true, message: 'Instagram account linked successfully!' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async disconnectInstagram(req: any, res: Response, next: NextFunction) {
+    try {
+      const { id: userId } = req.user;
+      const { handle } = req.body; // Specifically which handle to remove
+
+      const { data: userRaw } = await supabase.from('users').select('instagram_handles').eq('id', userId).single();
+      let existingHandles = userRaw?.instagram_handles || [];
+
+      if (handle) {
+          existingHandles = existingHandles.filter((h: string) => h !== handle);
+      } else {
+          existingHandles = [];
+      }
+
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+            instagram_verified: existingHandles.length > 0, 
+            instagram_handle: existingHandles.length > 0 ? existingHandles[0] : null,
+            instagram_handles: existingHandles
+        })
+        .eq('id', userId);
+
+      if (error) throw error;
+      res.json({ success: true, message: 'Instagram account disconnected.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async disconnectDiscord(req: any, res: Response, next: NextFunction) {
+    try {
+      const { id: userId } = req.user;
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+            discord_verified: false, 
+            discord_id: null
+        })
+        .eq('id', userId);
+
+      if (error) throw error;
+      res.json({ success: true, message: 'Discord account disconnected.' });
     } catch (error) {
       next(error);
     }

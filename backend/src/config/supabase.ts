@@ -7,6 +7,9 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABAS
 
 if (!supabaseUrl || !supabaseKey) {
   console.warn("Missing SUPABASE_URL or SUPABASE_KEY in environment variables.");
+} else {
+  const isServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+  console.log(`[Supabase] Initialized with ${isServiceKey ? 'SERVICE_ROLE' : 'ANON'} key`);
 }
 
 // Ensure you export the instantiated client
