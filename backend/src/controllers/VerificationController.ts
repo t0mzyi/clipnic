@@ -31,7 +31,11 @@ export class VerificationController {
   static async discordCallback(req: Request, res: Response, next: NextFunction) {
     try {
       const { code, state } = req.query;
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const frontendUrl = process.env.FRONTEND_URL;
+
+      if (!frontendUrl) {
+          return res.status(500).send('Frontend URL missing');
+      }
 
       if (!code || !state) {
         return res.redirect(`${frontendUrl}/profile?discord_error=missing_params`);
@@ -161,7 +165,10 @@ export class VerificationController {
 
      } catch (error: any) {
         console.error('Callback error:', error);
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const frontendUrl = process.env.FRONTEND_URL;
+        if (!frontendUrl) {
+            return res.status(500).json({ success: false, error: 'Frontend URL not configured' });
+        }
         const msg = error.message ? encodeURIComponent(error.message) : 'server_error';
         return res.redirect(`${frontendUrl}/profile?discord_error=${msg}`);
      }
@@ -208,7 +215,11 @@ export class VerificationController {
   static async youtubeGoogleCallback(req: Request, res: Response, next: NextFunction) {
     try {
       const { code, state, error } = req.query;
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const frontendUrl = process.env.FRONTEND_URL;
+
+      if (!frontendUrl) {
+          return res.status(500).send('Frontend URL missing');
+      }
 
       // Pre-parse state to get redirects for error handling
       let redirectTo: string | null = null;

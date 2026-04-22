@@ -57,9 +57,13 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 app.listen(PORT, () => {
-    const domain = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+    const domain = process.env.RENDER_EXTERNAL_URL;
     console.log(`Server listening on port ${PORT}`);
-    LoggerService.info('Backend Online', `Server successfully started on **${domain}**`);
+    
+    // Only log to Discord if we have a real domain (Production)
+    if (domain && !domain.includes('localhost')) {
+        LoggerService.info('Backend Online', `Server successfully started on **${domain}**`);
+    }
 
     // Keep-alive ping for Render free tier (prevents 50s cold start that kills Discord OAuth codes)
     if (process.env.NODE_ENV !== 'development' && process.env.RENDER_EXTERNAL_URL) {
