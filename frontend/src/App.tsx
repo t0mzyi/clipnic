@@ -57,7 +57,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
             {!isAdminPortal ? (
                 <>
                     <nav className="flex flex-col gap-2 text-sm font-medium mb-8 mt-14">
-                        <Link onClick={closeMenu} to="/campaigns" className={`transition-all py-3 px-4 rounded-xl flex items-center gap-3 ${location.pathname === '/campaigns' ? 'bg-white text-black font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link onClick={closeMenu} to="/campaigns" className={`transition-all py-3 px-4 rounded-xl flex items-center gap-3 ${location.pathname === '/campaigns' ? 'bg-white/15 text-white font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
                             <Globe size={18} className={location.pathname === '/campaigns' ? 'text-emerald-400' : ''} />
                             <span className="glassy-text">Active Campaigns</span>
                         </Link>
@@ -71,7 +71,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
                         </Link>
                         <Link onClick={closeMenu} to="/campaigns/joined" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/campaigns/joined' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <Target size={18} />
-                            <span className="glassy-text">My Missions</span>
+                            <span className="glassy-text">My Campaigns</span>
                         </Link>
                         <Link onClick={closeMenu} to="/submissions" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/submissions') ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <Upload size={18} />

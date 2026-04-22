@@ -69,10 +69,10 @@ export class NotificationService {
           let embed = null;
 
           if (hasMetGoal) {
-            message = `Mission Complete: **${campaign.title}**\n\nGreat work! The mission has successfully concluded and we've verified your participation. \n\nYour final earnings for this clip come to **$${clipEarning}**. We've updated your total claimable balance to **$${totalClaimable}**.\n\nEverything is finalized and ready for withdrawal whenever you're set. Catch you in the next one! 🚀`;
+            message = `Campaign Complete: **${campaign.title}**\n\nGreat work! The campaign has successfully concluded and we've verified your participation. \n\nYour final earnings for this clip come to **$${clipEarning}**. We've updated your total claimable balance to **$${totalClaimable}**.\n\nEverything is finalized and ready for withdrawal whenever you're set. Catch you in the next one! 🚀`;
             embed = {
                 title: "Goal Achieved! 🎯",
-                description: `You've earned **$${clipEarning}** from the **${campaign.title}** mission.`,
+                description: `You've earned **$${clipEarning}** from the **${campaign.title}** campaign.`,
                 color: 0x10b981, // Emerald
                 fields: [
                     { name: "Total Claimable", value: `$${totalClaimable}`, inline: true }
@@ -95,10 +95,10 @@ export class NotificationService {
             }
 
           } else {
-            message = `Mission Concluded: **${campaign.title}**\n\nJust a quick update that the mission has ended. Unfortunately, this submission didn't quite reach the view target this time around. \n\nNo sweat though—we've got new missions dropping soon. Keep an eye on the dashboard for the next opportunity. 📈`;
+            message = `Campaign Concluded: **${campaign.title}**\n\nJust a quick update that the campaign has ended. Unfortunately, this submission didn't quite reach the view target this time around. \n\nNo sweat though—we've got new campaigns dropping soon. Keep an eye on the dashboard for the next opportunity. 📈`;
             embed = {
-                title: "Mission Concluded",
-                description: `The mission **${campaign.title}** has ended. You didn't hit the minimum view requirement this time.`,
+                title: "Campaign Concluded",
+                description: `The campaign **${campaign.title}** has ended. You didn't hit the minimum view requirement this time.`,
                 color: 0xef4444, // Red
                 url: `${process.env.FRONTEND_URL}/submissions`
             };

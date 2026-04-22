@@ -85,7 +85,7 @@ export const Earnings = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 relative z-10">
                     <div>
                         <h1 className="text-4xl font-bold tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/50 mb-2">Earnings</h1>
-                        <p className="text-white/40 text-lg font-light tracking-tight">Track your revenue and payouts in real-time.</p>
+                        <p className="text-white/40 text-lg font-light tracking-tight">Track your revenue and withdrawals in real-time.</p>
                     </div>
 
                     <Button 

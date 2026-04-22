@@ -143,7 +143,7 @@ export const MySubmissions = () => {
                         Potential
                     </p>
                     <p className="text-3xl font-mono tabular-metrics text-white/90">${summary.availableBalance.toFixed(2)}</p>
-                    <p className="text-[10px] text-white/20 mt-2 uppercase tracking-widest leading-relaxed font-medium">Accumulating while mission is active</p>
+                    <p className="text-[10px] text-white/20 mt-2 uppercase tracking-widest leading-relaxed font-medium">Accumulating while campaign is active</p>
                 </div>
 
                 {/* Goal Met / Pending */}
@@ -270,7 +270,7 @@ export const MySubmissions = () => {
                                             {sub.earningCategory === 'claimed' && (
                                                 <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Paid Out</span>
                                             )}
-                                            <p className="text-[10px] text-white/10 uppercase tracking-widest font-medium ml-1">Mission: {sub.campaignStatus}</p>
+                                            <p className="text-[10px] text-white/10 uppercase tracking-widest font-medium ml-1">Campaign: {sub.campaignStatus}</p>
                                         </div>
                                     </td>
                                     <td className="py-5 border-y border-white/[0.05] font-mono text-sm text-white/60">

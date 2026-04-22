@@ -347,7 +347,7 @@ export const CampaignDetails = () => {
                                 className="flex items-center gap-2 bg-emerald-400 text-black hover:bg-emerald-300 font-extrabold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-[0_0_40px_rgba(52,211,153,0.25)] text-xs sm:text-base disabled:opacity-50 disabled:grayscale"
                             >
                                 <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
-                                {campaign.status === 'Active' ? 'Join Campaign' : 'Missions Paused'}
+                                {campaign.status === 'Active' ? 'Join Campaign' : 'Campaigns Paused'}
                             </Button>
                         )}
                     </div>
@@ -597,7 +597,7 @@ export const CampaignDetails = () => {
                                             <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-white/40 uppercase">Step 1 of 3</span>
                                         </div>
                                         <h2 className="text-3xl font-bold tracking-tight text-white">Join & Commit</h2>
-                                        <p className="text-white/30 text-sm">Review mission guidelines before proceeding.</p>
+                                        <p className="text-white/30 text-sm">Review campaign guidelines before proceeding.</p>
                                     </div>
                                     <div className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 text-left space-y-4 max-h-[240px] overflow-y-auto custom-scrollbar">
                                         {campaign.rules?.map((rule, idx) => (
@@ -642,7 +642,7 @@ export const CampaignDetails = () => {
                                             </div>
                                         ) : (
                                             <>
-                                                <p className="text-xs text-white/50 leading-relaxed text-center">This mission requires you to be in our Discord server. Link your account to continue.</p>
+                                                <p className="text-xs text-white/50 leading-relaxed text-center">This campaign requires you to be in our Discord server. Link your account to continue.</p>
                                                 <Button 
                                                     onClick={async () => {
                                                         try {
@@ -686,7 +686,7 @@ export const CampaignDetails = () => {
                                             <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-white/40 uppercase">Step 3 of 3</span>
                                         </div>
                                         <h2 className="text-3xl font-bold tracking-tight text-white">Social Linking</h2>
-                                        <p className="text-white/30 text-sm">Target platform for this mission.</p>
+                                        <p className="text-white/30 text-sm">Target platform for this campaign.</p>
                                     </div>
 
                                     <div className="space-y-6 text-left">
@@ -788,7 +788,7 @@ export const CampaignDetails = () => {
                                         {campaign.requires_dedicated_social && (
                                             <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex gap-3 items-center">
                                                 <Target className="w-4 h-4 text-amber-500" />
-                                                <p className="text-[10px] text-amber-500/80 leading-relaxed font-bold uppercase tracking-wider">Dedicated Account Required for this mission</p>
+                                                <p className="text-[10px] text-amber-500/80 leading-relaxed font-bold uppercase tracking-wider">Dedicated Account Required for this campaign</p>
                                             </div>
                                         )}
                                     </div>

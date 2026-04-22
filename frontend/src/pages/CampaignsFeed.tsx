@@ -233,7 +233,7 @@ export const CampaignsFeed = () => {
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-emerald-400 transition-colors" />
                         <input 
                             type="text" 
-                            placeholder="Find missions by brand or keyword..." 
+                            placeholder="Find campaigns by brand or keyword..." 
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full bg-white/[0.03] border border-white/[0.06] rounded-2xl pl-12 pr-6 py-4 text-sm text-white placeholder:text-white/10 focus:outline-none focus:border-emerald-500/30 focus:bg-white/[0.05] transition-all"
@@ -268,7 +268,7 @@ export const CampaignsFeed = () => {
             {/* Section Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.05] pb-6">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-white/90 glassy-text">Available Missions</h2>
+                    <h2 className="text-2xl font-bold tracking-tight text-white/90 glassy-text">Available Campaigns</h2>
                     <p className="text-white/30 text-sm font-light tracking-tight mt-1">Explore all active clipping opportunities matching your search.</p>
                 </div>
                 <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-white/50 uppercase tracking-widest">

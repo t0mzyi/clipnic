@@ -44,7 +44,7 @@ export const AdminDashboard = () => {
     const kpis = stats?.kpis || [
         { label: 'Active Campaigns', value: '0', change: '0', icon: 'Target' },
         { label: 'Total Budget', value: '$0', change: '0', icon: 'Landmark' },
-        { label: 'Pending Payouts', value: '$0', change: '0', icon: 'Users' },
+        { label: 'Pending Withdrawals', value: '$0', change: '0', icon: 'Users' },
         { label: 'Platform Margin', value: '0%', change: '0', icon: 'TrendingUp' },
     ];
 
@@ -133,7 +133,7 @@ export const AdminDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 
                 <div className="lg:col-span-3 glass-panel p-8 rounded-[2.5rem] h-[450px] flex flex-col relative overflow-hidden group">
-                    <div className="absolute inset-0 mission-control-bg opacity-40 pointer-events-none" />
+                    <div className="absolute inset-0 campaign-control-bg opacity-40 pointer-events-none" />
                     
                     <div className="flex items-center justify-between mb-10 relative z-10">
                         <div className="space-y-1">

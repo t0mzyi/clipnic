@@ -117,7 +117,7 @@ export const AdminCampaigns = () => {
     };
 
     const validateForm = () => {
-        if (!form.title.trim()) return "Missions need a catchy title.";
+        if (!form.title.trim()) return "Campaigns need a catchy title.";
         if (!form.description.trim()) return "Please provide a description so clippers know what to do.";
         if (!form.discord_channel.trim() || !form.discord_channel.startsWith('http')) return "A valid Discord invitation link is required.";
         
@@ -128,7 +128,7 @@ export const AdminCampaigns = () => {
         if (isNaN(budget) || budget <= 0) return "Total budget must be a positive number.";
         if (budget < cpm) return "Total budget is too small for this CPM.";
         
-        if (!form.end_date) return "Select a deadline for this mission.";
+        if (!form.end_date) return "Select a deadline for this campaign.";
         if (new Date(form.end_date) <= new Date()) return "Deadline must be in the future.";
         
         if (form.allowed_platforms.length === 0) return "Select at least one platform (YouTube/IG/TikTok).";

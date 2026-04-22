@@ -52,7 +52,7 @@ export const JoinedCampaigns = () => {
             className="space-y-8"
         >
             <div className="pb-6 border-b border-white/[0.06]">
-                <h1 className="text-3xl font-bold tracking-tight text-white/90">Joined Missions</h1>
+                <h1 className="text-3xl font-bold tracking-tight text-white/90">Joined Campaigns</h1>
                 <p className="text-white/30 text-sm font-light mt-1">Campaigns you are currently participating in.</p>
             </div>
 
@@ -62,8 +62,8 @@ export const JoinedCampaigns = () => {
                         <Globe className="w-10 h-10 text-white/10" />
                     </div>
                     <div className="space-y-2">
-                        <h3 className="text-xl font-bold text-white/60">No Active Missions</h3>
-                        <p className="text-white/25 text-sm max-w-xs">You haven't joined any campaigns yet. Browse the feed to find a mission.</p>
+                        <h3 className="text-xl font-bold text-white/60">No Active Campaigns</h3>
+                        <p className="text-white/25 text-sm max-w-xs">You haven't joined any campaigns yet. Browse the feed to find a campaign.</p>
                     </div>
                     <Link to="/campaigns" className="px-8 py-3 rounded-2xl bg-white text-zinc-950 font-bold text-sm hover:scale-105 transition-all">
                         Browse Campaigns
@@ -118,7 +118,7 @@ export const JoinedCampaigns = () => {
                                     to={`/campaigns/${camp.id}`}
                                     className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-all group/btn"
                                 >
-                                    Mission Control
+                                    Campaign Control
                                     <ChevronRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
                                 </Link>
                             </div>

@@ -159,7 +159,7 @@ export const ClipperDashboard = () => {
                 </div>
             ) : (
                 <>
-                    {/* Active Missions Quick Access */}
+                    {/* Active Campaigns Quick Access */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <Link to="/campaigns" className="md:col-span-2 relative group overflow-hidden rounded-[2.5rem] bg-[#0c0c0c] border border-white/[0.06] p-8 flex flex-col justify-between min-h-[220px] hover:border-emerald-500/30 transition-all duration-500">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 blur-[80px] -mr-32 -mt-32 rounded-full group-hover:bg-emerald-500/20 transition-colors duration-700" />
@@ -168,7 +168,7 @@ export const ClipperDashboard = () => {
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                     Live Feed
                                 </div>
-                                <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Active Missions</h2>
+                                <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Active Campaigns</h2>
                                 <p className="text-white/40 text-sm max-w-sm font-light">Explore {allCampaigns.length} available campaigns and start earning today.</p>
                             </div>
                             <div className="relative z-10 flex items-center justify-between mt-6">
@@ -196,15 +196,15 @@ export const ClipperDashboard = () => {
                                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
                                         Premium <span className="text-[10px] bg-purple-500 text-white px-1.5 py-0.5 rounded italic">HOT</span>
                                     </h3>
-                                    <p className="text-white/40 text-xs mt-1">High CPM featured missions.</p>
+                                    <p className="text-white/40 text-xs mt-1">High CPM featured campaigns.</p>
                                 </div>
                                 <ChevronRight className="self-end text-purple-400 group-hover:translate-x-1 transition-transform" />
                             </Link>
 
                             <Link to="/campaigns/joined" className="relative group overflow-hidden rounded-[2.5rem] bg-[#0c0c0c] border border-white/[0.06] p-6 flex flex-col justify-between hover:border-white/20 transition-all duration-500 shadow-2xl">
                                 <div>
-                                    <h3 className="text-lg font-bold text-white">Joined Missions</h3>
-                                    <p className="text-white/40 text-xs mt-1">{uniqueCampaigns} missions in progress.</p>
+                                    <h3 className="text-lg font-bold text-white">Joined Campaigns</h3>
+                                    <p className="text-white/40 text-xs mt-1">{uniqueCampaigns} campaigns in progress.</p>
                                 </div>
                                 <ChevronRight className="self-end text-white/20 group-hover:translate-x-1 transition-transform" />
                             </Link>
