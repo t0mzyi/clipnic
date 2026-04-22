@@ -3,7 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import {
     LayoutGrid,
-    Rocket,
+    Globe,
     Target,
     Upload,
     DollarSign,
@@ -14,7 +14,9 @@ import {
     Settings,
     LogOut,
     Shield,
-    Menu
+    Menu,
+    ChevronUp,
+    ChevronDown
 } from 'lucide-react';
 import { CampaignsFeed } from './pages/CampaignsFeed';
 import { CampaignDetails } from './pages/CampaignDetails';
@@ -33,7 +35,6 @@ import { Login } from './pages/Login';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './store/useAuthStore';
 
-// Navigation Sidebar
 const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void }) => {
     const location = useLocation();
     const { user } = useAuthStore();
@@ -41,7 +42,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
     const isAdminPortal = location.pathname.startsWith('/admin');
 
     return (
-        <aside className={`fixed left-0 top-0 h-[100dvh] w-64 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-300 md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <aside className={`fixed left-0 top-0 h-[100dvh] w-64 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-300 md:translate-x-0 ${isOpen || !isAdminPortal ? 'translate-x-0' : '-translate-x-full'} ${isAdminPortal ? 'hidden md:hidden' : 'flex'}`}>
             <div className="flex items-center justify-between mb-8">
                 <Link to="/campaigns" className="flex items-center gap-2 group">
                     <img src="/logo.webp" alt="Logo" className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
@@ -59,12 +60,12 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
                 <>
                     <nav className="flex flex-col gap-2 text-sm font-medium mb-6">
                         <Link onClick={closeMenu} to="/campaigns" className={`transition-all py-3 px-4 rounded-2xl flex items-center gap-3 glowing-glass-item ${location.pathname === '/campaigns' ? 'bg-white/10 text-premium-white' : 'text-white/60 hover:text-premium-white'}`}>
-                            <Rocket size={18} className="text-emerald-400" />
+                            <Globe size={18} className="text-emerald-400" />
                             <span className="font-bold tracking-tight">Active Campaigns</span>
                         </Link>
                     </nav>
 
-                    <div className="mb-4 text-xs font-bold text-white/20 uppercase tracking-[0.2em] px-4">Clipper Portal</div>
+                    <div className="mb-4 text-xs font-bold text-white/20 uppercase tracking-[0.2em] px-4 py-2 rounded-xl glassy-glow-premium border border-white/5">Clipper Portal</div>
                     <nav className="flex flex-col gap-2 text-sm font-medium mb-10 overflow-y-auto">
                         <Link onClick={closeMenu} to="/dashboard" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/dashboard' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
                             <LayoutGrid size={18} />
@@ -88,33 +89,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
                         </Link>
                     </nav>
                 </>
-            ) : (
-                <>
-                    <div className="mb-4 text-xs font-bold text-white/20 uppercase tracking-[0.2em] px-4">Admin Portal</div>
-                    <nav className="flex flex-col gap-2 text-sm font-medium pb-8 overflow-y-auto mb-10">
-                        <Link onClick={closeMenu} to="/admin" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/admin' ? 'bg-white/10 text-premium-white' : 'text-white/40 hover:text-premium-white hover:bg-white/5'}`}>
-                            <BarChart3 size={18} />
-                            Dashboard
-                        </Link>
-                        <Link onClick={closeMenu} to="/admin/campaigns" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/admin/campaigns') ? 'bg-white/10 text-premium-white' : 'text-white/40 hover:text-premium-white hover:bg-white/5'}`}>
-                            <Box size={18} />
-                            Campaigns Mgmt
-                        </Link>
-                        <Link onClick={closeMenu} to="/admin/submissions" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/admin/submissions') ? 'bg-white/10 text-premium-white' : 'text-white/40 hover:text-premium-white hover:bg-white/5'}`}>
-                            <Upload size={18} />
-                            Submissions Mgmt
-                        </Link>
-                        <Link onClick={closeMenu} to="/admin/users" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/admin/users') ? 'bg-white/10 text-premium-white' : 'text-white/40 hover:text-premium-white hover:bg-white/5'}`}>
-                            <Users size={18} />
-                            Users Mgmt
-                        </Link>
-                        <Link onClick={closeMenu} to="/admin/settings" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/admin/settings') ? 'bg-white/10 text-premium-white' : 'text-white/40 hover:text-premium-white hover:bg-white/5'}`}>
-                            <Settings size={18} />
-                            Settings
-                        </Link>
-                    </nav>
-                </>
-            )}
+            ) : null}
 
             <div className="mt-auto pt-6 border-t border-white/5 space-y-2">
                 {isAdmin && (
@@ -140,6 +115,47 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
                 </button>
             </div>
         </aside>
+    );
+};
+
+const AdminDock = () => {
+    const location = useLocation();
+    const { isAdmin } = useAuthStore(s => ({ isAdmin: s.user?.role === 'admin' }));
+    
+    if (!isAdmin) return null;
+
+    const items = [
+        { to: '/admin', icon: BarChart3, label: 'Stats' },
+        { to: '/admin/campaigns', icon: Box, label: 'Campaigns' },
+        { to: '/admin/submissions', icon: Upload, label: 'Review' },
+        { to: '/admin/users', icon: Users, label: 'Users' },
+        { to: '/admin/settings', icon: Settings, label: 'Setup' },
+        { to: '/dashboard', icon: UserIcon, label: 'Exit Admin', color: 'text-emerald-400' }
+    ];
+
+    return (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] hidden md:block">
+            <div className="flex items-center gap-1 p-2 rounded-3xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                {items.map((item) => {
+                    const isActive = location.pathname === item.to || (item.to !== '/admin' && location.pathname.startsWith(item.to));
+                    return (
+                        <Link
+                            key={item.to}
+                            to={item.to}
+                            className={`relative px-4 py-3 rounded-2xl flex flex-col items-center gap-1 transition-all duration-300 group ${isActive ? 'bg-white/10 text-white shadow-inner' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                        >
+                            <item.icon size={20} className={`${item.color || ''} ${isActive ? 'scale-110' : 'scale-100'} transition-transform`} />
+                            {isActive && (
+                                <motion.div layoutId="dock-indicator" className="absolute -bottom-1 w-1 h-1 bg-emerald-500 rounded-full" />
+                            )}
+                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg bg-black/90 border border-white/10 text-[10px] font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none transform translate-y-2 group-hover:translate-y-0">
+                                {item.label}
+                            </div>
+                        </Link>
+                    );
+                })}
+            </div>
+        </div>
     );
 };
 
@@ -294,6 +310,7 @@ const Layout = () => {
             </div>
 
             <Sidebar isOpen={mobileMenuOpen} closeMenu={() => setMobileMenuOpen(false)} />
+            {location.pathname.startsWith('/admin') && <AdminDock />}
 
             {/* Mobile overlay backdrop */}
             {mobileMenuOpen && (
@@ -303,7 +320,7 @@ const Layout = () => {
                 />
             )}
 
-            <main className="flex-1 md:ml-64 min-h-screen overflow-x-hidden">
+            <main className={`flex-1 ${location.pathname.startsWith('/admin') ? 'md:ml-0' : 'md:ml-64'} min-h-screen overflow-x-hidden transition-all duration-300`}>
                 <div className="px-4 sm:px-6 md:px-12 pt-6 md:pt-16 pb-24 max-w-7xl mx-auto">
                     <AnimatePresence mode="wait">
                         <Routes>

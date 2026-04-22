@@ -244,7 +244,7 @@ export const CampaignDetails = () => {
                                 onClick={() => { setJoinStep(1); setIsJoinModalOpen(true); }} 
                                 className="flex items-center gap-2 bg-emerald-500 text-white hover:bg-emerald-600 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base disabled:opacity-50 disabled:grayscale"
                             >
-                                <Rocket className="w-4 h-4 sm:w-5 sm:h-5" />
+                                <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
                                 {campaign.status === 'Active' ? 'Join Campaign' : 'Missions Paused'}
                             </Button>
                         )}
@@ -566,7 +566,7 @@ export const CampaignDetails = () => {
                                         {!campaign.requires_dedicated_social && !user?.youtubeVerified && (
                                             <div className="p-6 rounded-3xl bg-red-500/5 border border-red-500/10 text-left space-y-3">
                                                 <div className="flex items-center gap-3 text-red-400">
-                                                    <Rocket className="w-5 h-5" />
+                                                <Globe className="w-5 h-5" />
                                                     <p className="text-xs font-bold uppercase tracking-widest">Verify YouTube</p>
                                                 </div>
                                                 <p className="text-[10px] text-white/30 leading-relaxed">Connect your YouTube channel to finalize your participation.</p>

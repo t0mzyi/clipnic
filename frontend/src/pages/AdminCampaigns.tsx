@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, ToggleLeft, ToggleRight, Users, Film, Pencil, Search, Eye, Rocket, CheckCircle2, Star } from 'lucide-react';
+import { Plus, Trash2, ToggleLeft, ToggleRight, Users, Film, Pencil, Search, Eye, Globe, Filter, CheckCircle2, Star } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';
 
 interface Campaign {
@@ -591,7 +591,7 @@ export const AdminCampaigns = () => {
                                     <Button variant="primary" onClick={handleSubmit} disabled={submitting} className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs disabled:opacity-50 hover:bg-emerald-600 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
                                         {submitting ? "Launching..." : editingCampaign ? "Save Changes" : (
                                             <div className="flex items-center justify-center gap-2">
-                                                <Rocket size={14} />
+                                                <Globe size={14} />
                                                 Launch Campaign
                                             </div>
                                         )}

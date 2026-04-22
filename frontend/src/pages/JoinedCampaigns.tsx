@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Rocket, ChevronRight, Activity, Target } from 'lucide-react';
+import { Globe, ChevronRight, Activity, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { Badge } from '../components/ui/Badge';
@@ -59,7 +59,7 @@ export const JoinedCampaigns = () => {
             {campaigns.length === 0 ? (
                 <div className="py-32 flex flex-col items-center text-center space-y-6">
                     <div className="w-20 h-20 rounded-3xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center">
-                        <Rocket className="w-10 h-10 text-white/10" />
+                        <Globe className="w-10 h-10 text-white/10" />
                     </div>
                     <div className="space-y-2">
                         <h3 className="text-xl font-bold text-white/60">No Active Missions</h3>
