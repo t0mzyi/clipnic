@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase';
 import { SubmissionService } from './SubmissionService';
+import { LoggerService } from './LoggerService';
 
 export class PayoutService {
   /**
@@ -108,6 +109,20 @@ export class PayoutService {
         .single();
     
     if (auditError) console.error('Audit Log Injection Failed:', auditError);
+
+    // 4. Send Log to Discord
+    try {
+        const { data: adminUser } = await supabase.from('users').select('name').eq('id', adminId).single();
+        const adminName = adminUser?.name || 'Admin';
+        const userName = userPayout.user.name || 'User';
+
+        await LoggerService.info(
+            '💸 Payout Sent',
+            `**Admin**: ${adminName}\n**Recipient**: ${userName}\n**Amount**: $${totalClaimable.toFixed(2)} USD\n**Submissions**: ${submissionIds.length} clips`
+        );
+    } catch (e) {
+        console.error('[PayoutService] Discord Log Failed:', e);
+    }
 
     return payout;
   }

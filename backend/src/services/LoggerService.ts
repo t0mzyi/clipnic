@@ -4,7 +4,13 @@ export class LoggerService {
    * Colors: Info (0x10b981 - Green), Warning (0xf59e0b - Amber), Error (0xef4444 - Red)
    */
   static async sendDiscordLog(title: string, message: string, color: number = 0x10b981, ping: boolean = false) {
-    const webhookUrl = process.env.DISCORD_LOG_WEBHOOK_URL;
+    let webhookUrl = process.env.DISCORD_LOG_WEBHOOK_URL;
+
+    // Use payout-specific webhook for payout logs if defined
+    if (title.includes('Payout') && process.env.DISCORD_PAYOUT_WEBHOOK_URL) {
+        webhookUrl = process.env.DISCORD_PAYOUT_WEBHOOK_URL;
+    }
+    
     const adminId = process.env.DISCORD_ADMIN_ID;
     
     // Silence if no webhook
