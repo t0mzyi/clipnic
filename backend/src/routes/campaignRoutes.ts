@@ -15,6 +15,7 @@ router.post('/:id/join', authenticate, CampaignController.joinCampaign);
 router.post('/', authenticate, requireRole('admin'), CampaignController.create);
 router.put('/:id', authenticate, requireRole('admin'), CampaignController.update);
 router.patch('/:id/status', authenticate, requireRole('admin'), CampaignController.updateStatus);
+router.patch('/:id/featured', authenticate, requireRole('admin'), CampaignController.updateFeatured);
 router.delete('/:id', authenticate, requireRole('admin'), CampaignController.deleteCampaign);
 
 export default router;

@@ -178,6 +178,17 @@ export class CampaignService {
     return data;
   }
 
+  static async updateFeatured(id: string, isFeatured: boolean) {
+    const { data, error } = await supabase
+      .from('campaigns')
+      .update({ is_featured: isFeatured })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
   static async delete(id: string) {
     const { error } = await supabase.from('campaigns').delete().eq('id', id);
     if (error) throw error;

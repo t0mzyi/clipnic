@@ -56,6 +56,15 @@ export class CampaignController {
     }
   }
 
+  static async updateFeatured(req: Request, res: Response, next: NextFunction) {
+    try {
+      const campaign = await CampaignService.updateFeatured(req.params.id as string, req.body.is_featured);
+      res.json({ success: true, data: campaign });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async joinCampaign(req: Request, res: Response, next: NextFunction) {
       try {
           const { id } = req.params;

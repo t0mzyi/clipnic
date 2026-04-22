@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, ToggleLeft, ToggleRight, Users, Film, Pencil, Search, Filter, Eye, Rocket, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, ToggleLeft, ToggleRight, Users, Film, Pencil, Search, Eye, Rocket, CheckCircle2, Star } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';
 
 interface Campaign {
@@ -224,6 +224,22 @@ export const AdminCampaigns = () => {
         } catch (err) { console.error(err); }
     };
 
+    const handleToggleFeatured = async (campaign: Campaign) => {
+        const newFeatured = !campaign.is_featured;
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${campaign.id}/featured`, {
+                method: 'PATCH',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_featured: newFeatured })
+            });
+            const json = await res.json();
+            if (json.success) {
+                setCampaigns(prev => prev.map(c => c.id === campaign.id ? { ...c, is_featured: newFeatured } : c));
+                Toast.fire({ title: newFeatured ? 'Highlighted!' : 'Highlight Stopped', icon: 'success' });
+            }
+        } catch (err) { console.error(err); }
+    };
+
     const handleDelete = async (campaign: Campaign) => {
         const result = await Swal.fire({
             title: 'Delete Campaign?', text: `This will permanently delete "${campaign.title}".`,
@@ -364,7 +380,17 @@ export const AdminCampaigns = () => {
                                                 <p className={`text-[10px] mt-0.5 ${daysLeft < 3 ? 'text-red-400' : 'text-white/20'}`}>{daysLeft > 0 ? `${daysLeft}d left` : 'Expired'}</p>
                                             </td>
                                             <td className="px-4 py-4 text-center">
-                                                {camp.is_featured ? <span className="px-2.5 py-0.5 rounded-full text-xs font-medium border bg-amber-500/20 text-amber-500 border-amber-500/20">YES</span> : <span className="text-white/10 text-[10px]">No</span>}
+                                                <button onClick={() => handleToggleFeatured(camp)} className="transition-all hover:scale-110 active:scale-95">
+                                                    {camp.is_featured ? (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold border bg-purple-500/20 text-purple-400 border-purple-500/30 flex items-center gap-1 justify-center mx-auto w-fit shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+                                                            <Star size={10} fill="currentColor" /> FEATURED
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-white/10 text-[10px] hover:text-white/30 flex items-center gap-1 justify-center mx-auto">
+                                                            <Star size={10} /> Normal
+                                                        </span>
+                                                    )}
+                                                </button>
                                             </td>
                                             <td className="px-4 py-4"><Badge status={camp.status} /></td>
                                             <td className="px-6 py-4 text-right flex items-center justify-end gap-2 relative z-10">
@@ -468,6 +494,16 @@ export const AdminCampaigns = () => {
                                         </div>
 
                                         <div className="space-y-4 pt-4 border-t border-white/[0.05]">
+                                            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                                <div>
+                                                    <p className="text-sm font-bold text-white/90">Feature this Campaign</p>
+                                                    <p className="text-[10px] text-white/30 mt-0.5">Make this campaign more prominent and highlight it in the clipper portal.</p>
+                                                </div>
+                                                <button onClick={() => setForm(p => ({ ...p, is_featured: !p.is_featured }))}>
+                                                    {form.is_featured ? <ToggleRight className="text-purple-500 w-8 h-8" /> : <ToggleLeft className="text-white/10 w-8 h-8" />}
+                                                </button>
+                                            </div>
+
                                             <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
                                                 <div>
                                                     <p className="text-sm font-bold text-white/90">Require Dedicated Social</p>

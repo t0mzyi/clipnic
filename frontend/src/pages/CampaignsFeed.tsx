@@ -1,9 +1,15 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
-import { ArrowUpRight, DollarSign, Wallet, TrendingUp } from 'lucide-react';
+import { ArrowUpRight, DollarSign, Wallet, TrendingUp, Star, ChevronLeft, ChevronRight, Search, Play, Camera } from 'lucide-react';
+
+const TikTokIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-tiktok">
+        <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+    </svg>
+);
 
 interface Campaign {
     id: string;
@@ -29,6 +35,17 @@ export const CampaignsFeed = () => {
     const { token } = useAuthStore();
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [loading, setLoading] = useState(true);
+    
+    // Discovery State
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
+
+    // Carousel State
+    const [activeIdx, setActiveIdx] = useState(0);
+    const [direction, setDirection] = useState(0);
+    const autoplayTimerRef = useRef<any>(null);
+
+    const featured = campaigns.filter(c => c.is_featured && c.status === 'Active');
 
     useEffect(() => {
         const fetchCampaigns = async () => {
@@ -47,7 +64,69 @@ export const CampaignsFeed = () => {
         fetchCampaigns();
     }, [token]);
 
+    // Autoplay logic
+    useEffect(() => {
+        if (featured.length <= 1) return;
+        
+        const startAutoplay = () => {
+            autoplayTimerRef.current = setInterval(() => {
+                setDirection(1);
+                setActiveIdx((prev) => (prev + 1) % featured.length);
+            }, 6000);
+        };
+
+        startAutoplay();
+        return () => {
+            if (autoplayTimerRef.current) clearInterval(autoplayTimerRef.current);
+        };
+    }, [featured.length, activeIdx]);
+
+    const handleNext = () => {
+        if (autoplayTimerRef.current) clearInterval(autoplayTimerRef.current);
+        setDirection(1);
+        setActiveIdx((prev) => (prev + 1) % featured.length);
+    };
+
+    const handlePrev = () => {
+        if (autoplayTimerRef.current) clearInterval(autoplayTimerRef.current);
+        setDirection(-1);
+        setActiveIdx((prev) => (prev - 1 + featured.length) % featured.length);
+    };
+
     const activeCampaigns = campaigns.filter(c => c.status === 'Active');
+    
+    // Discovery Logic
+    const filteredCampaigns = activeCampaigns.filter(c => {
+        const matchesSearch = c.title.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesPlatform = !selectedPlatform || (c as any).allowed_platforms?.includes(selectedPlatform.toLowerCase());
+        return matchesSearch && matchesPlatform;
+    });
+
+    const sortedCampaigns = [...filteredCampaigns].sort((a, b) => {
+        if (a.is_featured && !b.is_featured) return -1;
+        if (!a.is_featured && b.is_featured) return 1;
+        return 0;
+    });
+
+    const slideVariants = {
+        enter: (direction: number) => ({
+            x: direction > 0 ? 300 : -300,
+            opacity: 0,
+            scale: 0.98
+        }),
+        center: {
+            zIndex: 1,
+            x: 0,
+            opacity: 1,
+            scale: 1
+        },
+        exit: (direction: number) => ({
+            zIndex: 0,
+            x: direction < 0 ? 300 : -300,
+            opacity: 0,
+            scale: 0.98
+        })
+    };
 
     return (
         <motion.div
@@ -57,64 +136,147 @@ export const CampaignsFeed = () => {
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             className="space-y-10 pb-12"
         >
-            {/* Featured Marquee — Only show campaigns marked as featured */}
-            {!loading && campaigns.filter(c => c.is_featured).length > 0 && (
-                <div className="space-y-6 pt-4">
-                    <div className="flex items-center justify-between px-2">
-                        <h2 className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.3em] flex items-center gap-2">
-                            <TrendingUp className="w-3 h-3" /> Featured Opportunities
-                        </h2>
+            {/* Hero Carousel */}
+            {!loading && featured.length > 0 && (
+                <div className="relative w-full group">
+                    <div className="flex items-center justify-between mb-4 px-2">
+                        <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <h2 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em]">Featured Opportunities</h2>
+                        </div>
+                        {featured.length > 1 && (
+                            <div className="flex gap-2">
+                                <button onClick={handlePrev} className="w-8 h-8 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all">
+                                    <ChevronLeft size={16} />
+                                </button>
+                                <button onClick={handleNext} className="w-8 h-8 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all">
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
+                        )}
                     </div>
-                    
-                    <div className="relative overflow-hidden w-full group">
-                        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#020202] to-transparent z-10 pointer-events-none" />
-                        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#020202] to-transparent z-10 pointer-events-none" />
-                        
-                        <motion.div 
-                            className="flex gap-6 w-max"
-                            animate={{ x: ["0%", "-50%"] }}
-                            transition={{ 
-                                duration: 25, 
-                                ease: "linear", 
-                                repeat: Infinity 
-                            }}
-                        >
-                            {/* Duplicate campaigns for infinite loop */}
-                            {[...campaigns.filter(c => c.is_featured), ...campaigns.filter(c => c.is_featured)].map((c, i) => (
-                                <Link 
-                                    to={`/campaigns/${c.id}`}
-                                    key={`${c.id}-${i}`}
-                                    className="relative w-[280px] sm:w-[320px] md:w-[480px] h-[200px] sm:h-[220px] md:h-[280px] rounded-[32px] overflow-hidden border border-white/10 group/item flex-shrink-0"
-                                >
+
+                    <div className="relative h-[300px] md:h-[420px] w-full rounded-[40px] overflow-hidden border border-white/10 bg-[#080808]">
+                        <AnimatePresence initial={false} custom={direction} mode="wait">
+                            <motion.div
+                                key={activeIdx}
+                                custom={direction}
+                                variants={slideVariants}
+                                initial="enter"
+                                animate="center"
+                                exit="exit"
+                                transition={{
+                                    x: { type: "spring", stiffness: 300, damping: 30 },
+                                    opacity: { duration: 0.3 }
+                                }}
+                                className="absolute inset-0"
+                            >
+                                <Link to={`/campaigns/${featured[activeIdx].id}`} className="block h-full w-full relative group/slide">
                                     <img
-                                        src={c.banner_url || FALLBACK_BANNERS[i % FALLBACK_BANNERS.length]}
-                                        className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover/item:opacity-90 group-hover/item:scale-105 transition-all duration-700"
-                                        alt={c.title}
+                                        src={featured[activeIdx].banner_url || FALLBACK_BANNERS[activeIdx % FALLBACK_BANNERS.length]}
+                                        className="absolute inset-0 w-full h-full object-cover opacity-60 transition-transform duration-1000 group-hover/slide:scale-105"
+                                        alt={featured[activeIdx].title}
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                                    <div className="absolute inset-0 p-8 flex flex-col justify-end">
-                                        <h3 className="text-xl md:text-2xl font-bold text-white mb-2 leading-tight">{c.title}</h3>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-amber-400 font-mono text-sm">${c.cpm_rate.toFixed(2)} CPM</span>
-                                            <span className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[9px] font-bold text-white/50 uppercase tracking-widest">Featured</span>
-                                        </div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                                    
+                                    <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-end max-w-3xl">
+                                        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="px-3 py-1 rounded-full bg-purple-500/20 backdrop-blur-md border border-purple-500/30 text-[10px] font-bold text-purple-400 flex items-center gap-1.5 shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+                                                    <Star size={12} fill="currentColor" /> FEATURED MISSION
+                                                </div>
+                                                <div className="px-3 py-1 rounded-full bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 text-[10px] font-bold text-emerald-400 flex items-center gap-1.5 align-middle">
+                                                    🔥 HIGH CPM
+                                                </div>
+                                            </div>
+                                            <h3 className="text-3xl md:text-6xl font-bold text-premium-white mb-6 leading-[1.1] tracking-tight">{featured[activeIdx].title}</h3>
+                                            <div className="flex items-center gap-8">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] text-white/30 uppercase font-bold tracking-widest mb-1">Earning Potential</span>
+                                                    <span className="text-2xl font-mono font-bold text-amber-400">${featured[activeIdx].cpm_rate.toFixed(2)} <span className="text-sm opacity-50 font-sans tracking-tight">/ 1000 views</span></span>
+                                                </div>
+                                                <div className="h-10 w-[1px] bg-white/10" />
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] text-white/30 uppercase font-bold tracking-widest mb-1">Campaign Budget</span>
+                                                    <span className="text-2xl font-mono font-bold text-white">${featured[activeIdx].total_budget.toLocaleString()}</span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
                                     </div>
+
+                                    {/* Glass Shine Animation Overlay */}
+                                    <div className="absolute inset-0 glowing-glass-item opacity-40 pointer-events-none" />
                                 </Link>
-                            ))}
-                        </motion.div>
+                            </motion.div>
+                        </AnimatePresence>
+
+                        {/* Slide Indicators */}
+                        {featured.length > 1 && (
+                            <div className="absolute bottom-10 right-12 flex gap-2 z-20">
+                                {featured.map((_, i) => (
+                                    <button 
+                                        key={i} 
+                                        onClick={() => {
+                                            setDirection(i > activeIdx ? 1 : -1);
+                                            setActiveIdx(i);
+                                        }}
+                                        className={`h-1.5 rounded-full transition-all duration-300 ${i === activeIdx ? 'w-8 bg-white' : 'w-2 bg-white/20 hover:bg-white/40'}`} 
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
 
-            {/* Section Header */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-white/90">All Campaigns</h1>
-                    <p className="text-white/30 text-sm font-light tracking-tight mt-1">Browse and join active marketing opportunities.</p>
+            {/* Discovery & Search Section */}
+            <div className="space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="relative flex-1 max-w-xl group">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-emerald-400 transition-colors" />
+                        <input 
+                            type="text" 
+                            placeholder="Find missions by brand or keyword..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-2xl pl-12 pr-6 py-4 text-sm text-white placeholder:text-white/10 focus:outline-none focus:border-emerald-500/30 focus:bg-white/[0.05] transition-all"
+                        />
+                    </div>
+                    
+                    <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 scroll-hide">
+                        <button 
+                            onClick={() => setSelectedPlatform(null)}
+                            className={`px-5 py-3 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${!selectedPlatform ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'bg-white/5 border-white/5 text-white/40 hover:text-white hover:bg-white/10'}`}
+                        >
+                            All Platforms
+                        </button>
+                        {[
+                            { id: 'youtube', icon: <Play size={12} />, label: 'YouTube' },
+                            { id: 'tiktok', icon: <TikTokIcon />, label: 'TikTok' },
+                            { id: 'instagram', icon: <Camera size={12} />, label: 'Instagram' }
+                        ].map(p => (
+                            <button 
+                                key={p.id}
+                                onClick={() => setSelectedPlatform(p.id)}
+                                className={`px-5 py-3 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${selectedPlatform === p.id ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'bg-white/5 border-white/5 text-white/40 hover:text-white hover:bg-white/10'}`}
+                            >
+                                {p.icon}
+                                {p.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
-                <div className="flex items-center gap-2 text-[10px] font-bold text-white/30 uppercase tracking-widest">
-                    <TrendingUp className="w-4 h-4" />
-                    {activeCampaigns.length} Available
+            </div>
+
+            {/* Section Header */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.05] pb-6">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-white/90">Available Missions</h2>
+                    <p className="text-white/30 text-sm font-light tracking-tight mt-1">Explore all active clipping opportunities matching your search.</p>
+                </div>
+                <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-white/50 uppercase tracking-widest">
+                    <TrendingUp className="w-3 h-3 text-emerald-400" />
+                    {sortedCampaigns.length} Results
                 </div>
             </div>
 
@@ -134,9 +296,9 @@ export const CampaignsFeed = () => {
             )}
 
             {/* Campaign Cards */}
-            {!loading && campaigns.length > 0 && (
+            {!loading && sortedCampaigns.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {campaigns.map((campaign, index) => {
+                    {sortedCampaigns.map((campaign, index) => {
                         const remaining = campaign.total_budget - campaign.budget_used;
                         const progress = campaign.total_budget > 0 ? (campaign.budget_used / campaign.total_budget) * 100 : 0;
                         const isFull = remaining <= 0;
@@ -150,7 +312,11 @@ export const CampaignsFeed = () => {
                                 whileHover={{ y: -4 }}
                                 whileTap={{ scale: 0.98 }}
                                 transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                                className="group relative rounded-3xl bg-[#0c0c0c] border border-white/[0.06] hover:border-white/15 transition-all cursor-pointer block overflow-hidden shadow-lg hover:shadow-2xl"
+                                className={`group relative rounded-3xl bg-[#0c0c0c] border transition-all cursor-pointer block overflow-hidden shadow-lg hover:shadow-2xl ${
+                                    campaign.is_featured 
+                                        ? 'glowing-glass-item border-purple-500/30 ring-1 ring-purple-500/10' 
+                                        : 'border-white/[0.06] hover:border-white/15'
+                                }`}
                             >
                                 {/* Card Banner */}
                                 <div className="h-28 w-full relative overflow-hidden">
@@ -160,8 +326,13 @@ export const CampaignsFeed = () => {
                                         alt={campaign.title}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c]/60 to-transparent" />
-                                    <div className="absolute top-4 left-4">
+                                    <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
                                         <Badge status={campaign.status} />
+                                        {campaign.is_featured && (
+                                            <div className="px-2 py-1 rounded-lg bg-purple-500/20 backdrop-blur-md border border-purple-500/30 text-[9px] font-bold text-purple-400 flex items-center gap-1 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+                                                <Star size={10} fill="currentColor" /> FEATURED
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/30 group-hover:text-white/80 group-hover:bg-white/10 transition-all duration-300">
                                         <ArrowUpRight className="w-4 h-4" />
