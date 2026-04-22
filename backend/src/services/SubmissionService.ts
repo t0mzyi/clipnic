@@ -152,6 +152,14 @@ export class SubmissionService {
        if (error.code === '23505') throw new Error("You have already submitted this specific video link.");
        throw error;
     }
+
+    // 7. Update Campaign Budget & Views
+    await supabase.rpc('increment_campaign_stats', {
+        camp_id: validated.campaign_id,
+        earnings_add: earnings,
+        views_add: views
+    });
+
     return submission;
   }
 

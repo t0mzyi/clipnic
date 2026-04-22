@@ -5,7 +5,8 @@ import { Button } from '../components/ui/Button';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, ToggleLeft, ToggleRight, Users, Film, Pencil, Search, Filter, Eye } from 'lucide-react';
+import { Plus, Trash2, ToggleLeft, ToggleRight, Users, Film, Pencil, Search, Filter, Eye, Rocket, CheckCircle2 } from 'lucide-react';
+import { Dropdown } from '../components/Dropdown';
 
 interface Campaign {
     id: string;
@@ -44,7 +45,7 @@ const defaultForm = {
     is_featured: false,
     allowed_platforms: ['youtube', 'instagram', 'tiktok'],
     requires_dedicated_social: false,
-    requires_discord: false,
+    requires_discord: true,
     rules: ['Follow brand guidelines', 'No artificial engagement'],
 };
 
@@ -115,7 +116,34 @@ export const AdminCampaigns = () => {
         finally { setLoading(false); }
     };
 
+    const validateForm = () => {
+        if (!form.title.trim()) return "Missions need a catchy title.";
+        if (!form.description.trim()) return "Please provide a description so clippers know what to do.";
+        if (!form.discord_channel.trim() || !form.discord_channel.startsWith('http')) return "A valid Discord приглашение link is required.";
+        
+        const cpm = parseFloat(form.cpm_rate);
+        const budget = parseFloat(form.total_budget);
+        
+        if (isNaN(cpm) || cpm <= 0) return "CPM rate must be a positive number.";
+        if (isNaN(budget) || budget <= 0) return "Total budget must be a positive number.";
+        if (budget < cpm) return "Total budget is too small for this CPM.";
+        
+        if (!form.end_date) return "Select a deadline for this mission.";
+        if (new Date(form.end_date) <= new Date()) return "Deadline must be in the future.";
+        
+        if (form.allowed_platforms.length === 0) return "Select at least one platform (YouTube/IG/TikTok).";
+        
+        return null;
+    };
+
     const handleSubmit = async () => {
+        const error = validateForm();
+        if (error) {
+            setFormError(error);
+            Toast.fire({ title: 'Validation Error', text: error, icon: 'error', background: '#200' });
+            return;
+        }
+
         setSubmitting(true);
         setFormError('');
         try {
@@ -251,18 +279,17 @@ export const AdminCampaigns = () => {
                         className="w-full bg-[#0c0c0c] border border-white/[0.05] rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-white/20 transition-all font-mono"
                     />
                 </div>
-                <div className="flex items-center gap-2 w-full sm:w-auto relative">
-                    <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
-                    <select 
+                <div className="w-full sm:w-[200px]">
+                    <Dropdown 
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="bg-[#0c0c0c] border border-white/[0.05] rounded-xl pl-11 pr-10 py-3 text-sm text-white focus:outline-none focus:border-white/20 transition-all appearance-none cursor-pointer w-full sm:w-[180px] font-mono"
-                    >
-                        <option value="All">All Statuses</option>
-                        <option value="Active">Active</option>
-                        <option value="Paused">Paused</option>
-                        <option value="Featured">Featured</option>
-                    </select>
+                        onChange={setStatusFilter}
+                        options={[
+                            { label: 'All Statuses', value: 'All', icon: <Filter size={14} /> },
+                            { label: 'Active', value: 'Active', icon: <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> },
+                            { label: 'Paused', value: 'Paused', icon: <div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> },
+                            { label: 'Featured', value: 'Featured', icon: <div className="w-1.5 h-1.5 rounded-full bg-purple-500" /> },
+                        ]}
+                    />
                 </div>
             </div>
 
@@ -425,8 +452,16 @@ export const AdminCampaigns = () => {
                                             <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Allowed Platforms</label>
                                             <div className="grid grid-cols-3 gap-3">
                                                 {['youtube', 'instagram', 'tiktok'].map(p => (
-                                                    <button key={p} onClick={() => togglePlatform(p)} className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${form.allowed_platforms.includes(p) ? 'bg-white/10 border-white/20' : 'bg-white/[0.02] border-white/[0.05] grayscale opacity-40'}`}>
-                                                        <span className="text-xs uppercase font-bold tracking-widest">{p}</span>
+                                                    <button 
+                                                        key={p} 
+                                                        onClick={() => togglePlatform(p)} 
+                                                        className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${
+                                                            form.allowed_platforms.includes(p) 
+                                                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.05)]' 
+                                                                : 'bg-white/[0.02] border-white/[0.05] grayscale opacity-40 hover:opacity-60'
+                                                        }`}
+                                                    >
+                                                        <span className="text-xs uppercase font-bold tracking-[0.1em]">{p}</span>
                                                     </button>
                                                 ))}
                                             </div>
@@ -440,15 +475,6 @@ export const AdminCampaigns = () => {
                                                 </div>
                                                 <button onClick={() => setForm(p => ({ ...p, requires_dedicated_social: !p.requires_dedicated_social }))}>
                                                     {form.requires_dedicated_social ? <ToggleRight className="text-emerald-400 w-8 h-8" /> : <ToggleLeft className="text-white/10 w-8 h-8" />}
-                                                </button>
-                                            </div>
-                                            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                                <div>
-                                                    <p className="text-sm font-bold text-white/90">Require Discord Link</p>
-                                                    <p className="text-[10px] text-white/30 mt-0.5">Users must have a linked Discord to participate.</p>
-                                                </div>
-                                                <button onClick={() => setForm(p => ({ ...p, requires_discord: !p.requires_discord }))}>
-                                                    {form.requires_discord ? <ToggleRight className="text-emerald-400 w-8 h-8" /> : <ToggleLeft className="text-white/10 w-8 h-8" />}
                                                 </button>
                                             </div>
                                         </div>
@@ -480,7 +506,16 @@ export const AdminCampaigns = () => {
 
                                 {/* Step 4: Final Review */}
                                 {step === 4 && (
-                                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 overflow-y-auto max-h-[400px] pr-2">
+                                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 overflow-y-auto max-h-[480px] pr-2 custom-scrollbar">
+                                        <div className="flex items-center gap-4 p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+                                            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                                                <CheckCircle2 size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold text-emerald-400/50 uppercase tracking-[0.2em]">Ready to Launch</p>
+                                                <p className="text-sm text-white/60">Everything looks good. Review the details below.</p>
+                                            </div>
+                                        </div>
                                         <div className="space-y-1">
                                             <h3 className="text-xl font-bold">{form.title}</h3>
                                             <p className="text-white/40 text-xs line-clamp-2">{form.description}</p>
@@ -517,8 +552,13 @@ export const AdminCampaigns = () => {
                                 {step < 4 ? (
                                     <Button variant="primary" onClick={() => setStep(s => s + 1)} className="flex-1 bg-white text-black py-4 rounded-xl font-bold uppercase tracking-widest text-xs">Continue</Button>
                                 ) : (
-                                    <Button variant="primary" onClick={handleSubmit} disabled={submitting} className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs disabled:opacity-50">
-                                        {submitting ? "Launching..." : editingCampaign ? "Save Changes" : "🚀 Launch Campaign"}
+                                    <Button variant="primary" onClick={handleSubmit} disabled={submitting} className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs disabled:opacity-50 hover:bg-emerald-600 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                                        {submitting ? "Launching..." : editingCampaign ? "Save Changes" : (
+                                            <div className="flex items-center justify-center gap-2">
+                                                <Rocket size={14} />
+                                                Launch Campaign
+                                            </div>
+                                        )}
                                     </Button>
                                 )}
                             </div>

@@ -1,6 +1,21 @@
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { 
+    LayoutGrid, 
+    Compass, 
+    Target, 
+    Upload, 
+    DollarSign, 
+    User as UserIcon, 
+    BarChart3, 
+    Box, 
+    Users, 
+    Settings, 
+    LogOut, 
+    Shield, 
+    Menu 
+} from 'lucide-react';
 import { CampaignsFeed } from './pages/CampaignsFeed';
 import { CampaignDetails } from './pages/CampaignDetails';
 import { Profile } from './pages/Profile';
@@ -16,7 +31,6 @@ import { AdminSubmissions } from './pages/AdminSubmissions';
 import { JoinedCampaigns } from './pages/JoinedCampaigns';
 import { Login } from './pages/Login';
 import { supabase } from './lib/supabase';
-import { useEffect } from 'react';
 import { useAuthStore } from './store/useAuthStore';
 
 // Navigation Sidebar
@@ -29,7 +43,12 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
     return (
         <aside className={`fixed left-0 top-0 h-[100dvh] w-64 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-300 md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
             <div className="flex items-center justify-between mb-8">
-                <img src="/logo.webp" alt="Clipnic Logo" className="h-10 w-auto object-contain" />
+                <Link to="/dashboard" className="flex items-center gap-2.5 group">
+                    <img src="/logo.webp" alt="Logo" className="h-9 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
+                    <span className="text-xl font-bold tracking-tight text-white/90">
+                        clipnic<sup className="text-[10px] text-emerald-500/80 ml-0.5 font-bold">TM</sup>
+                    </span>
+                </Link>
                 <button onClick={closeMenu} className="md:hidden text-white/50 hover:text-white">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 </button>
@@ -41,27 +60,27 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
                     <div className="mb-4 text-xs font-bold text-white/30 uppercase tracking-widest px-3">Clipper Portal</div>
                     <nav className="flex flex-col gap-2 text-sm font-medium mb-10 overflow-y-auto">
                         <Link onClick={closeMenu} to="/dashboard" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/dashboard' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                            <LayoutGrid size={18} />
                             Dashboard
                         </Link>
                         <Link onClick={closeMenu} to="/campaigns" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/campaigns' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M3 15h6"/><path d="M3 18h6"/><path d="M3 21h6"/></svg>
+                            <Compass size={18} />
                             Browse Campaigns
                         </Link>
                         <Link onClick={closeMenu} to="/campaigns/joined" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/campaigns/joined' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/></svg>
+                            <Target size={18} />
                             My Missions
                         </Link>
                         <Link onClick={closeMenu} to="/submissions" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/submissions') ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                            <Upload size={18} />
                             My Submissions
                         </Link>
                         <Link onClick={closeMenu} to="/earnings" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/earnings' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            <DollarSign size={18} />
                             Earnings
                         </Link>
                         <Link onClick={closeMenu} to="/profile" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/profile' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <UserIcon size={18} />
                             Profile
                         </Link>
                     </nav>
@@ -71,23 +90,23 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
                     <div className="mb-4 text-xs font-bold text-white/30 uppercase tracking-widest px-3">Admin Portal</div>
                     <nav className="flex flex-col gap-2 text-sm font-medium pb-8 overflow-y-auto mb-10">
                         <Link onClick={closeMenu} to="/admin" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/admin' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                            <BarChart3 size={18} />
                             Dashboard
                         </Link>
                         <Link onClick={closeMenu} to="/admin/campaigns" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/admin/campaigns') ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                            <Box size={18} />
                             Campaigns Mgmt
                         </Link>
                         <Link onClick={closeMenu} to="/admin/submissions" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/admin/submissions') ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                            <Upload size={18} />
                             Submissions Mgmt
                         </Link>
                         <Link onClick={closeMenu} to="/admin/users" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/admin/users') ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            <Users size={18} />
                             Users Mgmt
                         </Link>
                         <Link onClick={closeMenu} to="/admin/settings" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/admin/settings') ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <Settings size={18} />
                             Settings
                         </Link>
                     </nav>
@@ -101,16 +120,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
                         onClick={closeMenu}
                         className="w-full transition-all py-3 px-4 rounded-xl flex items-center gap-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 font-bold text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.1)] group"
                     >
-                        <svg className={`transition-transform duration-500 ${isAdminPortal ? 'group-hover:-rotate-12' : 'group-hover:rotate-12'}`} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            {isAdminPortal ? (
-                                <>
-                                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-                                    <circle cx="12" cy="7" r="4"/>
-                                </>
-                            ) : (
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                            )}
-                        </svg>
+                        <Shield size={18} className={`transition-transform duration-500 ${isAdminPortal ? 'group-hover:-rotate-12' : 'group-hover:rotate-12'}`} />
                         {isAdminPortal ? "Switch to Clipper View" : "Go to Admin Dash"}
                     </Link>
                 )}
@@ -122,7 +132,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
                     }}
                     className="w-full transition-colors py-2 px-3 rounded-lg flex items-center gap-3 text-white/50 hover:text-white/90 hover:bg-red-500/10 hover:text-red-400 group"
                 >
-                    <svg className="transition-colors group-hover:text-red-400" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                    <LogOut size={18} className="transition-colors group-hover:text-red-400" />
                     Logout
                 </button>
             </div>
@@ -147,12 +157,14 @@ const Layout = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [isSyncing, setIsSyncing] = useState(false);
     const { login, logout } = useAuthStore();
     const location = useLocation();
 
     useEffect(() => {
         const syncBackend = async (session: any) => {
             if (session) {
+                setIsSyncing(true);
                 // 1. Instantly update store with metadata from the login session
                 const metadata = session.user.user_metadata;
                 const instantUser = {
@@ -193,9 +205,12 @@ const Layout = () => {
                     }
                 } catch (err) {
                     console.error('Failed to sync with backend:', err);
+                } finally {
+                    setIsSyncing(false);
                 }
             } else {
                 logout();
+                setIsSyncing(false);
             }
         };
 
@@ -207,19 +222,33 @@ const Layout = () => {
         });
 
         // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             setSession(session);
-            syncBackend(session);
+            // Only trigger a full sync on specific events to avoid flickering on visible change
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+                syncBackend(session);
+            } else if (event === 'SIGNED_OUT') {
+                logout();
+                setIsSyncing(false);
+            }
         });
 
         return () => subscription.unsubscribe();
     }, [login, logout]);
 
-    // Loading state for initial session check
-    if (loading) {
+    // Only show full-screen loader if we're genuinely waiting for the first session check
+    // OR if we're syncing and don't even have basic user info in the store yet.
+    const currentUser = useAuthStore(s => s.user);
+    if (loading || (isSyncing && !currentUser)) {
         return (
             <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                <div className="flex flex-col items-center gap-6 text-center px-6">
+                    <div className="w-10 h-10 border-2 border-white/10 border-t-emerald-500 rounded-full animate-spin shadow-[0_0_15px_rgba(16,185,129,0.2)]" />
+                    <div className="space-y-2">
+                        <p className="text-[10px] text-white/20 uppercase tracking-[0.3em] font-bold">Syncing Session</p>
+                        <p className="text-[9px] text-white/10 lowercase italic">Securing your connection...</p>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -250,9 +279,14 @@ const Layout = () => {
             
             {/* Mobile Header */}
             <div className="md:hidden sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-between px-6">
-                <img src="/logo.webp" alt="Clipnic Logo" className="h-8 w-auto object-contain" />
+                <Link to="/dashboard" className="flex items-center gap-2">
+                    <img src="/logo.webp" alt="Logo" className="h-7 w-auto object-contain" />
+                    <span className="text-lg font-bold tracking-tight text-white/90">
+                        clipnic<sup className="text-[8px] text-emerald-500/80 ml-0.5">TM</sup>
+                    </span>
+                </Link>
                 <button onClick={() => setMobileMenuOpen(true)} className="text-white/70 hover:text-white">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                    <Menu size={24} />
                 </button>
             </div>
 

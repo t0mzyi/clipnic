@@ -82,6 +82,12 @@ export class CampaignService {
   }
 
   static async joinCampaign(userId: string, campaignId: string, linkedHandle?: string) {
+      const campaign = await this.getById(campaignId);
+      if (!campaign) throw new Error("Campaign not found.");
+      if (campaign.status !== 'Active') {
+          throw new Error(`This campaign is currently ${campaign.status.toLowerCase()} and not accepting new participants.`);
+      }
+
       const { data, error } = await supabase
           .from('campaign_participations')
           .insert({

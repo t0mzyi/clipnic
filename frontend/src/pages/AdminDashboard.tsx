@@ -2,23 +2,54 @@ import { motion } from 'framer-motion';
 import { Target, Users, Landmark, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
 
+import { useState, useEffect } from 'react';
+import { useAuthStore } from '../store/useAuthStore';
+
 export const AdminDashboard = () => {
-    const kpis = [
-        { label: 'Active Campaigns', value: '12', change: '+2', icon: Target },
-        { label: 'Total Budget Allocated', value: '$143,500', change: '+$12k', icon: Landmark },
-        { label: 'Pending Payouts', value: '$8,450', change: '-$1.2k', icon: Users },
-        { label: 'Platform Margin', value: '15%', change: '0%', icon: TrendingUp },
+    const { token } = useAuthStore();
+    const [stats, setStats] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                if (json.success) setStats(json.data);
+            } catch (err) {
+                console.error('Failed to fetch admin stats:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (token) fetchStats();
+    }, [token]);
+
+    const iconMap: Record<string, any> = {
+        Target,
+        Landmark,
+        Users,
+        TrendingUp
+    };
+
+    if (loading) return (
+        <div className="min-h-[60vh] flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-white/10 border-t-white rounded-full animate-spin" />
+        </div>
+    );
+
+    const kpis = stats?.kpis || [
+        { label: 'Active Campaigns', value: '0', change: '0', icon: 'Target' },
+        { label: 'Total Budget', value: '$0', change: '0', icon: 'Landmark' },
+        { label: 'Pending Payouts', value: '$0', change: '0', icon: 'Users' },
+        { label: 'Platform Margin', value: '0%', change: '0', icon: 'TrendingUp' },
     ];
 
-    const mockBurnRate = [
-        { name: 'Mon', burn: 1200 },
-        { name: 'Tue', burn: 1800 },
-        { name: 'Wed', burn: 2400 },
-        { name: 'Thu', burn: 1600 },
-        { name: 'Fri', burn: 3100 },
-        { name: 'Sat', burn: 4200 },
-        { name: 'Sun', burn: 2900 },
-    ];
+    const burnRate = stats?.burnChart || [];
+    const topClippers = stats?.topClippers || [];
 
     return (
         <motion.div
@@ -36,8 +67,8 @@ export const AdminDashboard = () => {
 
             {/* KPI Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {kpis.map((kpi, idx) => {
-                    const Icon = kpi.icon;
+                {kpis.map((kpi: any, idx: number) => {
+                    const Icon = typeof kpi.icon === 'string' ? iconMap[kpi.icon] : kpi.icon;
                     return (
                         <div key={idx} className="p-6 sm:p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
                             <div className="flex items-center justify-between mb-5">
@@ -66,7 +97,7 @@ export const AdminDashboard = () => {
                     </div>
                     <div className="flex-1 w-full h-full min-h-0 relative -ml-4 focus-within:z-10">
                         <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-                            <BarChart data={mockBurnRate}>
+                            <BarChart data={burnRate}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                                 <XAxis 
                                     dataKey="name" 
@@ -102,7 +133,7 @@ export const AdminDashboard = () => {
                                     animationDuration={1000}
                                     animationEasing="ease-out"
                                 >
-                                    {mockBurnRate.map((_, index) => (
+                                    {burnRate.map((_: any, index: number) => (
                                         <Cell key={`cell-${index}`} fill="rgba(255,255,255,0.8)" />
                                     ))}
                                 </Bar>
@@ -116,25 +147,26 @@ export const AdminDashboard = () => {
                         <h3 className="text-base font-medium tracking-tight text-white/90">Top Clippers</h3>
                     </div>
                     <div className="flex-1 flex flex-col gap-2 overflow-y-auto pr-1 custom-scrollbar">
-                        {[
-                            { name: 'Alexander', views: '2.4M', earnings: '$1,200', change: '+12%' },
-                            { name: 'TechEdits', views: '1.8M', earnings: '$900', change: '+5%' },
-                            { name: 'Sarah_Shorts', views: '1.2M', earnings: '$600', change: '-2%' },
-                            { name: 'MinimalFlow', views: '900K', earnings: '$450', change: '+22%' }
-                        ].map((user, idx) => (
+                        {topClippers.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-full text-white/10 italic text-[10px] uppercase tracking-widest">
+                                No data yet
+                            </div>
+                        ) : topClippers.map((clipper: any, idx: number) => (
                             <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl hover:bg-white/[0.04] transition-colors border border-transparent hover:border-white/[0.05] cursor-pointer group">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/50 text-xs font-medium border border-white/10 group-hover:border-white/20 transition-colors">
-                                        {user.name.charAt(0)}
+                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/50 text-xs font-medium border border-white/10 overflow-hidden">
+                                        {clipper.avatar_url ? (
+                                            <img src={clipper.avatar_url} className="w-full h-full object-cover" alt="" />
+                                        ) : clipper.name.charAt(0)}
                                     </div>
                                     <div>
-                                        <p className="font-medium text-white/90 text-sm">{user.name}</p>
-                                        <p className="text-[11px] text-white/40">{user.views} total views</p>
+                                        <p className="font-medium text-white/90 text-sm">{clipper.name}</p>
+                                        <p className="text-[11px] text-white/40">{clipper.views.toLocaleString()} views</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-mono text-sm tracking-tight">{user.earnings}</p>
-                                    <p className={`text-[11px] ${user.change.startsWith('+') ? 'text-green-500/80' : 'text-red-500/80'}`}>{user.change}</p>
+                                    <p className="font-mono text-sm tracking-tight text-white/90">${clipper.earnings.toFixed(2)}</p>
+                                    <p className="text-[9px] uppercase tracking-widest text-emerald-500/60 font-bold">Performance</p>
                                 </div>
                             </div>
                         ))}

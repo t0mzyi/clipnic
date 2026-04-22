@@ -5,6 +5,7 @@ import { ShieldCheck, Mail, CreditCard, ExternalLink, Scissors, Eye, Wallet, Tra
 import { useAuthStore } from '../store/useAuthStore';
 import { useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { Dropdown } from '../components/Dropdown';
 
 const Toast = Swal.mixin({
     toast: true,
@@ -632,20 +633,18 @@ export const Profile = () => {
                                                 <p className="text-xs text-white/40 leading-relaxed">Choose your primary content channel for views monitoring.</p>
                                             </div>
 
-                                            <div className="space-y-1.5">
+                                            <div className="space-y-1.5 min-w-[200px]">
                                                 <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">Platform</label>
-                                                <select
+                                                <Dropdown 
                                                     value={selectedSocial}
-                                                    onChange={(e) => {
-                                                        setSelectedSocial(e.target.value);
-                                                    }}
-                                                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 transition-all appearance-none cursor-pointer"
-                                                >
-                                                    <option value="" disabled>Select network</option>
-                                                    <option value="youtube">YouTube</option>
-                                                    <option value="instagram">Instagram</option>
-                                                    <option value="tiktok">TikTok</option>
-                                                </select>
+                                                    onChange={setSelectedSocial}
+                                                    placeholder="Select network"
+                                                    options={[
+                                                        { label: 'YouTube', value: 'youtube', icon: <div className="w-2 h-2 rounded-full bg-red-600" /> },
+                                                        { label: 'Instagram', value: 'instagram', icon: <div className="w-2 h-2 rounded-full bg-pink-500" /> },
+                                                        { label: 'TikTok', value: 'tiktok', icon: <div className="w-2 h-2 rounded-full bg-cyan-400" /> },
+                                                    ]}
+                                                />
                                             </div>
                                         </div>
                                     )}

@@ -15,7 +15,8 @@ export class VerificationController {
         return res.status(500).json({ success: false, error: 'Discord OAuth credentials missing in backend.' });
       }
 
-      const state = encodeURIComponent(userId);
+      const { redirectTo } = req.query;
+      const state = encodeURIComponent(JSON.stringify({ userId, redirectTo }));
       const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds&state=${state}`;
 
       res.json({ success: true, url });
@@ -29,14 +30,22 @@ export class VerificationController {
    */
   static async discordCallback(req: Request, res: Response, next: NextFunction) {
     try {
-      const { code, state } = req.query;
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-
       if (!code || !state) {
         return res.redirect(`${frontendUrl}/profile?discord_error=missing_params`);
       }
 
-      const userId = decodeURIComponent(state as string);
+      let userId: string;
+      let redirectTo: string | null = null;
+      try {
+          const parsedState = JSON.parse(decodeURIComponent(state as string));
+          userId = parsedState.userId;
+          redirectTo = parsedState.redirectTo;
+      } catch (e) {
+          userId = decodeURIComponent(state as string);
+      }
+      
+      const successBaseRedirect = redirectTo || `${frontendUrl}/profile`;
+      const errorBaseRedirect = redirectTo || `${frontendUrl}/profile`;
       const clientId = process.env.DISCORD_CLIENT_ID;
       const clientSecret = process.env.DISCORD_CLIENT_SECRET;
       const redirectUri = process.env.DISCORD_REDIRECT_URI;
@@ -81,7 +90,7 @@ export class VerificationController {
 
       if (discordTokenRes.status === 429) {
         console.warn('Discord rate limited — Render IP is temporarily blocked by Discord.');
-        return res.redirect(`${frontendUrl}/profile?discord_error=${encodeURIComponent('Rate limited by Discord. Please wait a few minutes and try again.')}`);
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}discord_error=${encodeURIComponent('Rate limited by Discord. Please wait a few minutes and try again.')}`);
       }
 
       if (!discordTokenRes.ok) {
@@ -94,7 +103,7 @@ export class VerificationController {
         } catch (e) {
             errStr = encodeURIComponent(errorText.slice(0, 200));
         }
-        return res.redirect(`${frontendUrl}/profile?discord_error=${errStr}`);
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}discord_error=${errStr}`);
       }
 
       const tokenData = await discordTokenRes.json();
@@ -106,7 +115,7 @@ export class VerificationController {
       });
 
       if (!userRes.ok) {
-        return res.redirect(`${frontendUrl}/profile?discord_error=user_fetch_failed`);
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}discord_error=user_fetch_failed`);
       }
 
       const userData = await userRes.json();
@@ -120,7 +129,7 @@ export class VerificationController {
       });
 
       if (!userGuildsRes.ok) {
-        return res.redirect(`${frontendUrl}/profile?discord_error=failed_to_fetch_guilds`);
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}discord_error=failed_to_fetch_guilds`);
       }
 
       const guilds = await userGuildsRes.json();
@@ -130,7 +139,7 @@ export class VerificationController {
 
       if (!isMember) {
         console.error(`User ${discordId} is not in the required guild ${guildId}`);
-        return res.redirect(`${frontendUrl}/profile?discord_error=not_in_server`);
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}discord_error=not_in_server`);
       }
 
       // 4. Update Database
@@ -141,18 +150,18 @@ export class VerificationController {
 
       if (error) {
         console.error('Supabase update error:', error);
-        return res.redirect(`${frontendUrl}/profile?discord_error=db_error`);
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}discord_error=db_error`);
       }
 
       // 5. Success Redirect
-      return res.redirect(`${frontendUrl}/profile?discord_success=true`);
+      return res.redirect(`${successBaseRedirect}${successBaseRedirect.includes('?') ? '&' : '?'}discord_success=true`);
 
-    } catch (error: any) {
-       console.error('Callback error:', error);
-       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-       const msg = error.message ? encodeURIComponent(error.message) : 'server_error';
-       return res.redirect(`${frontendUrl}/profile?discord_error=${msg}`);
-    }
+     } catch (error: any) {
+        console.error('Callback error:', error);
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const msg = error.message ? encodeURIComponent(error.message) : 'server_error';
+        return res.redirect(`${frontendUrl}/profile?discord_error=${msg}`);
+     }
   }
 
   /**
@@ -171,8 +180,8 @@ export class VerificationController {
         return res.status(500).json({ success: false, error: 'Google OAuth is not configured on the server.' });
       }
 
-      // Pass user ID within the state parameter to know who is linking
-      const state = encodeURIComponent(JSON.stringify({ userId: req.user.id }));
+      const { redirectTo } = req.query;
+      const state = encodeURIComponent(JSON.stringify({ userId: req.user.id, redirectTo }));
       
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${clientId}` +
@@ -199,14 +208,16 @@ export class VerificationController {
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 
       if (error) {
-        return res.redirect(`${frontendUrl}/profile?youtube_error=${encodeURIComponent('Authentication cancelled or failed.')}`);
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}youtube_error=${encodeURIComponent('Authentication cancelled or failed.')}`);
       }
 
       if (!code || !state) {
-        return res.redirect(`${frontendUrl}/profile?youtube_error=${encodeURIComponent('Invalid callback parameters.')}`);
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}youtube_error=${encodeURIComponent('Invalid callback parameters.')}`);
       }
 
-      const { userId } = JSON.parse(decodeURIComponent(state as string));
+      const { userId, redirectTo } = JSON.parse(decodeURIComponent(state as string));
+      const successBaseRedirect = redirectTo || `${frontendUrl}/profile`;
+      const errorBaseRedirect = redirectTo || `${frontendUrl}/profile`;
 
       // 1. Exchange code for token
       const clientId = process.env.GOOGLE_CLIENT_ID!;
@@ -227,7 +238,7 @@ export class VerificationController {
 
       if (!tokenRes.ok) {
         console.error('Failed to exchange Google token:', await tokenRes.text());
-        return res.redirect(`${frontendUrl}/profile?youtube_error=${encodeURIComponent('Failed to exchange token with Google.')}`);
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}youtube_error=${encodeURIComponent('Failed to exchange token with Google.')}`);
       }
 
       const tokenData = await tokenRes.json();
@@ -240,13 +251,13 @@ export class VerificationController {
 
       if (!ytRes.ok) {
         console.error('Failed to fetch YouTube channel:', await ytRes.text());
-        return res.redirect(`${frontendUrl}/profile?youtube_error=${encodeURIComponent('Failed to read your YouTube channels.')}`);
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}youtube_error=${encodeURIComponent('Failed to read your YouTube channels.')}`);
       }
 
       const ytData = await ytRes.json();
       
       if (!ytData.items || ytData.items.length === 0) {
-        return res.redirect(`${frontendUrl}/profile?youtube_error=${encodeURIComponent('No YouTube channel found on this Google account. Please create one first!')}`);
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}youtube_error=${encodeURIComponent('No YouTube channel found on this Google account. Please create one first!')}`);
       }
 
       // 3. Extract channel info
@@ -262,7 +273,7 @@ export class VerificationController {
         .maybeSingle();
 
       if (duplicateUser) {
-          return res.redirect(`${frontendUrl}/profile?youtube_error=${encodeURIComponent('This YouTube channel is already linked to another account.')}`);
+          return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}youtube_error=${encodeURIComponent('This YouTube channel is already linked to another account.')}`);
       }
 
       // snippet.customUrl typically contains the "@handle"
@@ -290,10 +301,10 @@ export class VerificationController {
 
       if (dbError) {
         console.error('Supabase youtube link error:', dbError);
-        return res.redirect(`${frontendUrl}/profile?youtube_error=${encodeURIComponent('Failed to link channel in database.')}`);
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}youtube_error=${encodeURIComponent('Failed to link channel in database.')}`);
       }
 
-      return res.redirect(`${frontendUrl}/profile?youtube_success=true`);
+      return res.redirect(`${successBaseRedirect}${successBaseRedirect.includes('?') ? '&' : '?'}youtube_success=true`);
 
     } catch (error: any) {
       console.error('youtubeGoogleCallback error:', error);

@@ -86,7 +86,9 @@ export class AdminController {
         user_metadata: { role }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+          console.warn('Auth metadata update failed (Missing Service Role Key?):', authError.message);
+      }
 
       res.json({ success: true, message: `User role updated to ${role}` });
     } catch (error) {

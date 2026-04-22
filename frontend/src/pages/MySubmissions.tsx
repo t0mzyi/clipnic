@@ -1,14 +1,33 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink } from 'lucide-react';
+import { Search, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
+import { Dropdown } from '../components/Dropdown';
 
 export const MySubmissions = () => {
     const { token } = useAuthStore();
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [stats, setStats] = useState({ totalClips: 0, views: 0, earnings: 0, approved: 0 });
     const [refreshingId, setRefreshingId] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [platformFilter, setPlatformFilter] = useState('All');
+    const [sortOrder, setSortOrder] = useState('Newest');
+
+    const filteredSubmissions = submissions
+        .filter(sub => {
+            const matchesSearch = sub.url.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                sub.campaigns?.title?.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesPlatform = platformFilter === 'All' ? true : sub.platform === platformFilter;
+            return matchesSearch && matchesPlatform;
+        })
+        .sort((a, b) => {
+            if (sortOrder === 'Newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            if (sortOrder === 'Oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+            if (sortOrder === 'Views') return (b.views || 0) - (a.views || 0);
+            if (sortOrder === 'Earnings') return (b.earnings || 0) - (a.earnings || 0);
+            return 0;
+        });
 
     const fetchAll = async () => {
         try {
@@ -132,27 +151,35 @@ export const MySubmissions = () => {
                         <input 
                             type="text" 
                             placeholder="Search submissions..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-12 py-4 text-base text-white focus:outline-none focus:border-white/20 transition-all placeholder:text-white/20"
                         />
                     </div>
                     <div className="flex flex-wrap w-full lg:w-auto items-center gap-3">
-                        <div className="relative group">
-                            <select className="bg-white/[0.03] border border-white/5 rounded-2xl pl-5 pr-12 py-4 text-sm font-medium text-white/50 focus:outline-none focus:border-white/20 appearance-none cursor-pointer hover:bg-white/[0.05] transition-all">
-                                <option>All Campaigns</option>
-                            </select>
-                            <Filter className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 pointer-events-none" />
+                        <div className="w-full sm:w-[180px]">
+                            <Dropdown 
+                                value={platformFilter}
+                                onChange={setPlatformFilter}
+                                options={[
+                                    { label: 'All Platforms', value: 'All', icon: <Layers size={14} /> },
+                                    { label: 'YouTube', value: 'youtube', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> },
+                                    { label: 'Instagram', value: 'instagram', icon: <div className="w-2 h-2 rounded-full bg-pink-500" /> },
+                                    { label: 'TikTok', value: 'tiktok', icon: <div className="w-2 h-2 rounded-full bg-cyan-400" /> },
+                                ]}
+                            />
                         </div>
-                        <div className="relative group">
-                            <select className="bg-white/[0.03] border border-white/5 rounded-2xl pl-5 pr-12 py-4 text-sm font-medium text-white/50 focus:outline-none focus:border-white/20 appearance-none cursor-pointer hover:bg-white/[0.05] transition-all">
-                                <option>All Platforms</option>
-                            </select>
-                            <Layers className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 pointer-events-none" />
-                        </div>
-                        <div className="relative group">
-                            <select className="bg-white/[0.03] border border-white/5 rounded-2xl pl-5 pr-12 py-4 text-sm font-medium text-white/50 focus:outline-none focus:border-white/20 appearance-none cursor-pointer hover:bg-white/[0.05] transition-all">
-                                <option>Sort: Newest</option>
-                            </select>
-                            <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 pointer-events-none" />
+                        <div className="w-full sm:w-[180px]">
+                            <Dropdown 
+                                value={sortOrder}
+                                onChange={setSortOrder}
+                                options={[
+                                    { label: 'Newest', value: 'Newest', icon: <Calendar size={14} /> },
+                                    { label: 'Oldest', value: 'Oldest', icon: <Calendar size={14} /> },
+                                    { label: 'Sort: Views', value: 'Views', icon: <Eye size={14} /> },
+                                    { label: 'Sort: Earnings', value: 'Earnings', icon: <Wallet size={14} /> },
+                                ]}
+                            />
                         </div>
                     </div>
                 </div>
@@ -170,13 +197,13 @@ export const MySubmissions = () => {
                             </tr>
                         </thead>
                         <tbody className="space-y-4">
-                            {submissions.length === 0 ? (
+                            {filteredSubmissions.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="py-8 text-center text-[10px] uppercase tracking-widest text-white/30">
-                                        No trackable submissions found on your account.
+                                    <td colSpan={6} className="py-8 text-center text-[10px] uppercase tracking-widest text-white/30 font-bold">
+                                        No trackable submissions found matching your filters.
                                     </td>
                                 </tr>
-                            ) : submissions.map((sub) => (
+                            ) : filteredSubmissions.map((sub) => (
                                 <tr key={sub.id} className="group bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all duration-300">
                                     <td className="py-5 pl-6 rounded-l-2xl border-y border-l border-white/[0.05]">
                                         <div className="flex items-center gap-3">

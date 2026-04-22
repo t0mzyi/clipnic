@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Search, Filter, Layers, CheckCircle2, XCircle, ExternalLink, User, Calendar } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
+import { Dropdown } from '../components/Dropdown';
 
 export const AdminSubmissions = () => {
     const { token } = useAuthStore();
@@ -111,18 +112,17 @@ export const AdminSubmissions = () => {
                         className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-3 pl-11 pr-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-all"
                     />
                 </div>
-                <div className="relative">
-                    <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                    <select 
+                <div className="w-full">
+                    <Dropdown 
                         value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                        className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-3 pl-11 pr-4 text-sm text-white appearance-none focus:outline-none focus:border-white/20 transition-all"
-                    >
-                        <option value="all">All Status</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Verified">Verified</option>
-                        <option value="Rejected">Rejected</option>
-                    </select>
+                        onChange={setFilterStatus}
+                        options={[
+                            { label: 'All Status', value: 'all', icon: <Filter size={14} /> },
+                            { label: 'Pending', value: 'Pending', icon: <div className="w-2 h-2 rounded-full bg-amber-500" /> },
+                            { label: 'Verified', value: 'Verified', icon: <div className="w-2 h-2 rounded-full bg-emerald-500" /> },
+                            { label: 'Rejected', value: 'Rejected', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> },
+                        ]}
+                    />
                 </div>
             </div>
 

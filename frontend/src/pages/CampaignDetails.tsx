@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useState, useEffect } from 'react';
-import { Shield, Trophy, Eye, DollarSign, Clock, Target, Upload, ChevronLeft, X, Rocket } from 'lucide-react';
+import { Shield, Trophy, Eye, DollarSign, Clock, Target, Upload, ChevronLeft, X, Rocket, Award, Medal, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 
@@ -148,13 +148,20 @@ export const CampaignDetails = () => {
     const daysLeft = Math.max(0, Math.ceil((new Date(campaign.end_date).getTime() - Date.now()) / 86400000));
     const banner = campaign.banner_url || FALLBACK_BANNERS[0];
 
-    const handleJoinSubmit = async () => {
+    const handleJoinSubmit = async (handleOverride?: string) => {
         setIsSubmitting(true);
         try {
+            const finalHandle = handleOverride || linkedHandle;
+            
+            // Safety check
+            if (campaign?.status !== 'Active') {
+                throw new Error("This campaign is currently not accepting new participants.");
+            }
+
             const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}/join`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ linkedHandle })
+                body: JSON.stringify({ linkedHandle: finalHandle })
             });
             const json = await res.json();
             if (!json.success) throw new Error(json.error);
@@ -231,9 +238,14 @@ export const CampaignDetails = () => {
                                 Submit Clip
                             </Button>
                         ) : (
-                            <Button variant="primary" onClick={() => { setJoinStep(1); setIsJoinModalOpen(true); }} className="flex items-center gap-2 bg-emerald-500 text-white hover:bg-emerald-600 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base">
+                            <Button 
+                                variant="primary" 
+                                disabled={campaign.status !== 'Active'}
+                                onClick={() => { setJoinStep(1); setIsJoinModalOpen(true); }} 
+                                className="flex items-center gap-2 bg-emerald-500 text-white hover:bg-emerald-600 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base disabled:opacity-50 disabled:grayscale"
+                            >
                                 <Rocket className="w-4 h-4 sm:w-5 sm:h-5" />
-                                Join Campaign
+                                {campaign.status === 'Active' ? 'Join Campaign' : 'Missions Paused'}
                             </Button>
                         )}
                     </div>
@@ -364,7 +376,11 @@ export const CampaignDetails = () => {
                                     {leaderboard.slice(0, 3).map((user, i) => (
                                         <div key={user.user_id} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:border-white/10 transition-all group">
                                             <div className="flex items-center gap-3">
-                                                <span className="text-lg w-7">{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
+                                                <span className="w-7 flex items-center justify-center">
+                                                    {i === 0 ? <Trophy className="w-5 h-5 text-amber-400" /> : 
+                                                     i === 1 ? <Award className="w-5 h-5 text-slate-300" /> : 
+                                                     <Medal className="w-5 h-5 text-amber-700" />}
+                                                </span>
                                                 {user.avatar_url ? (
                                                     <img src={user.avatar_url} alt={user.name} className="w-9 h-9 rounded-xl border border-white/[0.06] object-cover" />
                                                 ) : (
@@ -492,7 +508,19 @@ export const CampaignDetails = () => {
                                             </div>
                                         ))}
                                     </div>
-                                    <Button onClick={() => setJoinStep(2)} className="w-full py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl">
+                                    <Button 
+                                        onClick={() => {
+                                            // Auto-skip step 2 if no dedicated social needed and user has a handle
+                                            if (!campaign.requires_dedicated_social && user?.youtubeVerified) {
+                                                const existingHandle = user.youtubeChannels?.[0]?.handle || user.name;
+                                                setLinkedHandle(existingHandle);
+                                                handleJoinSubmit(existingHandle); // Directly attempt join with pre-selected handle
+                                            } else {
+                                                setJoinStep(2);
+                                            }
+                                        }} 
+                                        className="w-full py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
+                                    >
                                         I Agree to the Rules
                                     </Button>
                                 </div>
@@ -510,9 +538,54 @@ export const CampaignDetails = () => {
 
                                     <div className="space-y-4">
                                         {campaign.requires_discord && !user?.discordVerified && (
-                                            <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-400 text-xs flex items-center gap-3">
-                                                <X className="w-4 h-4 shrink-0" />
-                                                Discord verification required first. Link it in your Profile.
+                                            <div className="p-6 rounded-3xl bg-blue-500/5 border border-blue-500/10 text-left space-y-3">
+                                                <div className="flex items-center gap-3 text-blue-400">
+                                                    <Shield className="w-5 h-5" />
+                                                    <p className="text-xs font-bold uppercase tracking-widest">Connect Discord</p>
+                                                </div>
+                                                <p className="text-[10px] text-white/30 leading-relaxed">This mission requires you to be in our Discord server. Link your account to continue.</p>
+                                                <Button 
+                                                    onClick={async () => {
+                                                        try {
+                                                            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/discord?redirectTo=${encodeURIComponent(window.location.href)}`, {
+                                                                headers: { 'Authorization': `Bearer ${token}` }
+                                                            });
+                                                            const json = await res.json();
+                                                            if (json.success && json.url) window.location.href = json.url;
+                                                        } catch (e) {
+                                                            Toast.fire({ title: 'Error', text: 'Failed to initiate Discord link.', icon: 'error' });
+                                                        }
+                                                    }}
+                                                    className="w-full py-3 rounded-xl bg-[#5865F2] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#4752C4]"
+                                                >
+                                                    Connect Discord
+                                                </Button>
+                                            </div>
+                                        )}
+
+                                        {!campaign.requires_dedicated_social && !user?.youtubeVerified && (
+                                            <div className="p-6 rounded-3xl bg-red-500/5 border border-red-500/10 text-left space-y-3">
+                                                <div className="flex items-center gap-3 text-red-400">
+                                                    <Rocket className="w-5 h-5" />
+                                                    <p className="text-xs font-bold uppercase tracking-widest">Verify YouTube</p>
+                                                </div>
+                                                <p className="text-[10px] text-white/30 leading-relaxed">Connect your YouTube channel to finalize your participation.</p>
+                                                <Button 
+                                                    onClick={async () => {
+                                                        try {
+                                                            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/youtube?redirectTo=${encodeURIComponent(window.location.href)}`, {
+                                                                headers: { 'Authorization': `Bearer ${token}` }
+                                                            });
+                                                            const json = await res.json();
+                                                            if (json.success && json.url) window.location.href = json.url;
+                                                        } catch (e) {
+                                                            Toast.fire({ title: 'Error', text: 'Failed to initiate YouTube link.', icon: 'error' });
+                                                        }
+                                                    }}
+                                                    className="w-full py-3 rounded-xl bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-700"
+                                                >
+                                                    Connect YouTube
+                                                </Button>
                                             </div>
                                         )}
 
@@ -537,7 +610,7 @@ export const CampaignDetails = () => {
                                         <Button variant="outline" onClick={() => setJoinStep(1)} className="flex-1 py-5 rounded-2xl border-white/10 text-white/40">Back</Button>
                                         <Button 
                                             disabled={isSubmitting || (campaign.requires_discord && !user?.discordVerified) || !linkedHandle} 
-                                            onClick={handleJoinSubmit}
+                                            onClick={() => handleJoinSubmit()}
                                             className="flex-[2] py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-sm hover:scale-[1.02] disabled:opacity-30 transition-all"
                                         >
                                             {isSubmitting ? 'Joining...' : 'Finalize & Join'}
@@ -549,7 +622,7 @@ export const CampaignDetails = () => {
                             {joinStep === 3 && (
                                 <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8">
                                     <div className="mx-auto w-24 h-24 rounded-full bg-emerald-500 flex items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.3)]">
-                                        <Upload className="w-12 h-12 text-black" />
+                                        <CheckCircle className="w-12 h-12 text-black" />
                                     </div>
                                     <div className="space-y-2">
                                         <h2 className="text-4xl font-bold tracking-tight text-white">You're In!</h2>
