@@ -30,6 +30,9 @@ export class VerificationController {
    */
   static async discordCallback(req: Request, res: Response, next: NextFunction) {
     try {
+      const { code, state } = req.query;
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
       if (!code || !state) {
         return res.redirect(`${frontendUrl}/profile?discord_error=missing_params`);
       }
@@ -207,6 +210,20 @@ export class VerificationController {
       const { code, state, error } = req.query;
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 
+      // Pre-parse state to get redirects for error handling
+      let redirectTo: string | null = null;
+      let userId: string | null = null;
+      try {
+          if (state) {
+              const parsed = JSON.parse(decodeURIComponent(state as string));
+              userId = parsed.userId;
+              redirectTo = parsed.redirectTo;
+          }
+      } catch (e) {}
+
+      const successBaseRedirect = redirectTo || `${frontendUrl}/profile`;
+      const errorBaseRedirect = redirectTo || `${frontendUrl}/profile`;
+
       if (error) {
         return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}youtube_error=${encodeURIComponent('Authentication cancelled or failed.')}`);
       }
@@ -214,10 +231,6 @@ export class VerificationController {
       if (!code || !state) {
         return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}youtube_error=${encodeURIComponent('Invalid callback parameters.')}`);
       }
-
-      const { userId, redirectTo } = JSON.parse(decodeURIComponent(state as string));
-      const successBaseRedirect = redirectTo || `${frontendUrl}/profile`;
-      const errorBaseRedirect = redirectTo || `${frontendUrl}/profile`;
 
       // 1. Exchange code for token
       const clientId = process.env.GOOGLE_CLIENT_ID!;
