@@ -100,8 +100,8 @@ export const AdminDashboard = () => {
             </header>
 
 
-            {/* KPI Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* KPI Grid - Forced 4 Columns on Mobile */}
+            <div className="grid grid-cols-4 gap-2 sm:gap-6">
                 {kpis.map((kpi: any, idx: number) => {
                     const Icon = typeof kpi.icon === 'string' ? iconMap[kpi.icon] : kpi.icon;
                     return (
@@ -110,19 +110,19 @@ export const AdminDashboard = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.1 }}
-                            className="glass-panel glass-glow p-8 rounded-[2rem] group cursor-default"
+                            className="glass-panel glass-glow p-3 sm:p-8 rounded-2xl sm:rounded-[2rem] group cursor-default flex flex-col justify-between h-full"
                         >
-                            <div className="flex items-center justify-between mb-8">
-                                <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.05] group-hover:border-white/20 transition-colors duration-500">
-                                    <Icon className="w-5 h-5 text-white/40 group-hover:text-emerald-400 transition-all duration-500 group-hover:scale-110" />
+                            <div className="flex items-center justify-between mb-4 sm:mb-8">
+                                <div className="p-1.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/[0.05] group-hover:border-white/20 transition-colors duration-500">
+                                    <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white/40 group-hover:text-emerald-400 transition-all duration-500 group-hover:scale-110" />
                                 </div>
-                                <span className={`text-[10px] font-mono font-bold px-3 py-1.5 rounded-full border ${kpi.change.startsWith('+') ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-white/5 text-white/40 border-white/10'}`}>
+                                <span className={`text-[8px] sm:text-[10px] font-mono font-bold px-1.5 sm:px-3 py-0.5 sm:py-1.5 rounded-full border ${kpi.change.startsWith('+') ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-white/5 text-white/40 border-white/10'}`}>
                                     {kpi.change}
                                 </span>
                             </div>
-                            <div className="space-y-1">
-                                <p className="text-white/30 text-[10px] font-bold uppercase tracking-[0.2em]">{kpi.label}</p>
-                                <p className="text-4xl font-mono tracking-tighter font-bold text-white group-hover:text-emerald-50 transition-colors">{kpi.value}</p>
+                            <div className="space-y-0.5 sm:space-y-1">
+                                <p className="text-white/30 text-[7px] sm:text-[10px] font-bold uppercase tracking-tighter sm:tracking-[0.2em] truncate">{kpi.label}</p>
+                                <p className="text-sm sm:text-4xl font-mono tracking-tighter font-bold text-white group-hover:text-emerald-50 transition-colors truncate">{kpi.value}</p>
                             </div>
                         </motion.div>
                     );

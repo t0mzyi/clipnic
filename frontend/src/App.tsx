@@ -40,7 +40,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
     const isAdminPortal = location.pathname.startsWith('/admin');
 
     return (
-        <aside className={`fixed left-0 top-0 h-[100dvh] w-64 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-300 md:translate-x-0 ${isOpen || !isAdminPortal ? 'translate-x-0' : '-translate-x-full'} ${isAdminPortal ? 'hidden md:hidden' : 'flex'}`}>
+        <aside className={`fixed left-0 top-0 h-[100dvh] w-64 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-300 md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} ${isAdminPortal ? 'hidden md:hidden' : 'flex'}`}>
             <div className="flex items-center justify-between mb-8">
                 <Link to="/campaigns" className="flex items-center gap-2 group">
                     <img src="/logo.webp" alt="Logo" className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
@@ -203,8 +203,15 @@ const Layout = () => {
                     role: (metadata?.role as 'admin' | 'user') || 'user'
                 };
 
-                // Set initial state from session
-                login(instantUser, session.access_token);
+                // Set initial state from session metadata
+                // We use updateUser if we already have a user in the store (e.g. from persistence)
+                // to avoid overwriting detailed verification flags with basic session info.
+                const { user: currentUser, login: storeLogin, updateUser } = useAuthStore.getState();
+                if (currentUser && currentUser.id === session.user.id) {
+                    updateUser(instantUser);
+                } else {
+                    storeLogin(instantUser, session.access_token);
+                }
 
                 // 2. Sync with backend in the background to ensure DB is up to date
                 try {

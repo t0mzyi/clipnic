@@ -119,9 +119,6 @@ export const ClipperDashboard = () => {
                                 </div>
                             )}
                         </div>
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-black border-2 border-emerald-500/30 flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                        </div>
                     </div>
 
                     <div>
@@ -152,8 +149,8 @@ export const ClipperDashboard = () => {
                 <>
 
 
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Stats Grid - Forced 4 Columns on Mobile */}
+                    <div className="grid grid-cols-4 gap-2 sm:gap-4">
                         {stats.map((stat, idx) => {
                             const Icon = stat.icon;
                             return (
@@ -162,15 +159,15 @@ export const ClipperDashboard = () => {
                                     initial={{ opacity: 0, y: 12 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: idx * 0.08 }}
-                                    className={`p-5 rounded-2xl border transition-all duration-300 hover:scale-[1.02] ${stat.highlight ? 'bg-amber-500/5 border-amber-500/15' : 'bg-[#0c0c0c] border-white/[0.06]'}`}
+                                    className={`p-3 sm:p-5 rounded-2xl border transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between ${stat.highlight ? 'bg-amber-500/5 border-amber-500/15' : 'bg-[#0c0c0c] border-white/[0.06]'}`}
                                 >
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <div className={`p-1.5 rounded-lg ${stat.bg} border ${stat.border}`}>
-                                            <Icon className={`w-3.5 h-3.5 ${stat.color}`} />
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
+                                        <div className={`p-1 sm:p-1.5 rounded-lg ${stat.bg} border ${stat.border} w-fit`}>
+                                            <Icon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${stat.color}`} />
                                         </div>
-                                        <span className="text-[9px] font-bold text-white/25 uppercase tracking-widest">{stat.label}</span>
+                                        <span className="text-[7px] sm:text-[9px] font-bold text-white/25 uppercase tracking-tighter sm:tracking-widest truncate">{stat.label}</span>
                                     </div>
-                                    <p className={`text-3xl font-mono tracking-tight font-bold glassy-text ${stat.highlight ? 'text-amber-400' : 'text-white/90'}`}>{stat.value}</p>
+                                    <p className={`text-sm sm:text-3xl font-mono tracking-tighter sm:tracking-tight font-bold glassy-text truncate ${stat.highlight ? 'text-amber-400' : 'text-white/90'}`}>{stat.value}</p>
                                 </motion.div>
                             );
                         })}
