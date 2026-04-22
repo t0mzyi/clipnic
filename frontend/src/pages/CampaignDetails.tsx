@@ -174,6 +174,18 @@ export const CampaignDetails = () => {
     const daysLeft = Math.max(0, Math.ceil((new Date(campaign.end_date).getTime() - Date.now()) / 86400000));
     const banner = campaign.banner_url || FALLBACK_BANNERS[0];
 
+    // Lock body scroll when any modal is open
+    useEffect(() => {
+        if (isJoinModalOpen || isSubmitModalOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isJoinModalOpen, isSubmitModalOpen]);
+
     const fetchSync = async () => {
         if (!token) return;
         try {
@@ -707,7 +719,7 @@ export const CampaignDetails = () => {
                                                 </div>
                                             </div>
 
-                                            {((campaign.allowed_platforms?.includes('instagram') && user?.instagramVerified) || (campaign.allowed_platforms?.includes('youtube') && user?.youtubeVerified)) ? (
+                                            {(!campaign.requires_dedicated_social && ((campaign.allowed_platforms?.includes('instagram') && user?.instagramVerified) || (campaign.allowed_platforms?.includes('youtube') && user?.youtubeVerified))) ? (
                                                 <div className="py-4 space-y-4">
                                                     <div className="flex items-center gap-4 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
                                                         <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
@@ -825,156 +837,11 @@ export const CampaignDetails = () => {
                                 </motion.div>
                             )}
 
-                            {joinStep === 1 && (
-                                <div className="space-y-8">
-                                    <div className="mx-auto w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
-                                        <Shield className="w-10 h-10 text-emerald-400" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <h2 className="text-3xl font-bold tracking-tight text-white">Join & Commit</h2>
-                                        <p className="text-white/30 text-sm">Review the rules before joining this mission.</p>
-                                    </div>
-                                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 text-left space-y-4 max-h-[240px] overflow-y-auto">
-                                        {campaign.rules?.map((rule, idx) => (
-                                            <div key={idx} className="flex gap-3">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 mt-1.5 shrink-0" />
-                                                <p className="text-xs text-white/60 leading-relaxed">{rule}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <Button 
-                                        onClick={() => {
-                                            // Auto-skip step 2 if no dedicated social needed and user has a handle
-                                            if (!campaign.requires_dedicated_social && user?.youtubeVerified) {
-                                                const existingHandle = user.youtubeChannels?.[0]?.handle || user.name;
-                                                setLinkedHandle(existingHandle);
-                                                handleJoinSubmit(existingHandle); // Directly attempt join with pre-selected handle
-                                            } else {
-                                                setJoinStep(2);
-                                            }
-                                        }} 
-                                        className="w-full py-5 rounded-2xl bg-white text-zinc-950 font-bold uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
-                                    >
-                                        I Agree to the Rules
-                                    </Button>
-                                </div>
-                            )}
-
-                            {joinStep === 2 && (
-                                <div className="space-y-8">
-                                    <div className="mx-auto w-20 h-20 rounded-3xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
-                                        <Target className="w-10 h-10 text-blue-400" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <h2 className="text-3xl font-bold tracking-tight text-white">Verification</h2>
-                                        <p className="text-white/30 text-sm">Link your social handle to participate.</p>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        {campaign.requires_discord && !user?.discordVerified && (
-                                            <div className="p-6 rounded-3xl bg-blue-500/5 border border-blue-500/10 text-left space-y-3">
-                                                <div className="flex items-center gap-3 text-blue-400">
-                                                    <Shield className="w-5 h-5" />
-                                                    <p className="text-xs font-bold uppercase tracking-widest">Connect Discord</p>
-                                                </div>
-                                                <p className="text-[10px] text-white/30 leading-relaxed">This mission requires you to be in our Discord server. Link your account to continue.</p>
-                                                <Button 
-                                                    onClick={async () => {
-                                                        try {
-                                                            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/discord?redirectTo=${encodeURIComponent(window.location.href)}`, {
-                                                                headers: { 'Authorization': `Bearer ${token}` }
-                                                            });
-                                                            const json = await res.json();
-                                                            if (json.success && json.url) window.location.href = json.url;
-                                                        } catch (e) {
-                                                            Toast.fire({ title: 'Error', text: 'Failed to initiate Discord link.', icon: 'error' });
-                                                        }
-                                                    }}
-                                                    className="w-full py-3 rounded-xl bg-[#5865F2] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#4752C4]"
-                                                >
-                                                    Connect Discord
-                                                </Button>
-                                            </div>
-                                        )}
-
-                                        {!campaign.requires_dedicated_social && !user?.youtubeVerified && (
-                                            <div className="p-6 rounded-3xl bg-red-500/5 border border-red-500/10 text-left space-y-3">
-                                                <div className="flex items-center gap-3 text-red-400">
-                                                <Globe className="w-5 h-5" />
-                                                    <p className="text-xs font-bold uppercase tracking-widest">Verify YouTube</p>
-                                                </div>
-                                                <p className="text-[10px] text-white/30 leading-relaxed">Connect your YouTube channel to finalize your participation.</p>
-                                                <Button 
-                                                    onClick={async () => {
-                                                        try {
-                                                            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/youtube?redirectTo=${encodeURIComponent(window.location.href)}`, {
-                                                                headers: { 'Authorization': `Bearer ${token}` }
-                                                            });
-                                                            const json = await res.json();
-                                                            if (json.success && json.url) window.location.href = json.url;
-                                                        } catch (e) {
-                                                            Toast.fire({ title: 'Error', text: 'Failed to initiate YouTube link.', icon: 'error' });
-                                                        }
-                                                    }}
-                                                    className="w-full py-3 rounded-xl bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-700"
-                                                >
-                                                    Connect YouTube
-                                                </Button>
-                                            </div>
-                                        )}
-
-                                        <div className="space-y-1.5 text-left">
-                                            <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Social Handle</label>
-                                            <input 
-                                                value={linkedHandle}
-                                                onChange={e => setLinkedHandle(e.target.value)}
-                                                placeholder={campaign.requires_dedicated_social ? "@new_channel_handle" : "@your_handle"}
-                                                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl px-6 py-4 text-sm text-white focus:outline-none focus:border-white/20 transition-all font-mono"
-                                            />
-                                            {campaign.requires_dedicated_social && (
-                                                <p className="text-[10px] text-amber-500/60 mt-2 flex items-center gap-2">
-                                                    <Shield className="w-3 h-3" />
-                                                    This mission requires a fresh, dedicated account.
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-3">
-                                        <Button variant="outline" onClick={() => setJoinStep(1)} className="flex-1 py-5 rounded-2xl border-white/10 text-white/40">Back</Button>
-                                        <Button 
-                                            disabled={isSubmitting || (campaign.requires_discord && !user?.discordVerified) || !linkedHandle} 
-                                            onClick={() => handleJoinSubmit()}
-                                            className="flex-[2] py-5 rounded-2xl bg-white text-zinc-950 font-bold uppercase tracking-widest text-sm hover:scale-[1.02] disabled:opacity-30 transition-all"
-                                        >
-                                            {isSubmitting ? 'Joining...' : 'Finalize & Join'}
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {joinStep === 3 && (
-                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8">
-                                    <div className="mx-auto w-24 h-24 rounded-full bg-emerald-500 flex items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.3)]">
-                                        <CheckCircle className="w-12 h-12 text-black" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <h2 className="text-4xl font-bold tracking-tight text-white">You're In!</h2>
-                                        <p className="text-white/40 text-sm">Mission activated. Your progress is being tracked.</p>
-                                    </div>
-                                    <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 flex items-center justify-center gap-3">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                        <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Active Participation</p>
-                                    </div>
-                                    <Button onClick={() => setIsJoinModalOpen(false)} className="w-full py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-sm">
-                                        Start Clipping
-                                    </Button>
-                                </motion.div>
-                            )}
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                             {/* End of Join Modal Steps */}
+                         </motion.div>
+                     </motion.div>
+                 )}
+             </AnimatePresence>
 
             {/* Submit Modal */}
             <AnimatePresence>

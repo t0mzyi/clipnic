@@ -18,6 +18,11 @@ router.get('/users/:id/earnings', AdminController.getUserEarnings);
 router.get('/submissions', AdminController.getAllSubmissions);
 router.patch('/submissions/:id/status', AdminController.updateSubmissionStatus);
 
+// Payout management
+router.get('/payouts/eligible', AdminController.getEligiblePayouts);
+router.get('/payouts/history', AdminController.getPayoutHistory);
+router.post('/payouts', AdminController.processPayout);
+
 // Global settings
 router.patch('/settings', SettingsController.updateSetting);
 

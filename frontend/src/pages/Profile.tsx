@@ -269,13 +269,13 @@ export const Profile = () => {
                             <div>
                                 <div className="flex items-center gap-4">
                                     <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-white/90">Account Profile</h1>
-                                    {user?.discordVerified && user?.youtubeVerified ? (
+                                    {user?.discordVerified ? (
                                         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 shrink-0">
                                             <ShieldCheck className="w-3.5 h-3.5" />
                                             <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Verified Creator</span>
                                         </div>
                                     ) : (
-                                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 shrink-0">
+                                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-200 text-red-500 shrink-0">
                                             <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Unverified</span>
                                         </div>
                                     )}
@@ -336,9 +336,9 @@ export const Profile = () => {
                         <div className="flex items-center justify-between">
                             <h3 className="text-lg font-semibold flex items-center gap-2.5">
                                 <ShieldCheck className="w-5 h-5 text-white/40" />
-                                Premium Verification
+                                Verification
                             </h3>
-                            {user?.discordVerified && user?.youtubeVerified && user?.instagramVerified ? (
+                            {user?.discordVerified ? (
                                 <span className="text-xs font-mono font-bold px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-wider">Verified</span>
                             ) : (
                                 <span className="text-xs font-mono font-bold px-3 py-1.5 rounded-full bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 uppercase tracking-wider">Pending</span>
@@ -451,13 +451,13 @@ export const Profile = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <h2 className="text-2xl font-bold tracking-tight text-white">Withdraw Funds</h2>
-                                    <p className="text-sm text-white/40 leading-relaxed">
-                                        To process your payout, please **contact an admin** or **open a ticket** in our Discord server.
+                                    <p className="text-sm text-white/40 leading-relaxed px-4">
+                                        To process your payout, please <strong className="text-white/60">contact an admin</strong> or <strong className="text-white/60">open a ticket</strong> in our Discord server.
                                     </p>
                                 </div>
                                 <div className="pt-4 flex flex-col gap-3">
                                     <a 
-                                        href="https://discord.gg/rzhvv9Rf42" 
+                                        href="https://discord.com/channels/1298616616459702282/1495081184118444265" 
                                         target="_blank" 
                                         rel="noreferrer"
                                         className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-2xl py-4 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
@@ -478,7 +478,7 @@ export const Profile = () => {
                 )}
             </AnimatePresence>
 
-            {/* Premium Verification Modal */}
+            {/* Verification Modal */}
             <AnimatePresence>
                 {isVerifyOpen && (
                     <motion.div

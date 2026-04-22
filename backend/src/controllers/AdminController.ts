@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 import { SubmissionService } from '../services/SubmissionService';
+import { PayoutService } from '../services/PayoutService';
 
 export class AdminController {
   /**
@@ -211,6 +212,38 @@ export class AdminController {
       try {
           const { id } = req.params;
           const data = await SubmissionService.getUserEarningsSummary(id as string);
+          res.json({ success: true, data });
+      } catch (error) {
+          next(error);
+      }
+  }
+
+  /**
+   * Payout Management Endpoints
+   */
+  static async getEligiblePayouts(req: Request, res: Response, next: NextFunction) {
+      try {
+          const data = await PayoutService.getEligiblePayouts();
+          res.json({ success: true, data });
+      } catch (error) {
+          next(error);
+      }
+  }
+
+  static async processPayout(req: Request, res: Response, next: NextFunction) {
+      try {
+          const { userId, notes } = req.body;
+          const adminId = (req as any).user?.id; // From authMiddleware
+          const data = await PayoutService.processPayout(userId, adminId, notes);
+          res.json({ success: true, data });
+      } catch (error) {
+          next(error);
+      }
+  }
+
+  static async getPayoutHistory(req: Request, res: Response, next: NextFunction) {
+      try {
+          const data = await PayoutService.getPayoutHistory();
           res.json({ success: true, data });
       } catch (error) {
           next(error);

@@ -236,13 +236,13 @@ export const Earnings = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <h2 className="text-2xl font-bold tracking-tight text-white">Withdraw Funds</h2>
-                                    <p className="text-sm text-white/40 leading-relaxed">
-                                        To process your payout, please **contact an admin** or **open a ticket** in our Discord server.
+                                    <p className="text-sm text-white/40 leading-relaxed px-4">
+                                        To process your payout, please <strong className="text-white/60">contact an admin</strong> or <strong className="text-white/60">open a ticket</strong> in our Discord server.
                                     </p>
                                 </div>
                                 <div className="pt-4 flex flex-col gap-3">
                                     <a 
-                                        href="https://discord.gg/rzhvv9Rf42" 
+                                        href="https://discord.com/channels/1298616616459702282/1495081184118444265" 
                                         target="_blank" 
                                         rel="noreferrer"
                                         className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-2xl py-4 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"

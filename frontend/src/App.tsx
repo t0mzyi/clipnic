@@ -28,6 +28,7 @@ import { AdminUsers } from './pages/AdminUsers';
 import { AdminUserDetails } from './pages/AdminUserDetails';
 import { AdminSettings } from './pages/AdminSettings';
 import { AdminSubmissions } from './pages/AdminSubmissions';
+import { AdminPayouts } from './pages/AdminPayouts';
 import { JoinedCampaigns } from './pages/JoinedCampaigns';
 import { Login } from './pages/Login';
 import { supabase } from './lib/supabase';
@@ -71,7 +72,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
                         </Link>
                         <Link onClick={closeMenu} to="/campaigns/joined" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/campaigns/joined' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <Target size={18} />
-                            <span className="glassy-text">My Campaigns</span>
+                            <span className="glassy-text">Joined Campaigns</span>
                         </Link>
                         <Link onClick={closeMenu} to="/submissions" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/submissions') ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <Upload size={18} />
@@ -119,13 +120,14 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
 const AdminDock = () => {
     const location = useLocation();
     const isAdmin = useAuthStore(s => s.user?.role === 'admin');
-    
+
     if (!isAdmin) return null;
 
     const items = [
         { to: '/admin', icon: BarChart3, label: 'Stats' },
         { to: '/admin/campaigns', icon: Box, label: 'Campaigns' },
         { to: '/admin/submissions', icon: Upload, label: 'Review' },
+        { to: '/admin/payouts', icon: DollarSign, label: 'Payouts' },
         { to: '/admin/users', icon: Users, label: 'Users' },
         { to: '/admin/settings', icon: Settings, label: 'Setup' },
         { to: '/dashboard', icon: UserIcon, label: 'Exit Admin', color: 'text-emerald-400' }
@@ -136,7 +138,7 @@ const AdminDock = () => {
             <div className="ios-glass flex items-center p-1 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative">
                 {/* Surface Shine Gradient */}
                 <div className="absolute inset-x-0 top-0 h-[40%] bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none rounded-t-full" />
-                
+
                 {items.map((item) => {
                     const isActive = location.pathname === item.to || (item.to !== '/admin' && location.pathname.startsWith(item.to));
                     // Mobile-responsive icon size
@@ -150,11 +152,11 @@ const AdminDock = () => {
                             className={`relative w-11 sm:w-16 h-11 sm:h-14 flex items-center justify-center transition-all duration-500 rounded-full group ${isActive ? 'bg-white/15 text-white' : 'text-white/60 hover:text-white hover:bg-white/[0.05]'}`}
                         >
                             <item.icon size={iconSize} className={`${item.color || ''} ${isActive ? 'scale-110 drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]' : 'scale-100'} transition-transform duration-500`} />
-                            
+
                             {isActive && (
-                                <motion.div 
-                                    layoutId="dock-indicator" 
-                                    className="absolute bottom-1 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white]" 
+                                <motion.div
+                                    layoutId="dock-indicator"
+                                    className="absolute bottom-1 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white]"
                                     transition={{ type: "spring", stiffness: 400, damping: 35 }}
                                 />
                             )}
@@ -204,7 +206,7 @@ const Layout = () => {
                 };
 
                 const { user: currentUser, login: storeLogin, updateUser } = useAuthStore.getState();
-                
+
                 // CRITICAL: Only overwrite if we don't have a user or if the IDs match 
                 // BUT don't downgrade an existing 'admin' role with 'user' metadata
                 if (currentUser && currentUser.id === session.user.id) {
@@ -355,6 +357,7 @@ const Layout = () => {
                             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
                             <Route path="/admin/campaigns" element={<AdminRoute><AdminCampaigns /></AdminRoute>} />
                             <Route path="/admin/submissions" element={<AdminRoute><AdminSubmissions /></AdminRoute>} />
+                            <Route path="/admin/payouts" element={<AdminRoute><AdminPayouts /></AdminRoute>} />
                             <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
                             <Route path="/admin/users/:id" element={<AdminRoute><AdminUserDetails /></AdminRoute>} />
                             <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />

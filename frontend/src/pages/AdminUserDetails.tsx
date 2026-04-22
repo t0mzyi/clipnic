@@ -93,6 +93,7 @@ export const AdminUserDetails = () => {
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#a855f7',
+            confirmButtonColor: '#10b881',
             cancelButtonColor: '#3f3f46',
             confirmButtonText: 'Yes, mark paid',
             background: '#0c0c0c',
@@ -116,6 +117,42 @@ export const AdminUserDetails = () => {
             console.error(err);
         } finally {
             setMarkingPaid(null);
+        }
+    };
+
+    const handleBulkPayout = async () => {
+        if (!earnings || !user) return;
+        const amount = earnings.pendingPayout + earnings.claimableBalance;
+        const result = await Swal.fire({
+            title: 'Process Bulk Payout',
+            html: `Pay the full claimable balance of <b class="text-emerald-400">$${amount.toFixed(2)}</b> to <b>${user.name}</b>?`,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#10b881',
+            cancelButtonColor: '#27272a',
+            confirmButtonText: 'Yes, Process Payout',
+            background: '#0c0c0c',
+            color: '#fff',
+            customClass: { popup: 'rounded-[32px] border border-white/10' }
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/payouts`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: id })
+                });
+                const json = await res.json();
+                if (json.success) {
+                    Swal.fire({ title: 'Success', text: 'All earnings marked as paid.', icon: 'success' });
+                    fetchEarnings();
+                } else {
+                    throw new Error(json.error || 'Failed to process payout');
+                }
+            } catch (err: any) {
+                Swal.fire({ title: 'Error', text: err.message, icon: 'error' });
+            }
         }
     };
 
@@ -338,19 +375,27 @@ export const AdminUserDetails = () => {
 
                         {earnings ? (
                             <>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                                     {[
                                         { label: 'Total', value: earnings.totalEarnings, icon: TrendingUp, color: 'text-blue-500' },
                                         { label: 'Available', value: earnings.availableBalance, icon: Wallet, color: 'text-emerald-500' },
-                                        { label: 'Claimable', value: earnings.pendingPayout, icon: History, color: 'text-amber-500' },
+                                        { label: 'Claimable', value: earnings.pendingPayout + earnings.claimableBalance, icon: History, color: 'text-amber-500' },
                                         { label: 'Claimed', value: earnings.claimed, icon: Landmark, color: 'text-purple-500' },
                                     ].map((s, i) => (
-                                        <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5">
-                                            <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest flex items-center gap-1.5 mb-2">
+                                        <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 relative group/card overflow-hidden">
+                                            <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest flex items-center gap-1.5 mb-2 relative z-10">
                                                 <s.icon className={`w-3.5 h-3.5 ${s.color}`} />
                                                 {s.label}
                                             </p>
-                                            <p className="text-xl font-mono font-bold text-white/90">${s.value.toFixed(2)}</p>
+                                            <p className="text-xl font-mono font-bold text-white/90 relative z-10">${s.value.toFixed(2)}</p>
+                                            {s.label === 'Claimable' && s.value > 0 && (
+                                                <button
+                                                    onClick={handleBulkPayout}
+                                                    className="absolute inset-0 bg-amber-500/10 opacity-0 group-hover/card:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm"
+                                                >
+                                                    <span className="text-[9px] font-bold text-amber-500 uppercase tracking-widest">Process Payout</span>
+                                                </button>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
