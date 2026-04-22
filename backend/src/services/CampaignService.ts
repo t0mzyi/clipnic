@@ -137,6 +137,20 @@ export class CampaignService {
       return data;
   }
 
+  static async leaveCampaign(userId: string, campaignId: string) {
+      const { error } = await supabase
+          .from('campaign_participants')
+          .delete()
+          .eq('user_id', userId)
+          .eq('campaign_id', campaignId);
+      
+      if (error) {
+          console.error('[CampaignService] Leave error:', error);
+          throw error;
+      }
+      return true;
+  }
+
   static async create(data: any) {
     const validated = createCampaignSchema.parse(data);
     const { data: campaign, error } = await supabase

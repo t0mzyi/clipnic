@@ -97,6 +97,17 @@ export class CampaignController {
       }
   }
 
+  static async leaveCampaign(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user.id;
+      await CampaignService.leaveCampaign(userId, id as string);
+      res.json({ success: true, message: 'Successfully left campaign' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async deleteCampaign(req: Request, res: Response, next: NextFunction) {
     try {
       await CampaignService.delete(req.params.id as string);

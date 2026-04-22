@@ -10,6 +10,7 @@ router.get('/joined', authenticate, CampaignController.getJoined);
 router.get('/participations', authenticate, CampaignController.getParticipations);
 router.get('/:id', authenticate, CampaignController.getById);
 router.post('/:id/join', authenticate, CampaignController.joinCampaign);
+router.delete('/:id/leave', authenticate, CampaignController.leaveCampaign);
 
 // Admin-only routes
 router.post('/', authenticate, requireRole('admin'), CampaignController.create);
