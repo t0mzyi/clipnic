@@ -631,7 +631,7 @@ export const CampaignDetails = () => {
                         className="fixed inset-0 z-[110] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4"
                         onClick={(e) => { if (e.target === e.currentTarget && joinStep !== 3) setIsJoinModalOpen(false); }}>
                         <motion.div initial={{ y: 24, scale: 0.95, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 24, scale: 0.95, opacity: 0 }}
-                            className="bg-[#0c0c0c] border border-white/10 rounded-[32px] sm:rounded-[40px] p-4 sm:p-8 max-w-md w-full shadow-2xl relative text-center">
+                            className="bg-[#0c0c0c] border border-white/10 rounded-3xl p-5 sm:p-8 max-w-md w-full shadow-2xl relative text-center">
 
                             {/* Close Button */}
                             <button
@@ -999,7 +999,7 @@ export const CampaignDetails = () => {
                         className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
                         onClick={(e) => { if (e.target === e.currentTarget) setIsSubmitModalOpen(false); }}>
                         <motion.div initial={{ y: 24, scale: 0.97, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 24, scale: 0.97, opacity: 0 }}
-                            className="bg-[#0D0D0D] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl relative">
+                            className="bg-[#0D0D0D] border border-white/10 rounded-3xl p-5 sm:p-8 max-w-sm w-full shadow-2xl relative">
 
                             <button onClick={() => setIsSubmitModalOpen(false)} className="absolute top-6 right-6 p-2 rounded-full text-white/20 hover:text-white hover:bg-white/5 transition-all">
                                 <X className="w-5 h-5" />

@@ -38,6 +38,7 @@ export const Profile = () => {
     const [isVerifyOpen, setIsVerifyOpen] = useState(false);
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
     const [verifyStep, setVerifyStep] = useState<1 | 2>(1);
+    const [isLinkingNew, setIsLinkingNew] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     // Discord state
@@ -507,7 +508,7 @@ export const Profile = () => {
                             initial={{ y: 20, scale: 0.97, opacity: 0 }}
                             animate={{ y: 0, scale: 1, opacity: 1 }}
                             exit={{ y: 20, scale: 0.97, opacity: 0 }}
-                            className="bg-[#0D0D0D] border border-white/10 rounded-[32px] p-8 max-w-md w-full relative shadow-[0_32px_64px_-16px_rgba(0,0,0,1)]"
+                            className="bg-[#0D0D0D] border border-white/10 rounded-3xl p-5 sm:p-8 max-w-md w-full relative shadow-[0_32px_64px_-16px_rgba(0,0,0,1)]"
                         >
                             <button
                                 onClick={() => setIsWithdrawOpen(false)}
@@ -562,10 +563,10 @@ export const Profile = () => {
                             initial={{ y: 20, scale: 0.97, opacity: 0 }}
                             animate={{ y: 0, scale: 1, opacity: 1 }}
                             exit={{ y: 20, scale: 0.97, opacity: 0 }}
-                            className="bg-[#0D0D0D] border border-white/10 rounded-[32px] p-8 max-w-md w-full relative shadow-[0_32px_64px_-16px_rgba(0,0,0,1)]"
+                            className="bg-[#0D0D0D] border border-white/10 rounded-3xl p-5 sm:p-8 max-w-md w-full relative shadow-[0_32px_64px_-16px_rgba(0,0,0,1)]"
                         >
                             <button
-                                onClick={() => setIsVerifyOpen(false)}
+                                onClick={() => { setIsVerifyOpen(false); setIsLinkingNew(false); }}
                                 className="absolute top-8 right-8 text-white/20 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full"
                             >
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
@@ -637,7 +638,7 @@ export const Profile = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-6">
-                                    {selectedSocial === 'instagram' && user?.instagramVerified ? (
+                                    {selectedSocial === 'instagram' && user?.instagramVerified && !isLinkingNew ? (
                                         <div className="space-y-6 flex flex-col py-4 w-full">
                                             <div className="flex flex-col items-center justify-center space-y-4">
                                                 <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-500/20">
@@ -695,11 +696,11 @@ export const Profile = () => {
                                                 <Button
                                                     variant="secondary"
                                                     className="w-full rounded-2xl py-3 text-xs bg-white/10 text-white hover:bg-white/20"
-                                                    onClick={() => setSelectedSocial('')}
+                                                    onClick={() => setIsLinkingNew(true)}
                                                 >
                                                     + Link Another Account
                                                 </Button>
-                                                <Button variant="secondary" className="w-full rounded-2xl py-3 text-xs bg-transparent border border-white/10 text-white/50 hover:bg-white/5" onClick={() => setIsVerifyOpen(false)}>Close</Button>
+                                                <Button variant="secondary" className="w-full rounded-2xl py-3 text-xs bg-transparent border border-white/10 text-white/50 hover:bg-white/5" onClick={() => { setIsVerifyOpen(false); setIsLinkingNew(false); }}>Close</Button>
                                             </div>
                                         </div>
                                     ) : selectedSocial === 'youtube' && user?.youtubeVerified ? (
@@ -779,7 +780,7 @@ export const Profile = () => {
                                                     {isVerifying ? <div className="w-3 h-3 rounded-full border-2 border-white/20 border-t-white animate-spin" /> : null}
                                                     {isVerifying ? 'Redirecting...' : '+ Link Another Channel'}
                                                 </Button>
-                                                <Button variant="secondary" className="w-full rounded-2xl py-3 text-xs bg-transparent border border-white/10 text-white/50 hover:bg-white/5" onClick={() => setIsVerifyOpen(false)}>Close</Button>
+                                                <Button variant="secondary" className="w-full rounded-2xl py-3 text-xs bg-transparent border border-white/10 text-white/50 hover:bg-white/5" onClick={() => { setIsVerifyOpen(false); setIsLinkingNew(false); }}>Close</Button>
                                             </div>
                                         </div>
                                     ) : (
@@ -913,7 +914,7 @@ export const Profile = () => {
                                         </motion.div>
                                     )}
 
-                                    {selectedSocial === 'instagram' && !user?.instagramVerified && (
+                                    {selectedSocial === 'instagram' && (!user?.instagramVerified || isLinkingNew) && (
                                         <motion.div
                                             initial={{ opacity: 0, scale: 0.95 }}
                                             animate={{ opacity: 1, scale: 1 }}
@@ -979,7 +980,7 @@ export const Profile = () => {
                             initial={{ y: 20, scale: 0.97, opacity: 0 }}
                             animate={{ y: 0, scale: 1, opacity: 1 }}
                             exit={{ y: 20, scale: 0.97, opacity: 0 }}
-                            className="bg-[#0D0D0D] border border-white/10 rounded-[32px] p-8 max-w-sm w-full relative shadow-[0_32px_64px_-16px_rgba(0,0,0,1)]"
+                            className="bg-[#0D0D0D] border border-white/10 rounded-3xl p-6 max-w-sm w-full relative shadow-[0_32px_64px_-16px_rgba(0,0,0,1)]"
                         >
                             <button
                                 onClick={() => setIsSettingsOpen(false)}
