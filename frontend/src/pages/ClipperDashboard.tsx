@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Activity, PlaySquare, CheckCircle, Wallet, Eye, ShieldCheck, MessageSquare, Rocket, DollarSign, ChevronRight, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Activity, PlaySquare, CheckCircle, Wallet, Eye, ShieldCheck, MessageSquare, Rocket, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { useAuthStore } from '../store/useAuthStore';
