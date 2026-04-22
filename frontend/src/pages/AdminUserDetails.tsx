@@ -92,7 +92,6 @@ export const AdminUserDetails = () => {
             text: 'This will move the earnings to the Claimed column.',
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#a855f7',
             confirmButtonColor: '#10b881',
             cancelButtonColor: '#3f3f46',
             confirmButtonText: 'Yes, mark paid',

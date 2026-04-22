@@ -55,7 +55,7 @@ export const ClipperDashboard = () => {
         } catch (err) { console.error(err); }
     };
 
-    const [allCampaigns, setAllCampaigns] = useState<any[]>([]);
+    const [, setAllCampaigns] = useState<any[]>([]);
 
     // Build chart data: group views by date (last 14 days)
     const chartData = useMemo(() => {

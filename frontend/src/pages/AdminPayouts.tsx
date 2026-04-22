@@ -1,11 +1,10 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Button } from '../components/ui/Button';
 import { 
-    DollarSign, Users, History, 
     CheckCircle2, ArrowRight,
-    Search, Filter, ExternalLink,
+    Search,
     AlertCircle, Wallet, Calendar
 } from 'lucide-react';
 import Swal from 'sweetalert2';

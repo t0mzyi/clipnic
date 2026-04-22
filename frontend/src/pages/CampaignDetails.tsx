@@ -58,6 +58,8 @@ export const CampaignDetails = () => {
     const [isJoined, setIsJoined] = useState(false);
     const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
     const [joinStep, setJoinStep] = useState(1);
+    const [isDiscordTransitioning, setIsDiscordTransitioning] = useState(false);
+    const [activeStep1Tab, setActiveStep1Tab] = useState<'rules' | 'terms'>('rules');
     const [linkedHandle, setLinkedHandle] = useState('');
     
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
@@ -173,6 +175,18 @@ export const CampaignDetails = () => {
         : 0;
     const daysLeft = Math.max(0, Math.ceil((new Date(campaign.end_date).getTime() - Date.now()) / 86400000));
     const banner = campaign.banner_url || FALLBACK_BANNERS[0];
+
+    const handleNextFromRules = () => {
+        setIsDiscordTransitioning(true);
+        setTimeout(() => {
+            setIsDiscordTransitioning(false);
+            setJoinStep(2);
+        }, 1800);
+    };
+
+    const handleNextFromDiscord = () => {
+        setJoinStep(3);
+    };
 
     // Lock body scroll when any modal is open
     useEffect(() => {
@@ -599,7 +613,7 @@ export const CampaignDetails = () => {
                         <motion.div initial={{ y: 24, scale: 0.95, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 24, scale: 0.95, opacity: 0 }}
                             className="bg-[#0c0c0c] border border-white/10 rounded-[40px] p-10 max-w-lg w-full shadow-2xl relative text-center">
                             
-                            {joinStep === 1 && (
+                            {joinStep === 1 && !isDiscordTransitioning && (
                                 <div className="space-y-8">
                                     <div className="mx-auto w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)] text-emerald-400">
                                         <Shield className="w-10 h-10" />
@@ -608,19 +622,52 @@ export const CampaignDetails = () => {
                                         <div className="flex items-center justify-center gap-2 mb-1">
                                             <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-white/40 uppercase">Step 1 of 3</span>
                                         </div>
-                                        <h2 className="text-3xl font-bold tracking-tight text-white">Join & Commit</h2>
-                                        <p className="text-white/30 text-sm">Review campaign guidelines before proceeding.</p>
+                                        <h2 className="text-3xl font-bold tracking-tight text-white">Review & Agree</h2>
+                                        <p className="text-white/30 text-sm">Please study the campaign terms carefully.</p>
                                     </div>
-                                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 text-left space-y-4 max-h-[240px] overflow-y-auto custom-scrollbar">
-                                        {campaign.rules?.map((rule, idx) => (
-                                            <div key={idx} className="flex gap-3">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 mt-1.5 shrink-0" />
-                                                <p className="text-xs text-white/60 leading-relaxed">{rule}</p>
+
+                                    <div className="flex bg-white/[0.03] p-1 rounded-2xl border border-white/5 mx-auto max-w-[240px]">
+                                        <button 
+                                            onClick={() => setActiveStep1Tab('rules')}
+                                            className={`flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeStep1Tab === 'rules' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
+                                        >
+                                            Mission Rules
+                                        </button>
+                                        <button 
+                                            onClick={() => setActiveStep1Tab('terms')}
+                                            className={`flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeStep1Tab === 'terms' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
+                                        >
+                                            Terms
+                                        </button>
+                                    </div>
+
+                                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 text-left space-y-4 h-[240px] overflow-y-auto custom-scrollbar">
+                                        {activeStep1Tab === 'rules' ? (
+                                            campaign.rules?.map((rule, idx) => (
+                                                <div key={idx} className="flex gap-3">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 mt-1.5 shrink-0" />
+                                                    <p className="text-xs text-white/60 leading-relaxed">{rule}</p>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="space-y-4">
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Content Integrity</p>
+                                                    <p className="text-[11px] text-white/40 leading-relaxed italic">All clips must be organic. Use of bots, view farms, or misleading titles will result in permanent exclusion from current and future missions.</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Verification Standards</p>
+                                                    <p className="text-[11px] text-white/40 leading-relaxed italic">Claims are only processed for clips that remain active on your linked social profile at the time of verification. Deleting clips before the campaign end date voids the submission.</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Payout Eligibility</p>
+                                                    <p className="text-[11px] text-white/40 leading-relaxed italic">Users must meet the minimum view requirement stated in the mission details to be eligible for payout. Payouts are processed manually by admins after review.</p>
+                                                </div>
                                             </div>
-                                        ))}
+                                        )}
                                     </div>
                                     <Button 
-                                        onClick={() => setJoinStep(2)} 
+                                        onClick={handleNextFromRules} 
                                         className="w-full py-5 rounded-2xl bg-white text-zinc-950 font-bold uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
                                     >
                                         I Agree to the Rules
@@ -628,7 +675,26 @@ export const CampaignDetails = () => {
                                 </div>
                             )}
 
-                            {joinStep === 2 && (
+                            {isDiscordTransitioning && (
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="space-y-8 py-10"
+                                >
+                                    <div className="relative mx-auto w-24 h-24">
+                                        <div className="absolute inset-0 bg-[#5865F2]/20 rounded-full animate-ping" />
+                                        <div className="relative w-full h-full rounded-full bg-[#5865F2]/10 border border-[#5865F2]/20 flex items-center justify-center text-[#5865F2] shadow-[0_0_40px_rgba(88,101,242,0.2)]">
+                                            <Shield className="w-10 h-10" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h3 className="text-2xl font-bold tracking-tight text-white animate-pulse">Syncing Discord...</h3>
+                                        <p className="text-white/30 text-xs font-mono uppercase tracking-[0.2em]">Initiating Creator Handshake</p>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {joinStep === 2 && !isDiscordTransitioning && (
                                 <div className="space-y-8">
                                     <div className="mx-auto w-20 h-20 rounded-3xl bg-[#5865F2]/10 flex items-center justify-center border border-[#5865F2]/20 shadow-[0_0_30px_rgba(88,101,242,0.1)] text-[#5865F2]">
                                         <Shield className="w-10 h-10" />
@@ -679,7 +745,7 @@ export const CampaignDetails = () => {
                                         <Button variant="outline" onClick={() => setJoinStep(1)} className="flex-1 py-5 rounded-2xl border-white/10 text-white/40">Back</Button>
                                         <Button 
                                             disabled={!user?.discordVerified}
-                                            onClick={() => setJoinStep(3)}
+                                            onClick={handleNextFromDiscord}
                                             className="flex-[2] py-5 rounded-2xl bg-white text-zinc-950 font-bold uppercase tracking-widest text-sm hover:scale-[1.02] disabled:opacity-30 transition-all shadow-xl"
                                         >
                                             Next Step
