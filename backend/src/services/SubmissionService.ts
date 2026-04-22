@@ -181,6 +181,9 @@ export class SubmissionService {
           throw new Error("Submission not found or unauthorized.");
       }
 
+      const campaign = submission.campaigns;
+      if (!campaign) throw new Error("Campaign data missing.");
+
       // 2. Check 10-minute cooldown
       const lastUpdated = new Date(submission.updated_at).getTime();
       const now = Date.now();

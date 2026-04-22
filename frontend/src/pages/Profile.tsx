@@ -36,6 +36,7 @@ export const Profile = () => {
 
     // Modal state
     const [isVerifyOpen, setIsVerifyOpen] = useState(false);
+    const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
     const [verifyStep, setVerifyStep] = useState<1 | 2>(1);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -320,7 +321,10 @@ export const Profile = () => {
                             Balance
                         </p>
                         <p className="text-4xl font-mono tracking-tight font-bold">{stats.currentBalance}</p>
-                        <button className="mt-6 w-full py-3 bg-black text-white rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-black/90 transition-colors">
+                        <button 
+                            onClick={() => setIsWithdrawOpen(true)}
+                            className="mt-6 w-full py-3 bg-black text-white rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-black/90 transition-colors"
+                        >
                             Withdraw
                         </button>
                     </div>
@@ -417,37 +421,64 @@ export const Profile = () => {
                         </div>
                     </div>
 
-                    {/* Payouts Box - Full Width */}
-                    <div className="w-full p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] space-y-6 flex flex-col md:flex-row md:items-start md:justify-between gap-8">
-                        <div>
-                            <h3 className="text-lg font-semibold flex items-center gap-2.5">
-                                <CreditCard className="w-5 h-5 text-white/40" />
-                                Payouts
-                            </h3>
-                            <p className="text-sm text-white/30 leading-relaxed mt-2 max-w-sm">Manage where your campaign earnings are deposited. Connecting Stripe allows instant bulk payouts.</p>
-                        </div>
-                        <div className="space-y-4 md:w-1/2">
-                            <div className="flex items-center justify-between p-4 rounded-2xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-colors group">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 text-xs font-bold">P</div>
-                                    <div>
-                                        <p className="text-sm font-medium text-white/90">PayPal</p>
-                                        <p className="text-xs text-white/30">john@clipnic.com</p>
-                                    </div>
-                                </div>
-                                <button className="text-xs font-bold text-white/20 hover:text-white/50 uppercase tracking-widest transition-colors">Del</button>
-                            </div>
-                            <div className="flex items-center justify-between p-4 rounded-2xl border border-white/5 bg-dashed border-dashed opacity-30 hover:opacity-100 transition-opacity cursor-pointer">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 text-xs font-bold">S</div>
-                                    <p className="text-sm font-medium text-white/50">Connect Stripe</p>
-                                </div>
-                                <ExternalLink className="w-4 h-4 text-white/20" />
-                            </div>
-                        </div>
                     </div>
                 </div>
             </motion.div>
+
+            {/* Withdraw Modal */}
+            <AnimatePresence>
+                {isWithdrawOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+                    >
+                        <motion.div
+                            initial={{ y: 20, scale: 0.97, opacity: 0 }}
+                            animate={{ y: 0, scale: 1, opacity: 1 }}
+                            exit={{ y: 20, scale: 0.97, opacity: 0 }}
+                            className="bg-[#0D0D0D] border border-white/10 rounded-[32px] p-8 max-w-md w-full relative shadow-[0_32px_64px_-16px_rgba(0,0,0,1)]"
+                        >
+                            <button
+                                onClick={() => setIsWithdrawOpen(false)}
+                                className="absolute top-8 right-8 text-white/20 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full"
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                            </button>
+
+                            <div className="space-y-6 text-center py-4">
+                                <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-500/20 mx-auto">
+                                    <Wallet className="w-8 h-8" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h2 className="text-2xl font-bold tracking-tight text-white">Withdraw Funds</h2>
+                                    <p className="text-sm text-white/40 leading-relaxed">
+                                        To process your payout, please **contact an admin** or **open a ticket** in our Discord server.
+                                    </p>
+                                </div>
+                                <div className="pt-4 flex flex-col gap-3">
+                                    <a 
+                                        href="https://discord.gg/rzhvv9Rf42" 
+                                        target="_blank" 
+                                        rel="noreferrer"
+                                        className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-2xl py-4 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        Open Ticket on Discord
+                                    </a>
+                                    <Button 
+                                        variant="outline" 
+                                        className="w-full rounded-2xl py-4 text-xs border-white/10 text-white/50 hover:bg-white/5" 
+                                        onClick={() => setIsWithdrawOpen(false)}
+                                    >
+                                        Close
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Premium Verification Modal */}
             <AnimatePresence>

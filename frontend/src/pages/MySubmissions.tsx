@@ -15,6 +15,40 @@ export const MySubmissions = () => {
         claimableBalance: 0, 
         claimed: 0 
     });
+    const [stats, setStats] = useState({ totalClips: 0, approved: 0 });
+    const [refreshingId, setRefreshingId] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [platformFilter, setPlatformFilter] = useState('All');
+    const [sortOrder, setSortOrder] = useState('Newest');
+
+    const filteredSubmissions = useMemo(() => {
+        let result = [...submissions];
+
+        // Search filter
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            result = result.filter(s => 
+                s.campaignTitle?.toLowerCase().includes(q) || 
+                s.url?.toLowerCase().includes(q)
+            );
+        }
+
+        // Platform filter
+        if (platformFilter !== 'All') {
+            result = result.filter(s => s.platform === platformFilter);
+        }
+
+        // Sorting
+        result.sort((a, b) => {
+            if (sortOrder === 'Newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            if (sortOrder === 'Oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+            if (sortOrder === 'Views') return (b.views || 0) - (a.views || 0);
+            if (sortOrder === 'Earnings') return (b.earnings || 0) - (a.earnings || 0);
+            return 0;
+        });
+
+        return result;
+    }, [submissions, searchQuery, platformFilter, sortOrder]);
 
     const fetchAll = async () => {
         try {

@@ -45,6 +45,16 @@ export const ClipperDashboard = () => {
         } catch (err) { console.error(err); }
     };
 
+    const fetchSubmissions = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/my/summary`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success) setSubmissions(json.data.breakdown || []);
+        } catch (err) { console.error(err); }
+    };
+
     const [allCampaigns, setAllCampaigns] = useState<any[]>([]);
 
     // Build chart data: group views by date (last 14 days)

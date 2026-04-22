@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Wallet, Landmark, History, TrendingUp, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import { Button } from '../components/ui/Button';
 
 interface EarningsData {
     totalEarnings: number;
@@ -15,6 +16,7 @@ export const Earnings = () => {
     const { token } = useAuthStore();
     const [data, setData] = useState<EarningsData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
     useEffect(() => {
         if (token) fetchEarnings();
@@ -85,6 +87,14 @@ export const Earnings = () => {
                         <h1 className="text-4xl font-bold tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/50 mb-2">Earnings</h1>
                         <p className="text-white/40 text-lg font-light tracking-tight">Track your revenue and payouts in real-time.</p>
                     </div>
+
+                    <Button 
+                        onClick={() => setIsWithdrawOpen(true)}
+                        variant="primary" 
+                        className="rounded-2xl px-8 py-4 bg-white text-black hover:bg-white/90 font-bold uppercase tracking-widest text-xs shadow-[0_20px_40px_rgba(255,255,255,0.1)] transition-all active:scale-95"
+                    >
+                        Withdraw Request
+                    </Button>
                 </div>
             </div>
 
@@ -197,6 +207,61 @@ export const Earnings = () => {
                     </div>
                 </>
             )}
+
+            {/* Withdraw Modal */}
+            <AnimatePresence>
+                {isWithdrawOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+                    >
+                        <motion.div
+                            initial={{ y: 20, scale: 0.97, opacity: 0 }}
+                            animate={{ y: 0, scale: 1, opacity: 1 }}
+                            exit={{ y: 20, scale: 0.97, opacity: 0 }}
+                            className="bg-[#0D0D0D] border border-white/10 rounded-[32px] p-8 max-w-md w-full relative shadow-[0_32px_64px_-16px_rgba(0,0,0,1)]"
+                        >
+                            <button
+                                onClick={() => setIsWithdrawOpen(false)}
+                                className="absolute top-8 right-8 text-white/20 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full"
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                            </button>
+
+                            <div className="space-y-6 text-center py-4">
+                                <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-500/20 mx-auto">
+                                    <Wallet className="w-8 h-8" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h2 className="text-2xl font-bold tracking-tight text-white">Withdraw Funds</h2>
+                                    <p className="text-sm text-white/40 leading-relaxed">
+                                        To process your payout, please **contact an admin** or **open a ticket** in our Discord server.
+                                    </p>
+                                </div>
+                                <div className="pt-4 flex flex-col gap-3">
+                                    <a 
+                                        href="https://discord.gg/rzhvv9Rf42" 
+                                        target="_blank" 
+                                        rel="noreferrer"
+                                        className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-2xl py-4 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        Open Ticket on Discord
+                                    </a>
+                                    <Button 
+                                        variant="outline" 
+                                        className="w-full rounded-2xl py-4 text-xs border-white/10 text-white/50 hover:bg-white/5" 
+                                        onClick={() => setIsWithdrawOpen(false)}
+                                    >
+                                        Close
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 };
