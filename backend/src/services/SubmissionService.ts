@@ -149,6 +149,18 @@ export class SubmissionService {
         throw new Error("You must join this campaign before submitting clips.");
     }
 
+    // 2.5 Check for duplicate URL (any user)
+    const { data: existing } = await supabase
+        .from('submissions')
+        .select('id')
+        .eq('campaign_id', validated.campaign_id)
+        .eq('url', validated.url)
+        .maybeSingle();
+
+    if (existing) {
+        throw new Error("This video has already been submitted for this mission.");
+    }
+
     // 3. Check platform restrictions
     if (campaign.allowed_platforms && !campaign.allowed_platforms.includes(validated.platform)) {
         throw new Error(`This mission only allows: ${campaign.allowed_platforms.join(', ')}`);
