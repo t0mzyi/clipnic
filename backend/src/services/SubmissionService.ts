@@ -13,6 +13,8 @@ export class SubmissionService {
    * Fetches the live view count for a supported platform. 
    */
   static async fetchLiveViews(url: string, platform: string): Promise<{views: number, channelId: string | null}> {
+    const apifyToken = process.env.APIFY_TOKEN;
+
     if (platform === 'youtube') {
       try {
         const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
@@ -32,6 +34,35 @@ export class SubmissionService {
         console.error('YouTube API Error:', err);
       }
     } else if (platform === 'instagram') {
+      // PRO METHOD: Apify (Most reliable)
+      if (apifyToken) {
+          console.log(`[SubmissionService] Using Apify for Instagram Reel: ${url}`);
+          try {
+              const apifyRes = await fetch(`https://api.apify.com/v2/acts/apify~instagram-scraper/run-sync-get-dataset-items?token=${apifyToken}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ 
+                      directUrls: [url],
+                      resultsLimit: 1,
+                      proxy: { useApifyProxy: true }
+                  })
+              });
+              if (apifyRes.ok) {
+                  const items = await apifyRes.json();
+                  if (items && items.length > 0) {
+                      const post = items[0];
+                      return { 
+                          views: post.videoPlayCount || post.videoViewCount || 0, 
+                          channelId: post.ownerUsername ? `@${post.ownerUsername.toLowerCase()}` : null 
+                      };
+                  }
+              }
+          } catch (e) {
+              console.error('[SubmissionService] Apify failed:', e);
+          }
+      }
+
+      // FALLBACK: Manual Scrape (Less reliable)
       try {
         const match = url.match(/(?:\/p\/|\/reels?\/|\/tv\/)([^/?#&]+)/i);
         const shortcode = match ? match[1] : null;
@@ -70,7 +101,6 @@ export class SubmissionService {
                  }
               }
 
-              // Extract owner handle from title (e.g., "username on Instagram: 'caption'")
               if (ogTitleMatch) {
                  const title = ogTitleMatch[1];
                  const ownerMatch = title.match(/^([^ ]+) on Instagram/i) || title.match(/^([^ ]+) (@[^)]+) posted on Instagram/i);
@@ -121,34 +151,41 @@ export class SubmissionService {
     // 4. Fetch live views and channel ID via external APIs
     const { views, channelId } = await this.fetchLiveViews(validated.url, validated.platform);
     
+    // 5. Verify ownership
+    const { data: userRaw } = await supabase
+        .from('users')
+        .select('instagram_handle, instagram_handles, youtube_handle, youtube_channels')
+        .eq('id', userId)
+        .single();
+
     if (validated.platform === 'youtube') {
         if (!channelId) throw new Error("Could not pull channel details for this video.");
         
-        const { data: userRaw } = await supabase.from('users').select('youtube_channels').eq('id', userId).single();
         const existingChannels = userRaw?.youtube_channels || [];
-        
         if (existingChannels.length === 0) throw new Error("Link a YouTube channel in Profile first.");
         
-        const isOwner = existingChannels.some((c: any) => c.channelId === channelId);
+        const isOwner = existingChannels.some((c: any) => c.channelId === channelId || c.id === channelId || c.handle === channelId);
         if (!isOwner) throw new Error("This video does not belong to your verified channels.");
     } else if (validated.platform === 'instagram') {
         if (!channelId) throw new Error("Could not verify Instagram owner. Ensure the reel is public.");
         
-        const { data: userRaw } = await supabase.from('users').select('instagram_handle').eq('id', userId).single();
-        const linkedHandle = userRaw?.instagram_handle?.toLowerCase();
-        
-        const isOwner = linkedHandle === channelId;
-        if (!isOwner) throw new Error(`This reel belongs to ${channelId}, but you have linked ${linkedHandle || 'no account'}.`);
+        const verifiedHandles = userRaw?.instagram_handles || (userRaw?.instagram_handle ? [userRaw.instagram_handle] : []);
+        const cleanHandles = verifiedHandles.map((h: string) => h.toLowerCase().replace(/^@/, ''));
+        const clipOwner = channelId.toLowerCase().replace(/^@/, '');
+
+        if (!cleanHandles.includes(clipOwner)) {
+            throw new Error(`This Reel belongs to @${clipOwner}, which is not linked to your profile.`);
+        }
     }
 
-    // 5. Calculate earnings based on current views (Potential earnings)
+    // 6. Calculate earnings based on current views (Potential earnings)
     let earnings = (views / 1000) * campaign.cpm_rate;
 
     if (campaign.per_video_cap && earnings > campaign.per_video_cap) {
         earnings = campaign.per_video_cap;
     }
 
-    // 6. Final Insert
+    // 7. Final Insert
     const { data: submission, error } = await supabase
       .from('submissions')
       .insert({

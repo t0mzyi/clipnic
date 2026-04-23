@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useState, useEffect } from 'react';
-import { Shield, Eye, DollarSign, Clock, Target, Upload, ChevronLeft, X, CheckCircle, Globe, LogOut, Trophy, Award, Medal } from 'lucide-react';
+import { Shield, Eye, DollarSign, Clock, Target, Upload, ChevronLeft, X, CheckCircle, Globe, Trophy, Award, Medal } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
@@ -349,35 +349,6 @@ export const CampaignDetails = () => {
         }
     };
 
-    const handleLeaveCampaign = async () => {
-        const result = await GlobalSwal.fire({
-            title: 'Leave Campaign?',
-            text: "This will remove you from this mission. Mainly for testing purposes.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Leave',
-        });
-
-        if (result.isConfirmed) {
-            setIsSubmitting(true);
-            try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}/leave`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const json = await res.json();
-                if (!json.success) throw new Error(json.error);
-
-                setIsJoined(false);
-                setJoinStep(1);
-                Toast.fire({ title: 'Success', text: 'You have left the campaign.', icon: 'success' });
-            } catch (err: any) {
-                Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
-            } finally {
-                setIsSubmitting(false);
-            }
-        }
-    };
 
     const handleSubmitClip = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -450,19 +421,10 @@ export const CampaignDetails = () => {
 
                         {/* Dynamic Top Button */}
                         {isJoined ? (
-                            <div className="flex gap-2 h-full">
-                                <Button variant="primary" onClick={() => setIsSubmitModalOpen(true)} className="flex items-center gap-2 bg-white text-zinc-950 hover:bg-white/90 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base">
-                                    <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
-                                    Submit Clip
-                                </Button>
-                                <button 
-                                    onClick={handleLeaveCampaign}
-                                    className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-all flex items-center justify-center"
-                                    title="Leave Campaign (Test Mode)"
-                                >
-                                    <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
-                                </button>
-                            </div>
+                            <Button variant="primary" onClick={() => setIsSubmitModalOpen(true)} className="flex items-center gap-2 bg-white text-zinc-950 hover:bg-white/90 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base">
+                                <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
+                                Submit Clip
+                            </Button>
                         ) : (
                             <Button
                                 variant="primary"
