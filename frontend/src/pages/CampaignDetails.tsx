@@ -91,7 +91,33 @@ export const CampaignDetails = () => {
     const [socialVerifyError, setSocialVerifyError] = useState('');
     const [verifyCode] = useState(() => 'CLPNIC-' + Math.random().toString(36).substring(2, 8).toUpperCase());
     const [showYtCode, setShowYtCode] = useState(false);
+    const [showYtCode, setShowYtCode] = useState(false);
     const [showIgCode, setShowIgCode] = useState(false);
+
+    const handleYouTubeVerify = async () => {
+        if (!linkedHandle) return;
+        setIsVerifyingSocial(true);
+        setSocialVerifyError('');
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-youtube-bio`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ handle: linkedHandle, code: verifyCode })
+            });
+            const json = await res.json();
+            if (!json.success) throw new Error(json.error);
+
+            Toast.fire({ title: 'Verified!', text: 'YouTube account linked successfully.', icon: 'success' });
+            setShowYtCode(false);
+            setLinkedHandle(linkedHandle);
+            // Refresh user data
+            window.location.reload(); 
+        } catch (err: any) {
+            setSocialVerifyError(err.message);
+        } finally {
+            setIsVerifyingSocial(false);
+        }
+    };
 
     useEffect(() => {
         const fetchCampaign = async () => {
@@ -927,7 +953,7 @@ export const CampaignDetails = () => {
                                                     </div>
                                                 ) : null}
 
-                                                {(!showYtCode && !showIgCode) ? (
+                                                {(!showIgCode && !showYtCode) ? (
                                                     <>
                                                         <div className="space-y-1.5">
                                                             <label className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Social Handle</label>
@@ -938,15 +964,6 @@ export const CampaignDetails = () => {
                                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white placeholder:text-white/10 focus:outline-none focus:border-white/20 transition-all font-mono"
                                                             />
                                                         </div>
-                                                        {campaign.allowed_platforms?.includes('youtube') && (
-                                                            <Button
-                                                                variant="outline"
-                                                                onClick={() => setShowYtCode(true)}
-                                                                className="w-full py-3 rounded-xl border-red-500/20 text-red-400 hover:bg-red-500/5 text-[9px] font-bold uppercase tracking-widest"
-                                                            >
-                                                                Link via YouTube Bio
-                                                            </Button>
-                                                        )}
                                                         {campaign.allowed_platforms?.includes('instagram') && (
                                                             <Button
                                                                 variant="outline"
@@ -955,28 +972,41 @@ export const CampaignDetails = () => {
                                                                 className="w-full py-3 rounded-xl border-pink-500/20 text-pink-400 hover:bg-pink-500/5 text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2"
                                                             >
                                                                 {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-pink-400/20 border-t-pink-400 animate-spin" />}
-                                                                Link Instagram
+                                                                Link Instagram Bio
                                                             </Button>
                                                         )}
-
-
+                                                        {campaign.allowed_platforms?.includes('youtube') && !(user?.youtubeVerified) && (
+                                                            settings?.youtube_auth_mode === 'manual' ? (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    onClick={() => setShowYtCode(true)}
+                                                                    className="w-full py-3 rounded-xl border-red-500/20 text-red-400 hover:bg-red-500/5 text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2"
+                                                                >
+                                                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
+                                                                    Link YouTube via Bio
+                                                                </Button>
+                                                            ) : (
+                                                                <Link 
+                                                                    to="/profile"
+                                                                    className="w-full py-3 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/5 text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                                                                >
+                                                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
+                                                                    Securely Link YouTube (OAuth)
+                                                                </Link>
+                                                            )
+                                                        )}
                                                     </>
-                                                ) : (showYtCode || showIgCode) ? (
+                                                ) : (
                                                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                         <div className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl text-center space-y-3">
                                                             <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest leading-relaxed">
                                                                 Add this code to your {showYtCode ? 'YouTube channel' : 'Instagram profile'} bio
                                                             </p>
-                                                            {showIgCode && (
-                                                                <p className="text-[8px] text-pink-500/80 font-bold uppercase tracking-widest">
-                                                                    Must be a Public Profile
-                                                                </p>
-                                                            )}
                                                             <div className="bg-black/60 border border-white/10 p-4 rounded-xl font-mono text-emerald-400 text-xl tracking-widest shadow-inner">
                                                                 {verifyCode}
                                                             </div>
                                                             <button 
-                                                                onClick={() => { setShowYtCode(false); setShowIgCode(false); }} 
+                                                                onClick={() => { setShowIgCode(false); setShowYtCode(false); }} 
                                                                 className="text-[9px] text-white/30 uppercase tracking-widest hover:text-white underline"
                                                             >
                                                                 Back to handle input
@@ -989,24 +1019,6 @@ export const CampaignDetails = () => {
                                                         >
                                                             {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
                                                             Check {showYtCode ? 'YouTube' : 'Instagram'} Bio Now
-                                                        </Button>
-                                                    </div>
-                                                ) : (
-                                                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                        <div className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl text-center space-y-3">
-                                                            <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest leading-relaxed">Add this code to your YouTube channel bio</p>
-                                                            <div className="bg-black/60 border border-white/10 p-4 rounded-xl font-mono text-emerald-400 text-xl tracking-widest shadow-inner">
-                                                                {verifyCode}
-                                                            </div>
-                                                            <button onClick={() => setShowYtCode(false)} className="text-[9px] text-white/30 uppercase tracking-widest hover:text-white underline">Back to handle input</button>
-                                                        </div>
-                                                        <Button
-                                                            onClick={handleYouTubeVerify}
-                                                            disabled={isVerifyingSocial}
-                                                            className="w-full py-4 rounded-xl bg-white text-black text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl hover:scale-[1.02] transition-all"
-                                                        >
-                                                            {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
-                                                            Check YouTube Bio Now
                                                         </Button>
                                                     </div>
                                                 )}
