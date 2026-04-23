@@ -628,8 +628,10 @@ export class VerificationController {
       // Fetch Instagram Profile
       const proxyUrl = process.env.DISCORD_PROXY_URL;
       const targetUrl = proxyUrl 
-          ? `${proxyUrl}?url=${encodeURIComponent(`https://www.instagram.com/${handle}/`)}`
+          ? `${proxyUrl}${proxyUrl.includes('?') ? '&' : '?'}url=${encodeURIComponent(`https://www.instagram.com/${handle}/`)}`
           : `https://www.instagram.com/${handle}/`;
+
+      console.log(`[InstagramVerify] Requesting: ${targetUrl}`);
 
       const igRes = await fetch(targetUrl, {
           headers: {
