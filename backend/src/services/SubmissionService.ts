@@ -177,14 +177,31 @@ export class SubmissionService {
         throw new Error("You must join this campaign before submitting clips.");
     }
 
-    // 2.5 Check for duplicate URL (Global check)
-    // Normalize URL to handle common variations (query params, short links)
-    const normalizedUrl = validated.url.split('?')[0].split('#')[0].replace(/\/$/, '');
+    // Helper to normalize URLs to a canonical format
+    const normalizeUrl = (url: string, platform: string): string => {
+        let cleanUrl = url.split('?')[0].split('#')[0].replace(/\/$/, '');
+        
+        if (platform === 'youtube') {
+            const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+            if (match) return `https://www.youtube.com/watch?v=${match[1]}`;
+        } else if (platform === 'instagram') {
+            const match = url.match(/(?:\/p\/|\/reels?\/|\/tv\/)([^/?#&]+)/i);
+            if (match) return `https://www.instagram.com/reels/${match[1]}/`;
+        } else if (platform === 'tiktok') {
+            // TikTok URLs are tricky because of the username, but the video ID is the key
+            const match = url.match(/\/video\/(\d+)/i);
+            if (match) return `https://www.tiktok.com/video/${match[1]}`;
+        }
+        return cleanUrl;
+    };
+
+    const canonicalUrl = normalizeUrl(validated.url, validated.platform);
     
+    // 2.5 Check for duplicate URL (Global check)
     const { data: existing } = await supabase
         .from('submissions')
         .select('id, campaign_id')
-        .eq('url', normalizedUrl)
+        .eq('url', canonicalUrl)
         .maybeSingle();
 
     if (existing) {
@@ -267,7 +284,7 @@ export class SubmissionService {
         .insert({
             user_id: userId,
             campaign_id: validated.campaign_id,
-            url: normalizedUrl, // Store normalized
+            url: canonicalUrl, // Store canonical
             platform: validated.platform,
             views,
             earnings,
@@ -635,14 +652,26 @@ export class SubmissionService {
     }
   }
 
-  static async checkUrlAvailability(url: string) {
+  static async checkUrlAvailability(url: string, platform?: string) {
     if (!url) return { available: true };
-    const normalizedUrl = url.split('?')[0].split('#')[0].replace(/\/$/, '');
+    
+    // Canonical normalization
+    let canonicalUrl = url.split('?')[0].split('#')[0].replace(/\/$/, '');
+    if (platform === 'youtube' || url.includes('youtu')) {
+        const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+        if (match) canonicalUrl = `https://www.youtube.com/watch?v=${match[1]}`;
+    } else if (platform === 'instagram' || url.includes('instagram.com')) {
+        const match = url.match(/(?:\/p\/|\/reels?\/|\/tv\/)([^/?#&]+)/i);
+        if (match) canonicalUrl = `https://www.instagram.com/reels/${match[1]}/`;
+    } else if (platform === 'tiktok' || url.includes('tiktok.com')) {
+        const match = url.match(/\/video\/(\d+)/i);
+        if (match) canonicalUrl = `https://www.tiktok.com/video/${match[1]}`;
+    }
     
     const { data, error } = await supabase
       .from('submissions')
       .select('id, campaign_id')
-      .eq('url', normalizedUrl)
+      .eq('url', canonicalUrl)
       .maybeSingle();
 
     if (error) throw error;
