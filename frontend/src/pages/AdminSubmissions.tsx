@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { 
     Search, Filter, Layers, CheckCircle2, XCircle, 
     ExternalLink, User, Calendar, ChevronDown, 
-    Video, AlertCircle, Clock, Youtube, Instagram, Smartphone, Globe, Shield, Mail, Activity
+    Video, AlertCircle, Clock, Smartphone, Globe, Shield, Mail, Activity
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';

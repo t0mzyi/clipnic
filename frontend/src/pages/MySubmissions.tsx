@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink, X, Upload, Trash2, Target, Coins, AlertCircle, Clock, Pencil, Youtube, Instagram } from 'lucide-react';
+import { Search, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink, X, Upload, Trash2, Target, Coins, AlertCircle, Clock, Pencil, Video, Smartphone } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 import { Dropdown } from '../components/Dropdown';
@@ -684,14 +684,14 @@ export const MySubmissions = () => {
                                             onClick={() => setEditPlatform('youtube')}
                                             className={`p-4 rounded-3xl border transition-all flex flex-col items-center gap-3 ${editPlatform === 'youtube' ? 'bg-red-500/10 border-red-500/40' : 'bg-white/5 border-white/10 hover:border-white/20'}`}
                                         >
-                                            <Youtube className={`w-6 h-6 ${editPlatform === 'youtube' ? 'text-red-500' : 'text-white/20'}`} />
+                                            <Video className={`w-6 h-6 ${editPlatform === 'youtube' ? 'text-red-500' : 'text-white/20'}`} />
                                             <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">YouTube</span>
                                         </button>
                                         <button
                                             onClick={() => setEditPlatform('instagram')}
                                             className={`p-4 rounded-3xl border transition-all flex flex-col items-center gap-3 ${editPlatform === 'instagram' ? 'bg-pink-500/10 border-pink-500/40' : 'bg-white/5 border-white/10 hover:border-white/20'}`}
                                         >
-                                            <Instagram className={`w-6 h-6 ${editPlatform === 'instagram' ? 'text-pink-500' : 'text-white/20'}`} />
+                                            <Smartphone className={`w-6 h-6 ${editPlatform === 'instagram' ? 'text-pink-500' : 'text-white/20'}`} />
                                             <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">Instagram</span>
                                         </button>
                                     </div>
