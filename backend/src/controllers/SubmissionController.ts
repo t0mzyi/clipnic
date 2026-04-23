@@ -87,6 +87,8 @@ export class SubmissionController {
       const url = req.query.url as string;
       const result = await SubmissionService.checkUrlAvailability(url);
       res.json({ success: true, ...result });
+    } catch (err: any) {
+      res.status(400).json({ success: false, error: err.message });
     }
   }
 
