@@ -625,50 +625,72 @@ export class VerificationController {
         return res.status(400).json({ success: false, error: 'This Instagram account is already verified by another user.' });
       }
 
-      // Fetch Instagram Profile
-      const proxyUrl = process.env.DISCORD_PROXY_URL;
-      const targetUrl = proxyUrl 
-          ? `${proxyUrl}${proxyUrl.includes('?') ? '&' : '?'}url=${encodeURIComponent(`https://www.instagram.com/${handle}/`)}`
-          : `https://www.instagram.com/${handle}/`;
+      // Fetch Instagram Profile via Apify
+      const apifyToken = process.env.APIFY_TOKEN;
+      let html = null;
 
-      console.log(`[InstagramVerify] Requesting: ${targetUrl}`);
-
-      let igRes = await fetch(targetUrl, {
-          headers: {
-            'User-Agent': 'Twitterbot/1.1',
-            'Accept': '*/*',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
-          }
-      });
-
-      // FALLBACK: If proxy is rate limited (429), try direct request from server IP
-      if (igRes.status === 429) {
-          console.log(`[InstagramVerify] Proxy 429 - Trying direct request for ${handle}...`);
-          igRes = await fetch(`https://www.instagram.com/${handle}/`, {
-              headers: {
-                'User-Agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9',
-              }
+      if (!apifyToken) {
+          console.error('[InstagramVerify] APIFY_TOKEN is missing in .env');
+          return res.status(500).json({ 
+              success: false, 
+              error: 'Verification service is not configured. Please contact an administrator.' 
           });
-          console.log(`[InstagramVerify] Direct Request Status: ${igRes.status}`);
       }
 
-      if (!igRes.ok) {
-          throw new Error(`Could not reach Instagram (Status: ${igRes.status}). If the profile is private, bio verification will fail.`);
+      console.log(`[InstagramVerify] Requesting Apify Pro for @${handle}...`);
+      try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s max wait for Apify
+
+          const apifyRes = await fetch(`https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?token=${apifyToken}`, {
+              method: 'POST',
+              signal: controller.signal,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                  usernames: [handle],
+                  proxy: { useApifyProxy: true },
+                  maxItems: 1,
+                  resultsLimit: 1
+              })
+          });
+
+          clearTimeout(timeoutId);
+
+          if (apifyRes.ok) {
+              const items = await apifyRes.json();
+              if (items && items.length > 0) {
+                  const profile = items[0];
+                  // If Apify found the code in the bio, we use that text to pass our check
+                  if (profile.biography && profile.biography.includes(code)) {
+                      html = profile.biography;
+                  } else {
+                      // Even if code isn't there, we store the bio for debugging the error message
+                      html = profile.biography || "Bio is empty";
+                  }
+              }
+          } else {
+              const errText = await apifyRes.text();
+              console.error('[InstagramVerify] Apify Error Response:', errText);
+          }
+      } catch (e) {
+          console.error('[InstagramVerify] Apify Connection Error:', e);
       }
 
-      const html = await igRes.text();
+      const isVerified = html ? html.includes(code) : false;
       
-      // Attempt to extract bio with multiple fallbacks
+      if (!isVerified) {
+          return res.status(400).json({ 
+              success: false, 
+              error: `Verification code "${code}" not found in @${handle}'s bio. Make sure it's added correctly.`,
+              details: html === null ? "Could not reach verification service." : `We saw: "${html.slice(0, 50)}..."`
+          });
+      }
       const bioMatch = 
         html.match(/"biography":"([^"]+)"/i) || 
         html.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i) ||
         html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i) ||
-        html.match(/"description":"([^"]+)"/i);
+        html.match(/"description":"([^"]+)"/i) ||
+        html.match(/<div[^>]*class="profile-description"[^>]*>([\s\S]*?)<\/div>/i);
 
       let scrapedBio = bioMatch ? bioMatch[1] : null;
       
@@ -678,9 +700,6 @@ export class VerificationController {
       }
 
       const bioDisplay = scrapedBio ? scrapedBio.slice(0, 100) : "Could not extract bio text";
-
-      // Look for the code in the HTML (biography field or general text)
-      const isVerified = html.includes(code);
 
       if (!isVerified) {
           const isBlocked = html.includes('login') || html.includes('checkpoint') || html.length < 2000;
@@ -713,116 +732,18 @@ export class VerificationController {
     }
   }
 
-  /**
-   * Fallback: Verifies an Instagram account by checking for a unique code in a specific Reel's caption.
-   */
-  static async verifyInstagramReel(req: any, res: Response, next: NextFunction) {
-    try {
-      const { id: userId } = req.user;
-      let { reelUrl, code } = req.body;
-
-      if (!reelUrl || !code) {
-        return res.status(400).json({ success: false, error: 'Reel URL and verification code are required.' });
-      }
-
-      // Extract shortcode
-      const match = reelUrl.match(/(?:\/p\/|\/reels?\/|\/tv\/)([^/?#&]+)/i);
-      const shortcode = match ? match[1] : null;
-
-      if (!shortcode) {
-        return res.status(400).json({ success: false, error: 'Invalid Instagram Reel URL.' });
-      }
-
-      // Fetch Reel via Proxy
-      const proxyUrl = process.env.DISCORD_PROXY_URL;
-      const targetUrl = proxyUrl 
-          ? `${proxyUrl}${proxyUrl.includes('?') ? '&' : '?'}url=${encodeURIComponent(`https://www.instagram.com/reels/${shortcode}/`)}`
-          : `https://www.instagram.com/reels/${shortcode}/`;
-
-      console.log(`[ReelVerify] Requesting: ${targetUrl}`);
-
-      const igRes = await fetch(targetUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-          }
-      });
-
-      if (!igRes.ok) {
-          throw new Error(`Could not reach Instagram (Status: ${igRes.status}). Ensure the Reel is Public.`);
-      }
-
-      const html = await igRes.text();
-      
-      // 1. Check for the code in the entire HTML (usually in meta tags or script blobs)
-      const isVerified = html.includes(code);
-
-      if (!isVerified) {
-          return res.status(400).json({ 
-              success: false, 
-              error: `Verification code "${code}" not found in this Reel's caption. Make sure the Reel is Public and the code is in the description.`
-          });
-      }
-
-      // 2. Extract the handle of the Reel owner
-      const ogTitleMatch = html.match(/<meta[^>]*property="og:title"[^>]*content="([^"]+)"/i);
-      let ownerHandle = null;
-      
-      if (ogTitleMatch) {
-          const title = ogTitleMatch[1];
-          const ownerMatch = title.match(/^([^ ]+) on Instagram/i) || title.match(/^([^ ]+) (@[^)]+) posted on Instagram/i);
-          if (ownerMatch) {
-             ownerHandle = `@${ownerMatch[1].replace(/^@/, '')}`.toLowerCase();
-          }
-      }
-
-      if (!ownerHandle) {
-          return res.status(400).json({ success: false, error: "Could not identify the owner of this Reel. Please try the Bio method instead." });
-      }
-
-      // 3. Duplicate check
-      const { data: duplicateUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('instagram_handle', ownerHandle)
-        .neq('id', userId)
-        .maybeSingle();
-      
-      if (duplicateUser) {
-        return res.status(400).json({ success: false, error: `The account ${ownerHandle} is already linked to another Clipnic user.` });
-      }
-
-      // 4. Update Database
-      const { data, error } = await supabase
-        .from('users')
-        .update({ 
-            instagram_verified: true, 
-            instagram_handle: ownerHandle
-        })
-        .eq('id', userId)
-        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, instagram_handle, is_blocked')
-        .single();
-
-      if (error) throw error;
-      res.json({ success: true, data, message: `Successfully verified as ${ownerHandle}!` });
-    } catch (error: any) {
-      next(error);
-    }
-  }
-
   static async disconnectInstagram(req: any, res: Response, next: NextFunction) {
     try {
       const { id: userId } = req.user;
 
-      const { error } = await supabase
-        .from('users')
-        .update({ 
-            instagram_verified: false, 
-            instagram_handle: null
-        })
-        .eq('id', userId);
+      // For now, we only support a single primary handle in the DB
+      const { error: updateError } = await supabase.from('users').update({ 
+          instagram_verified: false, 
+          instagram_handle: null
+      }).eq('id', userId);
+      
+      if (updateError) throw updateError;
 
-      if (error) throw error;
       res.json({ success: true, message: 'Instagram account disconnected.' });
     } catch (error) {
       next(error);

@@ -94,6 +94,25 @@ export class CampaignService {
           throw new Error(`This campaign is currently ${campaign.status.toLowerCase()} and not accepting new participants.`);
       }
 
+      // Check if user is verified for at least one allowed platform
+      const { data: user } = await supabase
+          .from('users')
+          .select('instagram_verified, youtube_verified')
+          .eq('id', userId)
+          .single();
+
+      if (!user) throw new Error("User not found.");
+
+      const isVerifiedForAllowedPlatform = campaign.allowed_platforms?.some((p: string) => {
+          if (p === 'instagram') return user.instagram_verified;
+          if (p === 'youtube') return user.youtube_verified;
+          return false;
+      });
+
+      if (!isVerifiedForAllowedPlatform) {
+          throw new Error(`You must link your ${campaign.allowed_platforms?.join(' or ')} account before joining this campaign.`);
+      }
+
       const { data, error } = await supabase
           .from('campaign_participants')
           .insert({
@@ -108,30 +127,6 @@ export class CampaignService {
           console.error('[CampaignService] Join error:', error);
           if (error.code === '23505') throw new Error("You have already joined this campaign.");
           throw error;
-      }
-
-      // Sync handle to global user profile for better UX persistence
-      if (linkedHandle) {
-          try {
-              const handle = linkedHandle.startsWith('@') ? linkedHandle : `@${linkedHandle}`;
-              const isInstagram = linkedHandle.includes('instagram') || campaign.allowed_platforms?.includes('instagram');
-              const isYouTube = linkedHandle.includes('youtube') || campaign.allowed_platforms?.includes('youtube');
-
-              const updateData: any = {};
-              if (isInstagram) {
-                  updateData.instagram_handle = handle;
-                  updateData.instagram_verified = true;
-              } else if (isYouTube) {
-                  updateData.youtube_handle = handle;
-                  updateData.youtube_verified = true;
-              }
-
-              if (Object.keys(updateData).length > 0) {
-                  await supabase.from('users').update(updateData).eq('id', userId);
-              }
-          } catch (e) {
-              console.error('Failed to sync handle to profile:', e);
-          }
       }
 
       return data;
