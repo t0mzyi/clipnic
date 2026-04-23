@@ -635,10 +635,10 @@ export class VerificationController {
 
       const igRes = await fetch(targetUrl, {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate, br',
+            'User-Agent': 'Twitterbot/1.1',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
             'Upgrade-Insecure-Requests': '1'
           }
@@ -695,6 +695,103 @@ export class VerificationController {
 
       if (error) throw error;
       res.json({ success: true, data });
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  /**
+   * Fallback: Verifies an Instagram account by checking for a unique code in a specific Reel's caption.
+   */
+  static async verifyInstagramReel(req: any, res: Response, next: NextFunction) {
+    try {
+      const { id: userId } = req.user;
+      let { reelUrl, code } = req.body;
+
+      if (!reelUrl || !code) {
+        return res.status(400).json({ success: false, error: 'Reel URL and verification code are required.' });
+      }
+
+      // Extract shortcode
+      const match = reelUrl.match(/(?:\/p\/|\/reels?\/|\/tv\/)([^/?#&]+)/i);
+      const shortcode = match ? match[1] : null;
+
+      if (!shortcode) {
+        return res.status(400).json({ success: false, error: 'Invalid Instagram Reel URL.' });
+      }
+
+      // Fetch Reel via Proxy
+      const proxyUrl = process.env.DISCORD_PROXY_URL;
+      const targetUrl = proxyUrl 
+          ? `${proxyUrl}${proxyUrl.includes('?') ? '&' : '?'}url=${encodeURIComponent(`https://www.instagram.com/reels/${shortcode}/`)}`
+          : `https://www.instagram.com/reels/${shortcode}/`;
+
+      console.log(`[ReelVerify] Requesting: ${targetUrl}`);
+
+      const igRes = await fetch(targetUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+          }
+      });
+
+      if (!igRes.ok) {
+          throw new Error(`Could not reach Instagram (Status: ${igRes.status}). Ensure the Reel is Public.`);
+      }
+
+      const html = await igRes.text();
+      
+      // 1. Check for the code in the entire HTML (usually in meta tags or script blobs)
+      const isVerified = html.includes(code);
+
+      if (!isVerified) {
+          return res.status(400).json({ 
+              success: false, 
+              error: `Verification code "${code}" not found in this Reel's caption. Make sure the Reel is Public and the code is in the description.`
+          });
+      }
+
+      // 2. Extract the handle of the Reel owner
+      const ogTitleMatch = html.match(/<meta[^>]*property="og:title"[^>]*content="([^"]+)"/i);
+      let ownerHandle = null;
+      
+      if (ogTitleMatch) {
+          const title = ogTitleMatch[1];
+          const ownerMatch = title.match(/^([^ ]+) on Instagram/i) || title.match(/^([^ ]+) (@[^)]+) posted on Instagram/i);
+          if (ownerMatch) {
+             ownerHandle = `@${ownerMatch[1].replace(/^@/, '')}`.toLowerCase();
+          }
+      }
+
+      if (!ownerHandle) {
+          return res.status(400).json({ success: false, error: "Could not identify the owner of this Reel. Please try the Bio method instead." });
+      }
+
+      // 3. Duplicate check
+      const { data: duplicateUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('instagram_handle', ownerHandle)
+        .neq('id', userId)
+        .maybeSingle();
+      
+      if (duplicateUser) {
+        return res.status(400).json({ success: false, error: `The account ${ownerHandle} is already linked to another Clipnic user.` });
+      }
+
+      // 4. Update Database
+      const { data, error } = await supabase
+        .from('users')
+        .update({ 
+            instagram_verified: true, 
+            instagram_handle: ownerHandle
+        })
+        .eq('id', userId)
+        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, instagram_handle, is_blocked')
+        .single();
+
+      if (error) throw error;
+      res.json({ success: true, data, message: `Successfully verified as ${ownerHandle}!` });
     } catch (error: any) {
       next(error);
     }
