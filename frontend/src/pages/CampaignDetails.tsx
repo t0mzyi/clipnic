@@ -91,7 +91,6 @@ export const CampaignDetails = () => {
     const [socialVerifyError, setSocialVerifyError] = useState('');
     const [verifyCode] = useState(() => 'CLPNIC-' + Math.random().toString(36).substring(2, 8).toUpperCase());
     const [showYtCode, setShowYtCode] = useState(false);
-    const [showYtCode, setShowYtCode] = useState(false);
     const [showIgCode, setShowIgCode] = useState(false);
 
     const handleYouTubeVerify = async () => {
@@ -321,32 +320,7 @@ export const CampaignDetails = () => {
         }
     };
 
-    const handleYouTubeVerify = async () => {
-        if (!linkedHandle) {
-            Toast.fire({ title: 'Error', text: 'Please enter your YouTube Handle', icon: 'error' });
-            return;
-        }
-        setIsVerifyingSocial(true);
-        setSocialVerifyError('');
-        try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-youtube`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ handle: linkedHandle, code: verifyCode })
-            });
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-
-            Toast.fire({ title: 'Success', text: 'YouTube channel linked!', icon: 'success' });
-            await fetchSync();
-            handleJoinSubmit();
-        } catch (err: any) {
-            setSocialVerifyError(err.message);
-        } finally {
-            setIsVerifyingSocial(false);
-        }
-    };
 
     const handleJoinSubmit = async (handleOverride?: string) => {
         setIsSubmitting(true);
@@ -955,15 +929,20 @@ export const CampaignDetails = () => {
 
                                                 {(!showIgCode && !showYtCode) ? (
                                                     <>
-                                                        <div className="space-y-1.5">
-                                                            <label className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Social Handle</label>
-                                                            <input
-                                                                value={linkedHandle}
-                                                                onChange={e => setLinkedHandle(e.target.value)}
-                                                                placeholder="@your_handle"
-                                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white placeholder:text-white/10 focus:outline-none focus:border-white/20 transition-all font-mono"
-                                                            />
-                                                        </div>
+                                                        {/* Only show manual handle input if Instagram is allowed OR if YouTube is in manual mode */}
+                                                        {(campaign.allowed_platforms?.includes('instagram') || 
+                                                          (campaign.allowed_platforms?.includes('youtube') && settings?.youtube_auth_mode === 'manual')) && (
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Social Handle</label>
+                                                                <input
+                                                                    value={linkedHandle}
+                                                                    onChange={e => setLinkedHandle(e.target.value)}
+                                                                    placeholder="@your_handle"
+                                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white placeholder:text-white/10 focus:outline-none focus:border-white/20 transition-all font-mono"
+                                                                />
+                                                            </div>
+                                                        )}
+
                                                         {campaign.allowed_platforms?.includes('instagram') && (
                                                             <Button
                                                                 variant="outline"
