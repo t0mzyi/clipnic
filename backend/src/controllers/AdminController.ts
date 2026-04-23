@@ -115,8 +115,8 @@ export class AdminController {
   static async updateSubmissionStatus(req: Request, res: Response, next: NextFunction) {
       try {
           const { id } = req.params;
-          const { status } = req.body as { status: string };
-          const data = await SubmissionService.adminUpdateStatus(id as string, status);
+          const { status, rejectionReason } = req.body as { status: string, rejectionReason?: string };
+          const data = await SubmissionService.adminUpdateStatus(id as string, status, rejectionReason);
           res.json({ success: true, data });
       } catch (error) {
           next(error);

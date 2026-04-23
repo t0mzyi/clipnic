@@ -492,10 +492,21 @@ export class SubmissionService {
     return data;
   }
 
-  static async adminUpdateStatus(submissionId: string, status: string) {
+  static async adminUpdateStatus(submissionId: string, status: string, rejectionReason?: string) {
+    const updateData: any = { 
+        status, 
+        updated_at: new Date().toISOString() 
+    };
+    
+    if (status === 'Rejected' && rejectionReason) {
+        updateData.rejection_reason = rejectionReason;
+    } else if (status === 'Verified') {
+        updateData.rejection_reason = null;
+    }
+
     const { data, error } = await supabase
       .from('submissions')
-      .update({ status, updated_at: new Date().toISOString() })
+      .update(updateData)
       .eq('id', submissionId)
       .select()
       .single();
@@ -586,6 +597,7 @@ export class SubmissionService {
         views: sub.views,
         earnings: earningCategory === 'failed' ? 0 : earnings,
         status: sub.status,
+        rejection_reason: sub.rejection_reason,
         earningCategory,
         campaignTitle: campaign?.title || 'Unknown',
         campaignStatus: campaign?.status,

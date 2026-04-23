@@ -411,6 +411,16 @@ export const MySubmissions = () => {
                                             {sub.earningCategory === 'claimed' && (
                                                 <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Paid Out</span>
                                             )}
+                                            {sub.earningCategory === 'rejected' && (
+                                                <div className="flex flex-col gap-1 w-full max-w-[200px]">
+                                                    <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-red-500/10 text-red-400 border border-red-500/20 w-fit">Rejected</span>
+                                                    {sub.rejection_reason && (
+                                                        <p className="text-[9px] text-red-400/60 leading-relaxed italic border-l border-red-500/20 pl-2 py-0.5 bg-red-500/[0.02] rounded-r-lg">
+                                                            {sub.rejection_reason}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
                                             <p className="text-[10px] text-white/10 uppercase tracking-widest font-medium ml-1">Campaign: {sub.campaignStatus}</p>
                                         </div>
                                     </td>

@@ -1,9 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { 
-    Search, Filter, Layers, CheckCircle2, XCircle, 
-    ExternalLink, User, Calendar, ChevronDown, 
-    Video, AlertCircle, Clock
+    Video, AlertCircle, Clock, Youtube, Instagram, Smartphone, Globe, Shield, Mail, Activity
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
@@ -19,6 +17,9 @@ export const AdminSubmissions = () => {
     const [filterStatus, setFilterStatus] = useState(searchParams.get('status') || 'all');
     const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
     const [expandedCampaignId, setExpandedCampaignId] = useState<string | null>(null);
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+    const [fetchingUser, setFetchingUser] = useState(false);
 
     const fetchSubmissions = async () => {
         try {
@@ -39,6 +40,32 @@ export const AdminSubmissions = () => {
     }, [token]);
 
     const handleUpdateStatus = async (id: string, status: 'Verified' | 'Rejected' | 'Pending') => {
+        let rejectionReason = undefined;
+
+        if (status === 'Rejected') {
+            const { value: reason, isDismissed } = await Swal.fire({
+                title: 'Rejection Reason',
+                input: 'textarea',
+                inputPlaceholder: 'Why is this clip being rejected? (e.g. Invalid URL, low quality, duplicate...)',
+                inputAttributes: {
+                    'aria-label': 'Type your reason here'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Confirm Reject',
+                confirmButtonColor: '#ef4444',
+                background: '#0D0D0D',
+                color: '#fff',
+                customClass: {
+                    input: 'bg-white/5 border-white/10 text-white rounded-xl focus:border-red-500/50 focus:ring-0',
+                    confirmButton: 'rounded-xl font-bold uppercase tracking-widest text-[10px] px-8 py-4',
+                    cancelButton: 'rounded-xl font-bold uppercase tracking-widest text-[10px] px-8 py-4'
+                }
+            });
+
+            if (isDismissed || reason === undefined) return;
+            rejectionReason = reason;
+        }
+
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/submissions/${id}/status`, {
                 method: 'PATCH',
@@ -46,11 +73,11 @@ export const AdminSubmissions = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ status })
+                body: JSON.stringify({ status, rejectionReason })
             });
             const json = await res.json();
             if (json.success) {
-                setSubmissions(submissions.map(s => s.id === id ? { ...s, status } : s));
+                setSubmissions(submissions.map(s => s.id === id ? { ...s, status, rejection_reason: rejectionReason } : s));
                 Swal.fire({
                     title: `Marked as ${status}`,
                     icon: 'success',
@@ -64,6 +91,24 @@ export const AdminSubmissions = () => {
             }
         } catch (err) {
             Swal.fire({ title: 'Error', text: 'Failed to update status', icon: 'error' });
+        }
+    };
+
+    const fetchUserDetails = async (userId: string) => {
+        setFetchingUser(true);
+        setIsUserModalOpen(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${userId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success) {
+                setSelectedUser(json.data);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setFetchingUser(false);
         }
     };
 
@@ -262,9 +307,17 @@ export const AdminSubmissions = () => {
                                                                 </div>
                                                                 <div className="flex flex-col min-w-0">
                                                                     <span className="text-sm font-bold text-white/90 truncate group-hover/row:text-white">{sub.users?.name || 'Unknown'}</span>
-                                                                    <a href={sub.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-emerald-500/40 hover:text-emerald-400 flex items-center gap-1 mt-0.5 transition-colors">
-                                                                        Open Clip <ExternalLink className="w-2.5 h-2.5" />
-                                                                    </a>
+                                                                    <div className="flex items-center gap-2 mt-1">
+                                                                        <a href={sub.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-emerald-500/40 hover:text-emerald-400 flex items-center gap-1 transition-colors">
+                                                                            Open Clip <ExternalLink className="w-2.5 h-2.5" />
+                                                                        </a>
+                                                                        <button 
+                                                                            onClick={() => fetchUserDetails(sub.user_id)}
+                                                                            className="text-[10px] text-white/20 hover:text-white/60 transition-colors flex items-center gap-1"
+                                                                        >
+                                                                            • View Account <User className="w-2.5 h-2.5" />
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -328,6 +381,129 @@ export const AdminSubmissions = () => {
                     </div>
                 ))}
             </div>
+
+            {/* User Details Modal */}
+            <AnimatePresence>
+                {isUserModalOpen && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsUserModalOpen(false)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-lg bg-[#0c0c0c] border border-white/10 rounded-[40px] shadow-2xl overflow-hidden"
+                        >
+                            {fetchingUser ? (
+                                <div className="p-20 flex flex-col items-center justify-center gap-4">
+                                    <div className="w-10 h-10 border-2 border-white/10 border-t-white rounded-full animate-spin" />
+                                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Fetching Profile...</p>
+                                </div>
+                            ) : selectedUser && (
+                                <div className="flex flex-col">
+                                    {/* Header */}
+                                    <div className="p-8 pb-4 flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                                                {selectedUser.avatar_url ? (
+                                                    <img src={selectedUser.avatar_url} className="w-full h-full object-cover" alt="" />
+                                                ) : (
+                                                    <User className="w-8 h-8 text-white/10" />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <h2 className="text-xl font-bold text-white">{selectedUser.name}</h2>
+                                                <p className="text-sm text-white/40">{selectedUser.email}</p>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => setIsUserModalOpen(false)} className="p-2 rounded-xl bg-white/5 text-white/40 hover:text-white transition-colors">
+                                            <XCircle className="w-6 h-6" />
+                                        </button>
+                                    </div>
+
+                                    {/* Social Details */}
+                                    <div className="p-8 space-y-6">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {/* YouTube */}
+                                            <div className={`p-5 rounded-3xl border transition-all ${selectedUser.youtube_verified ? 'bg-red-500/5 border-red-500/20' : 'bg-white/[0.02] border-white/5 opacity-50'}`}>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <Youtube className={`w-5 h-5 ${selectedUser.youtube_verified ? 'text-red-500' : 'text-white/20'}`} />
+                                                    {selectedUser.youtube_verified && <Shield className="w-3.5 h-3.5 text-red-500/50" />}
+                                                </div>
+                                                <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">YouTube</p>
+                                                <p className="text-xs font-mono text-white/70 mt-1 truncate">{selectedUser.youtube_handle || 'Not Linked'}</p>
+                                            </div>
+
+                                            {/* Instagram */}
+                                            <div className={`p-5 rounded-3xl border transition-all ${selectedUser.instagram_verified ? 'bg-pink-500/5 border-pink-500/20' : 'bg-white/[0.02] border-white/5 opacity-50'}`}>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <Instagram className={`w-5 h-5 ${selectedUser.instagram_verified ? 'text-pink-500' : 'text-white/20'}`} />
+                                                    {selectedUser.instagram_verified && <Shield className="w-3.5 h-3.5 text-pink-500/50" />}
+                                                </div>
+                                                <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Instagram</p>
+                                                <p className="text-xs font-mono text-white/70 mt-1 truncate">{selectedUser.instagram_handle || 'Not Linked'}</p>
+                                            </div>
+
+                                            {/* TikTok */}
+                                            <div className={`p-5 rounded-3xl border transition-all ${selectedUser.tiktok_verified ? 'bg-blue-500/5 border-blue-500/20' : 'bg-white/[0.02] border-white/5 opacity-50'}`}>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <Smartphone className={`w-5 h-5 ${selectedUser.tiktok_verified ? 'text-blue-400' : 'text-white/20'}`} />
+                                                    {selectedUser.tiktok_verified && <Shield className="w-3.5 h-3.5 text-blue-400/50" />}
+                                                </div>
+                                                <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">TikTok</p>
+                                                <p className="text-xs font-mono text-white/70 mt-1 truncate">{selectedUser.tiktok_handle || 'Not Linked'}</p>
+                                            </div>
+
+                                            {/* Discord */}
+                                            <div className={`p-5 rounded-3xl border transition-all ${selectedUser.discord_verified ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-white/[0.02] border-white/5 opacity-50'}`}>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <Globe className={`w-5 h-5 ${selectedUser.discord_verified ? 'text-indigo-400' : 'text-white/20'}`} />
+                                                    {selectedUser.discord_verified && <Shield className="w-3.5 h-3.5 text-indigo-400/50" />}
+                                                </div>
+                                                <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Discord</p>
+                                                <p className="text-xs font-mono text-white/70 mt-1 truncate">{selectedUser.discord_id || 'Not Linked'}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2 text-white/40">
+                                                    <Activity className="w-4 h-4" />
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest">Account Status</span>
+                                                </div>
+                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${selectedUser.is_blocked ? 'text-red-500 bg-red-500/10 border-red-500/20' : 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20'}`}>
+                                                    {selectedUser.is_blocked ? 'Restricted' : 'Healthy'}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2 text-white/40">
+                                                    <Mail className="w-4 h-4" />
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest">Internal ID</span>
+                                                </div>
+                                                <span className="text-[10px] font-mono text-white/20 truncate max-w-[150px]">{selectedUser.id}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 bg-white/[0.02] border-t border-white/5 flex gap-3">
+                                        <button 
+                                            onClick={() => setIsUserModalOpen(false)}
+                                            className="flex-1 py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-[10px] font-bold uppercase tracking-widest transition-all"
+                                        >
+                                            Close Profile
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
