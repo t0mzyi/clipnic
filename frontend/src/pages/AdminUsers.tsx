@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
-import { Search, ShieldCheck, ShieldAlert, MessageSquare, ExternalLink, Users } from 'lucide-react';
+import { Search, ShieldCheck, ShieldAlert, MessageSquare, ExternalLink, Users, Calendar } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { Dropdown } from '../components/Dropdown';
 
 const YoutubeIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-red-500">
@@ -50,6 +51,7 @@ export const AdminUsers = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const { token } = useAuthStore();
 
@@ -170,16 +172,28 @@ export const AdminUsers = () => {
                 )}
             </div>
 
-            {/* Search */}
-            <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-white/40 transition-colors" />
-                <input 
-                    type="text" 
-                    placeholder="Search by name or email..." 
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full bg-[#0c0c0c] border border-white/[0.06] rounded-xl px-11 py-3.5 text-sm text-white focus:outline-none focus:border-white/15 transition-all placeholder:text-white/15"
-                />
+            {/* Search & Sort */}
+            <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative group flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-white/40 transition-colors" />
+                    <input 
+                        type="text" 
+                        placeholder="Search by name or email..." 
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full bg-[#0c0c0c] border border-white/[0.06] rounded-xl px-11 py-3.5 text-sm text-white focus:outline-none focus:border-white/15 transition-all placeholder:text-white/15"
+                    />
+                </div>
+                <div className="w-full md:w-48">
+                    <Dropdown 
+                        value={sortOrder}
+                        onChange={(val: any) => setSortOrder(val)}
+                        options={[
+                            { label: 'Newest First', value: 'newest', icon: <Calendar size={14} /> },
+                            { label: 'Oldest First', value: 'oldest', icon: <Calendar size={14} /> },
+                        ]}
+                    />
+                </div>
             </div>
 
             {/* Users Table */}
@@ -201,7 +215,11 @@ export const AdminUsers = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/[0.03]">
-                                {users.map((user) => {
+                                {[...users].sort((a, b) => {
+                                    const dateA = new Date((a as any).created_at || 0).getTime();
+                                    const dateB = new Date((b as any).created_at || 0).getTime();
+                                    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+                                }).map((user) => {
                                     const isAdmin = user.role === 'admin';
                                     return (
                                         <tr key={user.id} className={`group hover:bg-white/[0.02] transition-all duration-200 ${isAdmin ? 'bg-red-500/[0.02]' : ''}`}>

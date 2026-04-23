@@ -280,11 +280,15 @@ export class SubmissionService {
     if (error) throw error;
 
     // 8. Update Campaign Stats
-    await supabase.rpc('increment_campaign_stats', {
+    const { error: rpcErr } = await supabase.rpc('increment_campaign_stats', {
         camp_id: validated.campaign_id,
         earnings_add: earnings,
-        views_add: contributingViews
+        views_add: Math.floor(contributingViews)
     });
+
+    if (rpcErr) {
+        console.error('[SubmissionService] RPC Error during initial create increment:', rpcErr);
+    }
 
     // 8. Auto-complete mission if budget hit
     const { data: updatedCampaign } = await supabase
@@ -407,11 +411,17 @@ export class SubmissionService {
            deltaEarnings
        });
 
-       await supabase.rpc('increment_campaign_stats', {
+       const { error: rpcErr } = await supabase.rpc('increment_campaign_stats', {
            camp_id: submission.campaign_id,
            earnings_add: deltaEarnings,
            views_add: Math.floor(deltaViews) // Ensure integer
        });
+
+       if (rpcErr) {
+           console.error('[SubmissionService] RPC Error incrementing campaign stats:', rpcErr);
+       } else {
+           console.log('[SubmissionService] Successfully incremented campaign stats.');
+       }
 
       // 7. Auto-complete mission if budget hit
       const { data: updatedCampaign } = await supabase

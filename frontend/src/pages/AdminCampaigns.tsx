@@ -344,7 +344,9 @@ export const AdminCampaigns = () => {
                                             } : undefined}>
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-col">
-                                                    <span className="font-bold text-white/90">{camp.title}</span>
+                                                    <Link to={`/campaigns/${camp.id}`} target="_blank" className="font-bold text-white/90 hover:text-white transition-colors">
+                                                        {camp.title}
+                                                    </Link>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         {camp.is_featured && <Star size={10} className="text-purple-400 fill-purple-400" />}
                                                         <span className="text-[10px] text-white/30 font-mono">Ends {new Date(camp.end_date).toLocaleDateString()}</span>
@@ -411,6 +413,7 @@ export const AdminCampaigns = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-right flex items-center justify-end gap-1">
+                                                <Link to={`/campaigns/${camp.id}`} target="_blank" className="p-2 text-white/20 hover:text-white transition-colors" title="Preview Campaign"><Eye className="w-4 h-4" /></Link>
                                                 <button onClick={() => handleEditClick(camp)} className="p-2 text-white/20 hover:text-amber-400 transition-colors" title="Edit Campaign"><Pencil className="w-4 h-4" /></button>
                                                 <button onClick={() => handleToggleStatus(camp)} className="p-2 text-white/20 hover:text-white transition-colors" title={camp.status === 'Active' ? 'Pause' : 'Activate'}>
                                                     {camp.status === 'Active' ? <ToggleRight className="w-5 h-5 text-emerald-400" /> : <ToggleLeft className="w-5 h-5" />}

@@ -12,6 +12,7 @@ export const AdminSubmissions = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState(searchParams.get('search') || '');
     const [filterStatus, setFilterStatus] = useState(searchParams.get('status') || 'all');
+    const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
     const fetchSubmissions = async () => {
         try {
@@ -69,6 +70,10 @@ export const AdminSubmissions = () => {
         const matchesStatus = filterStatus === 'all' || s.status === filterStatus;
         
         return matchesSearch && matchesStatus;
+    }).sort((a, b) => {
+        const dateA = new Date(a.created_at || 0).getTime();
+        const dateB = new Date(b.created_at || 0).getTime();
+        return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
     if (loading) return (
@@ -123,6 +128,16 @@ export const AdminSubmissions = () => {
                             { label: 'Pending', value: 'Pending', icon: <div className="w-2 h-2 rounded-full bg-amber-500" /> },
                             { label: 'Verified', value: 'Verified', icon: <div className="w-2 h-2 rounded-full bg-emerald-500" /> },
                             { label: 'Rejected', value: 'Rejected', icon: <div className="w-2 h-2 rounded-full bg-red-500" /> },
+                        ]}
+                    />
+                </div>
+                <div className="w-full">
+                    <Dropdown 
+                        value={sortOrder}
+                        onChange={(val: any) => setSortOrder(val)}
+                        options={[
+                            { label: 'Newest Submissions', value: 'newest', icon: <Calendar size={14} /> },
+                            { label: 'Oldest Submissions', value: 'oldest', icon: <Calendar size={14} /> },
                         ]}
                     />
                 </div>
