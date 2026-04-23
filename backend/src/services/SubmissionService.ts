@@ -483,8 +483,8 @@ export class SubmissionService {
       .from('submissions')
       .select(`
          *,
-         campaigns (title, cpm_rate),
-         users (name, avatar_url, email)
+         campaigns (id, title, cpm_rate),
+         users (id, name, avatar_url, email, instagram_handle, youtube_handle, youtube_channels)
       `)
       .order('created_at', { ascending: false });
       

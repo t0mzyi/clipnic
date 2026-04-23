@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { 
     Search, Filter, Layers, CheckCircle2, XCircle, 
     ExternalLink, User, Calendar, ChevronDown, 
-    Video, AlertCircle, Clock, Smartphone, Globe, Shield, Mail, Activity
+    Video, AlertCircle, Clock, Smartphone, Shield, Mail, Activity
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
@@ -22,6 +22,7 @@ export const AdminSubmissions = () => {
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [fetchingUser, setFetchingUser] = useState(false);
+    const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
 
     const fetchSubmissions = async () => {
         try {
@@ -96,8 +97,9 @@ export const AdminSubmissions = () => {
         }
     };
 
-    const fetchUserDetails = async (userId: string) => {
+    const fetchUserDetails = async (userId: string, sub: any) => {
         setFetchingUser(true);
+        setSelectedSubmission(sub);
         setIsUserModalOpen(true);
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${userId}`, {
@@ -314,7 +316,7 @@ export const AdminSubmissions = () => {
                                                                             Open Clip <ExternalLink className="w-2.5 h-2.5" />
                                                                         </a>
                                                                         <button 
-                                                                            onClick={() => fetchUserDetails(sub.user_id)}
+                                                                            onClick={() => fetchUserDetails(sub.user_id, sub)}
                                                                             className="text-[10px] text-white/20 hover:text-white/60 transition-colors flex items-center gap-1"
                                                                         >
                                                                             • View Account <User className="w-2.5 h-2.5" />
@@ -429,22 +431,37 @@ export const AdminSubmissions = () => {
                                     </div>
 
                                     {/* Social Details */}
-                                    <div className="p-8 space-y-6">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            {/* YouTube */}
-                                            <div className={`p-5 rounded-3xl border transition-all ${selectedUser.youtube_verified ? 'bg-red-500/5 border-red-500/20' : 'bg-white/[0.02] border-white/5 opacity-50'}`}>
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <Youtube className={`w-5 h-5 ${selectedUser.youtube_verified ? 'text-red-500' : 'text-white/20'}`} />
-                                                    {selectedUser.youtube_verified && <Shield className="w-3.5 h-3.5 text-red-500/50" />}
+                                    <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                                        {/* Submission Context (New Section) */}
+                                        {selectedSubmission && (
+                                            <div className="p-6 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 mb-2">
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+                                                        <Video className="w-5 h-5 text-emerald-500" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-emerald-500/40 uppercase tracking-widest">Active Submission</p>
+                                                        <h4 className="text-sm font-bold text-white uppercase">{selectedSubmission.platform} Content</h4>
+                                                    </div>
                                                 </div>
-                                                <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">YouTube</p>
-                                                <p className="text-xs font-mono text-white/70 mt-1 truncate">{selectedUser.youtube_handle || 'Not Linked'}</p>
+                                                <div className="flex flex-col gap-2">
+                                                    <a 
+                                                        href={selectedSubmission.url} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-white/90 transition-all"
+                                                    >
+                                                        Review Video <ExternalLink className="w-3 h-3" />
+                                                    </a>
+                                                </div>
                                             </div>
+                                        )}
 
+                                        <div className="grid grid-cols-2 gap-4">
                                             {/* Instagram */}
                                             <div className={`p-5 rounded-3xl border transition-all ${selectedUser.instagram_verified ? 'bg-pink-500/5 border-pink-500/20' : 'bg-white/[0.02] border-white/5 opacity-50'}`}>
                                                 <div className="flex items-center justify-between mb-4">
-                                                    <Instagram className={`w-5 h-5 ${selectedUser.instagram_verified ? 'text-pink-500' : 'text-white/20'}`} />
+                                                    <Smartphone className={`w-5 h-5 ${selectedUser.instagram_verified ? 'text-pink-500' : 'text-white/20'}`} />
                                                     {selectedUser.instagram_verified && <Shield className="w-3.5 h-3.5 text-pink-500/50" />}
                                                 </div>
                                                 <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Instagram</p>
@@ -452,25 +469,45 @@ export const AdminSubmissions = () => {
                                             </div>
 
                                             {/* TikTok */}
-                                            <div className={`p-5 rounded-3xl border transition-all ${selectedUser.tiktok_verified ? 'bg-blue-500/5 border-blue-500/20' : 'bg-white/[0.02] border-white/5 opacity-50'}`}>
+                                            <div className={`p-5 rounded-3xl border transition-all ${selectedUser.tiktok_verified ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-white/[0.02] border-white/5 opacity-50'}`}>
                                                 <div className="flex items-center justify-between mb-4">
-                                                    <Smartphone className={`w-5 h-5 ${selectedUser.tiktok_verified ? 'text-blue-400' : 'text-white/20'}`} />
-                                                    {selectedUser.tiktok_verified && <Shield className="w-3.5 h-3.5 text-blue-400/50" />}
+                                                    <Smartphone className={`w-5 h-5 ${selectedUser.tiktok_verified ? 'text-cyan-500' : 'text-white/20'}`} />
+                                                    {selectedUser.tiktok_verified && <Shield className="w-3.5 h-3.5 text-cyan-500/50" />}
                                                 </div>
                                                 <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">TikTok</p>
                                                 <p className="text-xs font-mono text-white/70 mt-1 truncate">{selectedUser.tiktok_handle || 'Not Linked'}</p>
                                             </div>
-
-                                            {/* Discord */}
-                                            <div className={`p-5 rounded-3xl border transition-all ${selectedUser.discord_verified ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-white/[0.02] border-white/5 opacity-50'}`}>
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <Globe className={`w-5 h-5 ${selectedUser.discord_verified ? 'text-indigo-400' : 'text-white/20'}`} />
-                                                    {selectedUser.discord_verified && <Shield className="w-3.5 h-3.5 text-indigo-400/50" />}
-                                                </div>
-                                                <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Discord</p>
-                                                <p className="text-xs font-mono text-white/70 mt-1 truncate">{selectedUser.discord_id || 'Not Linked'}</p>
-                                            </div>
                                         </div>
+
+                                        {/* YouTube Channels List */}
+                                        {selectedUser.youtube_channels && selectedUser.youtube_channels.length > 0 && (
+                                            <div className="space-y-3">
+                                                <div className="flex items-center justify-between px-2">
+                                                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Verified YouTube Channels</p>
+                                                    <span className="text-[10px] font-bold text-red-500/50 uppercase">{selectedUser.youtube_channels.length} Linked</span>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {selectedUser.youtube_channels.map((ch: any, idx: number) => (
+                                                        <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all group/ch">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                                                                    <Video className="w-4 h-4 text-red-500" />
+                                                                </div>
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-sm font-bold text-white/80 group-hover/ch:text-white transition-colors">{ch.handle || ch.title}</span>
+                                                                    <span className="text-[9px] font-mono text-white/20 truncate max-w-[150px]">{ch.id || ch.channelId}</span>
+                                                                </div>
+                                                            </div>
+                                                            {selectedSubmission?.platform === 'youtube' && (
+                                                                <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-500 uppercase tracking-tighter">
+                                                                    Linked Account
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
 
                                         <div className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 space-y-4">
                                             <div className="flex items-center justify-between">
@@ -485,9 +522,9 @@ export const AdminSubmissions = () => {
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2 text-white/40">
                                                     <Mail className="w-4 h-4" />
-                                                    <span className="text-[10px] font-bold uppercase tracking-widest">Internal ID</span>
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest">Discord Link</span>
                                                 </div>
-                                                <span className="text-[10px] font-mono text-white/20 truncate max-w-[150px]">{selectedUser.id}</span>
+                                                <span className="text-[10px] font-mono text-white/20">{selectedUser.discord_id || 'Not Verified'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -497,7 +534,7 @@ export const AdminSubmissions = () => {
                                             onClick={() => setIsUserModalOpen(false)}
                                             className="flex-1 py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-[10px] font-bold uppercase tracking-widest transition-all"
                                         >
-                                            Close Profile
+                                            Done
                                         </button>
                                     </div>
                                 </div>

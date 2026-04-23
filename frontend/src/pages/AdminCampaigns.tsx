@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, ToggleLeft, ToggleRight, Pencil, Search, Eye, Globe, Filter, CheckCircle2, Star, BarChart } from 'lucide-react';
+import { Plus, Trash2, ToggleLeft, ToggleRight, Pencil, Search, Eye, Globe, Filter, CheckCircle2, Star, BarChart, Layers } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';
 
 interface Campaign {
@@ -321,24 +321,23 @@ export const AdminCampaigns = () => {
                                         <tr key={camp.id} 
                                             className="group hover:bg-white/[0.02] transition-all duration-200 relative overflow-hidden"
                                         >
-                                            {/* Subtle Banner Background */}
-                                            {camp.banner_url && (
-                                                <td className="absolute inset-0 z-0 pointer-events-none opacity-[0.07] overflow-hidden">
-                                                    <div 
-                                                        className="absolute inset-0 bg-center bg-cover bg-no-repeat transition-transform duration-700 group-hover:scale-110"
-                                                        style={{ backgroundImage: `url(${camp.banner_url})` }}
-                                                    />
-                                                    <div className="absolute inset-0 bg-gradient-to-r from-[#0c0c0c] via-transparent to-[#0c0c0c]" />
-                                                </td>
-                                            )}
                                             <td className="px-6 py-4">
-                                                <div className="flex flex-col">
-                                                    <Link to={`/campaigns/${camp.id}`} target="_blank" className="font-bold text-white/90 hover:text-white transition-colors">
-                                                        {camp.title}
-                                                    </Link>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        {camp.is_featured && <Star size={10} className="text-purple-400 fill-purple-400" />}
-                                                        <span className="text-[10px] text-white/30 font-mono">Ends {new Date(camp.end_date).toLocaleDateString()}</span>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 group-hover:border-white/20 transition-all">
+                                                        {camp.banner_url ? (
+                                                            <img src={camp.banner_url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all" alt="" />
+                                                        ) : (
+                                                            <Layers className="w-5 h-5 text-white/10" />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-col min-w-0">
+                                                        <Link to={`/campaigns/${camp.id}`} target="_blank" className="font-bold text-white/90 hover:text-white transition-colors truncate">
+                                                            {camp.title}
+                                                        </Link>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            {camp.is_featured && <Star size={10} className="text-purple-400 fill-purple-400" />}
+                                                            <span className="text-[10px] text-white/30 font-mono">Ends {new Date(camp.end_date).toLocaleDateString()}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
