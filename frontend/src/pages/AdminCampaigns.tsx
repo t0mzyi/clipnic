@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, ToggleLeft, ToggleRight, Users, Film, Pencil, Search, Eye, Globe, Filter, CheckCircle2, Star, BarChart } from 'lucide-react';
+import { Plus, Trash2, ToggleLeft, ToggleRight, Pencil, Search, Eye, Globe, Filter, CheckCircle2, Star, BarChart } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';
 
 interface Campaign {
@@ -224,21 +224,6 @@ export const AdminCampaigns = () => {
         } catch (err) { console.error(err); }
     };
 
-    const handleToggleFeatured = async (campaign: Campaign) => {
-        const newFeatured = !campaign.is_featured;
-        try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${campaign.id}/featured`, {
-                method: 'PATCH',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ is_featured: newFeatured })
-            });
-            const json = await res.json();
-            if (json.success) {
-                setCampaigns(prev => prev.map(c => c.id === campaign.id ? { ...c, is_featured: newFeatured } : c));
-                Toast.fire({ title: newFeatured ? 'Highlighted!' : 'Highlight Stopped', icon: 'success' });
-            }
-        } catch (err) { console.error(err); }
-    };
 
     const handleDelete = async (campaign: Campaign) => {
         const result = await Swal.fire({
@@ -332,7 +317,6 @@ export const AdminCampaigns = () => {
                             <tbody className="divide-y divide-white/[0.03]">
                                 {filteredCampaigns.map((camp) => {
                                     const progress = camp.total_budget > 0 ? (camp.budget_used / camp.total_budget) * 100 : 0;
-                                    const daysLeft = Math.ceil((new Date(camp.end_date).getTime() - Date.now()) / 86400000);
                                     return (
                                         <tr key={camp.id} 
                                             className="group hover:bg-white/[0.02] transition-all duration-200 relative"

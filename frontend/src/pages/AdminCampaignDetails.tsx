@@ -1,13 +1,13 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { Button } from '../components/ui/Button';
 import { 
-    ChevronLeft, Target, Eye, Users, 
+    ChevronLeft, Eye, Users, 
     TrendingUp, Calendar, DollarSign, 
     ExternalLink, CheckCircle2, XCircle,
-    Pencil, ToggleRight, ToggleLeft, Trash2,
+    Pencil, ToggleRight, ToggleLeft,
     BarChart, LayoutGrid, Upload
 } from 'lucide-react';
 import Swal from 'sweetalert2';

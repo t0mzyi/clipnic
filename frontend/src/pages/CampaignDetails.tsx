@@ -360,9 +360,6 @@ export const CampaignDetails = () => {
         </div>
     );
 
-    const budgetPercent = campaign.total_budget > 0
-        ? Math.round((campaign.budget_used / campaign.total_budget) * 100)
-        : 0;
     const viewsPercent = campaign.target_views > 0
         ? Math.round((campaign.view_progress / campaign.target_views) * 100)
         : 0;
