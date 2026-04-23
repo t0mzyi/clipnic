@@ -279,30 +279,24 @@ export const MySubmissions = () => {
 
             {/* KPIs - Premium Design */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Available / Potential */}
-                <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500">
-                    <p className="text-[10px] text-white/30 mb-3 uppercase tracking-[0.2em] font-bold flex items-center gap-2.5">
-                        <RotateCw className="w-4 h-4 text-white/20" />
-                        Potential
-                    </p>
-                    <p className="text-3xl font-mono tabular-metrics text-white/90">${summary.availableBalance.toFixed(2)}</p>
-                </div>
 
-                {/* Goal Met / Pending */}
-                <div className="p-6 rounded-3xl bg-blue-500/5 border border-blue-500/10 group hover:bg-blue-500/10 transition-all duration-500">
-                    <p className="text-[10px] text-blue-400 mb-3 uppercase tracking-[0.2em] font-bold flex items-center gap-2.5">
-                        <CheckCircle2 className="w-4 h-4" />
-                        Goal Met
-                    </p>
-                    <p className="text-3xl font-mono tabular-metrics text-blue-400 font-bold">${summary.pendingPayout.toFixed(2)}</p>
-                </div>
+                {/* Available Balance (Goal Met but Active) */}
+                {summary.pendingPayout > 0 && (
+                    <div className="p-6 rounded-3xl bg-blue-500/5 border border-blue-500/10 group hover:bg-blue-500/10 transition-all duration-500">
+                        <p className="text-[10px] text-blue-400 mb-3 uppercase tracking-[0.2em] font-bold flex items-center gap-2.5">
+                            <Wallet className="w-4 h-4" />
+                            Available Balance
+                        </p>
+                        <p className="text-3xl font-mono tabular-metrics text-blue-400 font-bold">${summary.pendingPayout.toFixed(2)}</p>
+                    </div>
+                )}
 
                 {/* Claimable Balance - Only show if mission ended and ready */}
                 {summary.claimableBalance > 0 && (
                     <div className="p-6 rounded-3xl bg-white text-zinc-950 shadow-[0_0_40px_rgba(255,255,255,0.1)] group overflow-hidden relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-black/[0.03] to-transparent pointer-events-none" />
                         <p className="text-black/40 text-[10px] mb-3 uppercase tracking-[0.2em] font-extrabold flex items-center gap-2.5 relative z-10">
-                            <Wallet className="w-4 h-4" />
+                            <CheckCircle2 className="w-4 h-4 text-black/20" />
                             Ready to Claim
                         </p>
                         <p className="text-4xl font-mono tabular-metrics font-black relative z-10">${summary.claimableBalance.toFixed(2)}</p>
@@ -310,13 +304,21 @@ export const MySubmissions = () => {
                 )}
 
                 {/* Total Paid */}
-                <div className="p-6 rounded-3xl bg-emerald-500/5 border border-emerald-500/10 group hover:bg-emerald-500/10 transition-all duration-500">
-                    <p className="text-[10px] text-emerald-500 mb-3 uppercase tracking-[0.2em] font-bold flex items-center gap-2.5">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                        Paid Out
-                    </p>
-                    <p className="text-3xl font-mono tabular-metrics text-emerald-500 font-bold">${summary.claimed.toFixed(2)}</p>
-                </div>
+                {summary.claimed > 0 && (
+                    <div className="p-6 rounded-3xl bg-emerald-500/5 border border-emerald-500/10 group hover:bg-emerald-500/10 transition-all duration-500">
+                        <p className="text-[10px] text-emerald-500 mb-3 uppercase tracking-[0.2em] font-bold flex items-center gap-2.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            Paid Out
+                        </p>
+                        <p className="text-3xl font-mono tabular-metrics text-emerald-500 font-bold">${summary.claimed.toFixed(2)}</p>
+                    </div>
+                )}
+
+                {summary.pendingPayout === 0 && summary.claimableBalance === 0 && summary.claimed === 0 && (
+                    <div className="col-span-full py-8 text-center border border-dashed border-white/5 rounded-3xl">
+                        <p className="text-[10px] uppercase tracking-widest text-white/20 font-bold">No active earnings or payouts found.</p>
+                    </div>
+                )}
             </div>
 
             {/* Content Area */}
