@@ -118,6 +118,26 @@ export const CampaignDetails = () => {
         }
     };
 
+    const handleYouTubeOAuth = async () => {
+        setIsVerifyingSocial(true);
+        setSocialVerifyError('');
+        try {
+            // Append success flag so modal re-opens on return
+            const returnUrl = encodeURIComponent(window.location.href + (window.location.href.includes('?') ? '&' : '?') + 'youtube_success=true');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/youtube?redirectTo=${returnUrl}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.error);
+            
+            // Redirect to Google OAuth
+            window.location.href = json.url;
+        } catch (err: any) {
+            setSocialVerifyError(err.message);
+            setIsVerifyingSocial(false);
+        }
+    };
+
     useEffect(() => {
         const fetchCampaign = async () => {
             try {
@@ -964,13 +984,15 @@ export const CampaignDetails = () => {
                                                                     Link YouTube via Bio
                                                                 </Button>
                                                             ) : (
-                                                                <Link 
-                                                                    to="/profile"
+                                                                <Button
+                                                                    onClick={handleYouTubeOAuth}
+                                                                    disabled={isVerifyingSocial}
                                                                     className="w-full py-3 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/5 text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
                                                                 >
+                                                                    {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-red-400/20 border-t-red-400 animate-spin" />}
                                                                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
                                                                     Securely Link YouTube (OAuth)
-                                                                </Link>
+                                                                </Button>
                                                             )
                                                         )}
                                                     </>
