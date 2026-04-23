@@ -1005,6 +1005,11 @@ export const CampaignDetails = () => {
                                                             <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest leading-relaxed">
                                                                 Add this code to your {showYtCode ? 'YouTube channel' : 'Instagram profile'} bio
                                                             </p>
+                                                            {showIgCode && (
+                                                                <p className="text-[8px] text-pink-500/80 font-bold uppercase tracking-widest">
+                                                                    Must be a Public Profile
+                                                                </p>
+                                                            )}
                                                             <div className="bg-black/60 border border-white/10 p-4 rounded-xl font-mono text-emerald-400 text-xl tracking-widest shadow-inner">
                                                                 {verifyCode}
                                                             </div>

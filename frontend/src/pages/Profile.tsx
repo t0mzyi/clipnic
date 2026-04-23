@@ -970,6 +970,7 @@ export const Profile = () => {
                                                     <div className="space-y-4">
                                                         <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center space-y-3">
                                                             <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Add to your profile bio</p>
+                                                            <p className="text-[9px] text-pink-500 font-bold uppercase tracking-widest">Must be a Public Profile</p>
                                                             <div className="bg-black/40 border border-white/5 p-3 rounded-xl font-mono text-emerald-400 text-lg tracking-wider">
                                                                 {verifyCode}
                                                             </div>
