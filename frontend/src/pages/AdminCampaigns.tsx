@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, ToggleLeft, ToggleRight, Users, Film, Pencil, Search, Eye, Globe, Filter, CheckCircle2, Star, BarChart3 } from 'lucide-react';
+import { Plus, Trash2, ToggleLeft, ToggleRight, Users, Film, Pencil, Search, Eye, Globe, Filter, CheckCircle2, Star, BarChart } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';
 
 interface Campaign {
@@ -353,12 +353,12 @@ export const AdminCampaigns = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 text-emerald-400 font-mono font-bold">${camp.cpm_rate.toFixed(2)}</td>
+                                            <td className="px-4 py-4 text-emerald-400 font-mono font-bold">${(camp.cpm_rate || 0).toFixed(2)}</td>
                                             <td className="px-4 py-4">
                                                 <div className="space-y-1.5 min-w-[140px]">
                                                     <div className="flex justify-between text-[10px]">
-                                                        <span className="text-white/50 font-mono">${Number(camp.budget_used).toFixed(0)} <span className="text-white/20">/ ${camp.total_budget.toLocaleString()}</span></span>
-                                                        <span className="text-white/30">{progress.toFixed(0)}%</span>
+                                                        <span className="text-white/50 font-mono">${Number(camp.budget_used || 0).toFixed(0)} <span className="text-white/20">/ ${(camp.total_budget || 0).toLocaleString()}</span></span>
+                                                        <span className="text-white/30">{(progress || 0).toFixed(0)}%</span>
                                                     </div>
                                                     <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
                                                         <div className={`h-full rounded-full transition-all duration-1000 ${progress >= 100 ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)]' : 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.3)]'}`} style={{ width: `${Math.min(progress, 100)}%` }} />
@@ -368,8 +368,8 @@ export const AdminCampaigns = () => {
                                             <td className="px-4 py-4">
                                                 <div className="space-y-1.5 min-w-[140px]">
                                                     <div className="flex justify-between text-[10px]">
-                                                        <span className="text-white/50 font-mono">{(camp as any).view_progress?.toLocaleString()} <span className="text-white/20">/ {(camp as any).target_views?.toLocaleString()}</span></span>
-                                                        <span className="text-white/30">{((camp as any).view_progress / ((camp as any).target_views || 1) * 100).toFixed(0)}%</span>
+                                                        <span className="text-white/50 font-mono">{(Number((camp as any).view_progress) || 0).toLocaleString()} <span className="text-white/20">/ {(Number((camp as any).target_views) || 0).toLocaleString()}</span></span>
+                                                        <span className="text-white/30">{((Number((camp as any).view_progress) || 0) / (Number((camp as any).target_views) || 1) * 100).toFixed(0)}%</span>
                                                     </div>
                                                     {/* Small Sparkline-like Progress */}
                                                     <div className="flex gap-0.5 h-3 items-end">
@@ -413,7 +413,7 @@ export const AdminCampaigns = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-right flex items-center justify-end gap-1">
-                                                <Link to={`/admin/campaigns/${camp.id}`} className="p-2 text-white/20 hover:text-white transition-colors" title="Campaign Analytics"><BarChart3 className="w-4 h-4" /></Link>
+                                                <Link to={`/admin/campaigns/${camp.id}`} className="p-2 text-white/20 hover:text-white transition-colors" title="Campaign Analytics"><BarChart className="w-4 h-4" /></Link>
                                                 <button onClick={() => handleEditClick(camp)} className="p-2 text-white/20 hover:text-amber-400 transition-colors" title="Edit Campaign"><Pencil className="w-4 h-4" /></button>
                                                 <button onClick={() => handleToggleStatus(camp)} className="p-2 text-white/20 hover:text-white transition-colors" title={camp.status === 'Active' ? 'Pause' : 'Activate'}>
                                                     {camp.status === 'Active' ? <ToggleRight className="w-5 h-5 text-emerald-400" /> : <ToggleLeft className="w-5 h-5" />}

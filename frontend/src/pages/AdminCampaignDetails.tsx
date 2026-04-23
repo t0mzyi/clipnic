@@ -8,7 +8,7 @@ import {
     TrendingUp, Calendar, DollarSign, 
     ExternalLink, CheckCircle2, XCircle,
     Pencil, ToggleRight, ToggleLeft, Trash2,
-    BarChart3, LayoutGrid
+    BarChart, LayoutGrid
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
@@ -138,7 +138,7 @@ export const AdminCampaignDetails = () => {
 
     if (!campaign) return <div className="text-center py-20 text-white/40">Campaign not found.</div>;
 
-    const viewsPercent = Math.min(100, (campaign.view_progress / (campaign.target_views || 1)) * 100);
+    const viewsPercent = Math.min(100, ((Number(campaign.view_progress) || 0) / (Number(campaign.target_views) || 1)) * 100);
     const budgetPercent = Math.min(100, (campaign.budget_used / (campaign.total_budget || 1)) * 100);
 
     return (
@@ -183,7 +183,7 @@ export const AdminCampaignDetails = () => {
                     <div className="flex items-center gap-2 text-white/30"><DollarSign className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Budget Used</span></div>
                     <div>
                         <p className="text-2xl font-mono font-bold text-white">${Number(campaign.budget_used || 0).toLocaleString()}</p>
-                        <p className="text-[10px] text-white/20 mt-1">of ${campaign.total_budget?.toLocaleString()} total</p>
+                        <p className="text-[10px] text-white/20 mt-1">of ${(campaign.total_budget || 0).toLocaleString()} total</p>
                     </div>
                     <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
                         <div className="bg-emerald-500 h-full" style={{ width: `${budgetPercent}%` }} />
@@ -193,8 +193,8 @@ export const AdminCampaignDetails = () => {
                 <div className="p-6 rounded-[32px] bg-white/[0.02] border border-white/[0.05] space-y-4">
                     <div className="flex items-center gap-2 text-white/30"><Eye className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">View Progress</span></div>
                     <div>
-                        <p className="text-2xl font-mono font-bold text-white">{(campaign.view_progress || 0).toLocaleString()}</p>
-                        <p className="text-[10px] text-white/20 mt-1">of {(campaign.target_views || 0).toLocaleString()} goal</p>
+                        <p className="text-2xl font-mono font-bold text-white">{(Number(campaign.view_progress) || 0).toLocaleString()}</p>
+                        <p className="text-[10px] text-white/20 mt-1">of {(Number(campaign.target_views) || 0).toLocaleString()} goal</p>
                     </div>
                     <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
                         <div className="bg-blue-500 h-full" style={{ width: `${viewsPercent}%` }} />
@@ -222,7 +222,7 @@ export const AdminCampaignDetails = () => {
                         <p className="text-[10px] text-white/20 mt-1">until {new Date(campaign.end_date).toLocaleDateString()}</p>
                     </div>
                     <div className="text-[9px] text-white/30 uppercase tracking-widest font-bold">
-                        {campaign.min_views.toLocaleString()} min views req
+                        {(Number(campaign.min_views) || 0).toLocaleString()} min views req
                     </div>
                 </div>
             </div>
@@ -305,7 +305,7 @@ export const AdminCampaignDetails = () => {
                  <div className="space-y-6">
                     <div className="p-8 rounded-[40px] bg-white/[0.02] border border-white/[0.05] h-full">
                         <h3 className="text-lg font-bold tracking-tight text-white/90 mb-6 flex items-center gap-3">
-                            <BarChart3 className="w-5 h-5 text-white/30" />
+                            <BarChart className="w-5 h-5 text-white/30" />
                             Campaign Config
                         </h3>
                         <div className="space-y-6">
@@ -314,11 +314,11 @@ export const AdminCampaignDetails = () => {
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between text-[11px] text-white/50">
                                         <span>CPM Rate</span>
-                                        <span className="font-mono text-emerald-400">${campaign.cpm_rate.toFixed(2)}</span>
+                                        <span className="font-mono text-emerald-400">${(Number(campaign.cpm_rate) || 0).toFixed(2)}</span>
                                     </div>
                                     <div className="flex items-center justify-between text-[11px] text-white/50">
                                         <span>Min Views</span>
-                                        <span className="font-mono">{campaign.min_views.toLocaleString()}</span>
+                                        <span className="font-mono">{(Number(campaign.min_views) || 0).toLocaleString()}</span>
                                     </div>
                                     <div className="flex items-center justify-between text-[11px] text-white/50">
                                         <span>Per Clipper Cap</span>
@@ -330,9 +330,7 @@ export const AdminCampaignDetails = () => {
                             <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5">
                                 <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest mb-3">Efficiency</p>
                                 <div className="space-y-1">
-                                    <p className="text-2xl font-mono font-bold text-white/90">
-                                        {campaign.total_submissions_count ? (campaign.view_progress / campaign.total_submissions_count).toFixed(0) : 0}
-                                    </p>
+                                        {campaign.total_submissions_count ? ((Number(campaign.view_progress) || 0) / campaign.total_submissions_count).toFixed(0) : 0}
                                     <p className="text-[10px] text-white/30">Avg Views Per Clip</p>
                                 </div>
                             </div>
