@@ -696,7 +696,7 @@ export class VerificationController {
       
       // Clean up scraped bio (remove HTML entities if any)
       if (scrapedBio) {
-          scrapedBio = scrapedBio.replace(/\\u([0-9a-fA-F]{4})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16)));
+          scrapedBio = scrapedBio.replace(/\\u([0-9a-fA-F]{4})/g, (match: string, p1: string) => String.fromCharCode(parseInt(p1, 16)));
       }
 
       const bioDisplay = scrapedBio ? scrapedBio.slice(0, 100) : "Could not extract bio text";
