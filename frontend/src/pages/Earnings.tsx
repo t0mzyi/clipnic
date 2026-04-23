@@ -8,6 +8,7 @@ interface EarningsData {
     totalEarnings: number;
     availableBalance: number;
     pendingPayout: number;
+    claimableBalance: number;
     claimed: number;
     breakdown: any[];
 }
@@ -121,41 +122,61 @@ export const Earnings = () => {
                 <>
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {stats.map((stat, idx) => {
-                            const Icon = stat.icon;
-                            return (
-                                <motion.div
-                                    key={idx}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: idx * 0.05 }}
-                                    className={`p-8 rounded-3xl border shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group transition-all duration-500 ${
-                                        idx === 0 
-                                            ? 'bg-white text-black border-white/20 hover:bg-white/90' 
-                                            : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04]'
-                                    }`}
-                                >
-                                    <div className="flex items-center justify-between mb-5">
-                                        <p className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-2.5 ${
-                                            idx === 0 ? 'text-black/50' : 'text-white/40'
-                                        }`}>
-                                            <Icon className={`w-5 h-5 ${idx === 0 ? 'text-black/40' : stat.color} opacity-80`} />
-                                            {stat.label}
-                                        </p>
-                                    </div>
-                                    <p className={`text-4xl font-mono tracking-tight font-medium ${
-                                        idx === 0 ? 'text-black' : 'text-white/90'
-                                    }`}>
-                                        ${stat.value.toFixed(2)}
+                        {/* Available Balance (Goal Met but Active) */}
+                        {(data?.pendingPayout ?? 0) > 0 && (
+                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                                className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-all duration-500">
+                                <div className="flex items-center justify-between mb-5">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2.5 text-blue-400">
+                                        <TrendingUp className="w-5 h-5 opacity-80" />
+                                        Available Balance
                                     </p>
-                                    {stat.hint && (
-                                        <p className={`text-[9px] mt-2 uppercase tracking-widest ${
-                                            idx === 0 ? 'text-black/30' : 'text-white/20'
-                                        }`}>{stat.hint}</p>
-                                    )}
-                                </motion.div>
-                            );
-                        })}
+                                </div>
+                                <p className="text-4xl font-mono tracking-tight font-medium text-white/90">
+                                    ${(data?.pendingPayout ?? 0).toFixed(2)}
+                                </p>
+                                <p className="text-[9px] mt-2 uppercase tracking-widest text-white/20">Requirements Met (Campaign Active)</p>
+                            </motion.div>
+                        )}
+
+                        {/* Ready to Claim (Mission Ended) */}
+                        {(data?.claimableBalance ?? 0) > 0 && (
+                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                                className="p-8 rounded-3xl bg-white text-black border-white/20 hover:bg-white/90 transition-all duration-500 shadow-[0_0_40px_rgba(255,255,255,0.1)]">
+                                <div className="flex items-center justify-between mb-5">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2.5 text-black/50">
+                                        <Wallet className="w-5 h-5 opacity-80" />
+                                        Ready to Claim
+                                    </p>
+                                </div>
+                                <p className="text-4xl font-mono tracking-tight font-black text-black">
+                                    ${(data?.claimableBalance ?? 0).toFixed(2)}
+                                </p>
+                                <p className="text-[9px] mt-2 uppercase tracking-widest text-black/30">Campaign Concluded</p>
+                            </motion.div>
+                        )}
+
+                        {/* Total Paid */}
+                        {(data?.claimed ?? 0) > 0 && (
+                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                                className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-all duration-500">
+                                <div className="flex items-center justify-between mb-5">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2.5 text-emerald-500">
+                                        <CheckCircle2 className="w-5 h-5 opacity-80" />
+                                        Paid Out
+                                    </p>
+                                </div>
+                                <p className="text-4xl font-mono tracking-tight font-medium text-white/90">
+                                    ${(data?.claimed ?? 0).toFixed(2)}
+                                </p>
+                            </motion.div>
+                        )}
+
+                        {(!data || (data.pendingPayout === 0 && data.claimableBalance === 0 && data.claimed === 0)) && (
+                            <div className="col-span-full py-12 text-center border border-dashed border-white/5 rounded-[32px]">
+                                <p className="text-[10px] uppercase tracking-widest text-white/20 font-bold">No active earnings or payouts found.</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Breakdown Table */}
