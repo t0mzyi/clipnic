@@ -279,16 +279,8 @@ export class SubmissionService {
     
     if (error) throw error;
 
-    // 8. Update Campaign Stats
-    const { error: rpcErr } = await supabase.rpc('increment_campaign_stats', {
-        camp_id: validated.campaign_id,
-        earnings_add: earnings,
-        views_add: Math.floor(contributingViews)
-    });
-
-    if (rpcErr) {
-        console.error('[SubmissionService] RPC Error during initial create increment:', rpcErr);
-    }
+    // 8. Update Campaign Stats (Handled by DB Trigger on submissions table)
+    console.log(`[SubmissionService] Submission created. DB Trigger will sync campaign stats.`);
 
     // 8. Auto-complete mission if budget hit
     const { data: updatedCampaign } = await supabase
@@ -393,35 +385,8 @@ export class SubmissionService {
       
       if (updateErr) throw updateErr;
 
-       // 6. Sync budget delta (new - old)
-       const deltaEarnings = earnings - oldEarnings;
-       
-       // Logic: If it previously met the requirement (oldEarnings > 0), it contributed its oldViews. 
-       // If it just now hit the requirement, it contributes its total views.
-       const deltaViews = contributingViews - (oldEarnings > 0 ? oldViews : 0);
-
-       console.log(`[SubmissionService] Syncing Stats for Campaign ${submission.campaign_id}:`, {
-           submissionId,
-           views,
-           min_views: campaign.min_views,
-           oldEarnings,
-           oldViews,
-           contributingViews,
-           deltaViews,
-           deltaEarnings
-       });
-
-       const { error: rpcErr } = await supabase.rpc('increment_campaign_stats', {
-           camp_id: submission.campaign_id,
-           earnings_add: deltaEarnings,
-           views_add: Math.floor(deltaViews) // Ensure integer
-       });
-
-       if (rpcErr) {
-           console.error('[SubmissionService] RPC Error incrementing campaign stats:', rpcErr);
-       } else {
-           console.log('[SubmissionService] Successfully incremented campaign stats.');
-       }
+       // 6. Sync stats is now handled by DB trigger 'on_submission_change'
+       console.log(`[SubmissionService] Submission ${submissionId} updated. DB Trigger will sync stats.`);
 
       // 7. Auto-complete mission if budget hit
       const { data: updatedCampaign } = await supabase
