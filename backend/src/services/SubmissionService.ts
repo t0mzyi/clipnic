@@ -177,25 +177,7 @@ export class SubmissionService {
         throw new Error("You must join this campaign before submitting clips.");
     }
 
-    // Helper to normalize URLs to a canonical format
-    const normalizeUrl = (url: string, platform: string): string => {
-        let cleanUrl = url.split('?')[0].split('#')[0].replace(/\/$/, '');
-        
-        if (platform === 'youtube') {
-            const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
-            if (match) return `https://www.youtube.com/watch?v=${match[1]}`;
-        } else if (platform === 'instagram') {
-            const match = url.match(/(?:\/p\/|\/reels?\/|\/tv\/)([^/?#&]+)/i);
-            if (match) return `https://www.instagram.com/reels/${match[1]}/`;
-        } else if (platform === 'tiktok') {
-            // TikTok URLs are tricky because of the username, but the video ID is the key
-            const match = url.match(/\/video\/(\d+)/i);
-            if (match) return `https://www.tiktok.com/video/${match[1]}`;
-        }
-        return cleanUrl;
-    };
-
-    const canonicalUrl = normalizeUrl(validated.url, validated.platform);
+    const canonicalUrl = SubmissionService.canonicalizeUrl(validated.url, validated.platform);
     
     // 2.5 Check for duplicate URL (Global check)
     const { data: existing } = await supabase
@@ -652,21 +634,43 @@ export class SubmissionService {
     }
   }
 
+  static canonicalizeUrl(url: string, platform: string): string {
+    if (!url) return '';
+    
+    // 1. Basic cleaning
+    let cleanUrl = url.split('?')[0].split('#')[0].trim().replace(/\/$/, '');
+    
+    // 2. Platform-specific normalization
+    if (platform === 'youtube') {
+        const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+        if (match) return `https://www.youtube.com/watch?v=${match[1]}`;
+    } else if (platform === 'instagram') {
+        // Handle reels, posts, tv
+        const match = url.match(/(?:\/p\/|\/reels?\/|\/tv\/)([^/?#&]+)/i);
+        if (match) return `https://www.instagram.com/reels/${match[1]}/`;
+    } else if (platform === 'tiktok') {
+        // Handle standard video URLs and also catch video IDs from messy strings
+        const match = url.match(/\/video\/(\d+)/i) || url.match(/video_id=(\d+)/i) || url.match(/tiktok\.com\/.*\/(\d+)/i);
+        if (match) return `https://www.tiktok.com/video/${match[1]}`;
+    }
+    
+    // Fallback to basic cleaned URL
+    return cleanUrl.replace(/^http:\/\//i, 'https://'); // Always prefer https
+  }
+
   static async checkUrlAvailability(url: string, platform?: string) {
     if (!url) return { available: true };
     
-    // Canonical normalization
-    let canonicalUrl = url.split('?')[0].split('#')[0].replace(/\/$/, '');
-    if (platform === 'youtube' || url.includes('youtu')) {
-        const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
-        if (match) canonicalUrl = `https://www.youtube.com/watch?v=${match[1]}`;
-    } else if (platform === 'instagram' || url.includes('instagram.com')) {
-        const match = url.match(/(?:\/p\/|\/reels?\/|\/tv\/)([^/?#&]+)/i);
-        if (match) canonicalUrl = `https://www.instagram.com/reels/${match[1]}/`;
-    } else if (platform === 'tiktok' || url.includes('tiktok.com')) {
-        const match = url.match(/\/video\/(\d+)/i);
-        if (match) canonicalUrl = `https://www.tiktok.com/video/${match[1]}`;
+    // Use the central canonicalization logic
+    // If platform isn't provided, we try to guess it from the URL
+    let guessedPlatform = platform || '';
+    if (!guessedPlatform) {
+        if (url.includes('youtube.com') || url.includes('youtu.be')) guessedPlatform = 'youtube';
+        else if (url.includes('instagram.com')) guessedPlatform = 'instagram';
+        else if (url.includes('tiktok.com')) guessedPlatform = 'tiktok';
     }
+
+    const canonicalUrl = this.canonicalizeUrl(url, guessedPlatform);
     
     const { data, error } = await supabase
       .from('submissions')
