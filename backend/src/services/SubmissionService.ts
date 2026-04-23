@@ -154,13 +154,13 @@ export class SubmissionService {
     // 5. Verify ownership
     const { data: userRaw, error: userErr } = await supabase
         .from('users')
-        .select('name, email, instagram_handle, instagram_handles, youtube_handle, youtube_channels')
+        .select('name, email, instagram_handle, youtube_handle, youtube_channels')
         .eq('id', userId)
         .single();
 
     if (userErr) {
         console.error(`[SubmissionService] User fetch error:`, userErr);
-        throw new Error("Failed to verify your account permissions. Please try again later.");
+        throw new Error("Failed to verify your account permissions. Please contact support.");
     }
 
     console.log(`[SubmissionService] Verifying submission for user: ${userRaw?.email} (${userId})`);
@@ -188,15 +188,15 @@ export class SubmissionService {
     } else if (validated.platform === 'instagram') {
         if (!channelId) throw new Error("Could not verify Instagram owner. Ensure the reel is public.");
         
-        const verifiedHandles = userRaw?.instagram_handles || (userRaw?.instagram_handle ? [userRaw.instagram_handle] : []);
-        const cleanHandles = verifiedHandles.map((h: string) => h.toLowerCase().replace(/^@/, ''));
+        const verifiedHandle = userRaw?.instagram_handle || '';
+        const cleanHandle = verifiedHandle.toLowerCase().replace(/^@/, '');
         const clipOwner = channelId.toLowerCase().replace(/^@/, '');
 
-        console.log(`[SubmissionService] User's Linked IG Handles:`, cleanHandles);
+        console.log(`[SubmissionService] User's Linked IG Handle: ${cleanHandle}`);
         console.log(`[SubmissionService] Clip Owner: ${clipOwner}`);
 
-        if (!cleanHandles.includes(clipOwner)) {
-            console.warn(`[SubmissionService] IG Ownership mismatch! Reel: @${clipOwner}, Linked: @${cleanHandles.join(', @')}`);
+        if (cleanHandle !== clipOwner) {
+            console.warn(`[SubmissionService] IG Ownership mismatch! Reel: @${clipOwner}, Linked: @${cleanHandle}`);
             throw new Error(`This Reel belongs to @${clipOwner}, which is not linked to your profile.`);
         }
     }

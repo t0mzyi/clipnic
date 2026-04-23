@@ -153,7 +153,7 @@ export const CampaignDetails = () => {
                     youtubeHandle: result.data.youtube_handle,
                     instagramVerified: result.data.instagram_verified,
                     instagramHandle: result.data.instagram_handle,
-                    instagramHandles: result.data.instagram_handles || (result.data.instagram_handle ? [result.data.instagram_handle] : []),
+                    instagramHandles: result.data.instagram_handle ? [result.data.instagram_handle] : [],
                     youtubeChannels: result.data.youtube_channels
                 });
             }
