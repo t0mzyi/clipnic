@@ -107,7 +107,7 @@ export const AdminCampaigns = () => {
 
     const fetchCampaigns = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/admin/all`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
@@ -322,11 +322,9 @@ export const AdminCampaigns = () => {
                                 <tr className="text-[9px] font-bold text-white/20 uppercase tracking-widest border-b border-white/[0.04]">
                                     <th className="px-6 py-4">Campaign</th>
                                     <th className="px-4 py-4">CPM</th>
-                                    <th className="px-4 py-4">Budget</th>
-                                    <th className="px-4 py-4">Caps</th>
-                                    <th className="px-4 py-4">Total Views</th>
-                                    <th className="px-4 py-4">Deadline</th>
-                                    <th className="px-4 py-4 text-center">Featured</th>
+                                    <th className="px-4 py-4">Budget Progress</th>
+                                    <th className="px-4 py-4">View Goal</th>
+                                    <th className="px-4 py-4">Activity</th>
                                     <th className="px-4 py-4">Status</th>
                                     <th className="px-6 py-4 text-right">Actions</th>
                                 </tr>
@@ -345,59 +343,79 @@ export const AdminCampaigns = () => {
                                                 backgroundRepeat: 'no-repeat'
                                             } : undefined}>
                                             <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3 font-medium text-white/90">{camp.title}</div>
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-white/90">{camp.title}</span>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        {camp.is_featured && <Star size={10} className="text-purple-400 fill-purple-400" />}
+                                                        <span className="text-[10px] text-white/30 font-mono">Ends {new Date(camp.end_date).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td className="px-4 py-4 text-emerald-400 font-mono font-bold">${camp.cpm_rate.toFixed(2)}</td>
                                             <td className="px-4 py-4">
-                                                <div className="space-y-1.5 min-w-[120px]">
+                                                <div className="space-y-1.5 min-w-[140px]">
                                                     <div className="flex justify-between text-[10px]">
-                                                        <span className="text-white/50 font-mono">${camp.budget_used.toFixed(0)} <span className="text-white/20">/ ${camp.total_budget.toLocaleString()}</span></span>
+                                                        <span className="text-white/50 font-mono">${Number(camp.budget_used).toFixed(0)} <span className="text-white/20">/ ${camp.total_budget.toLocaleString()}</span></span>
+                                                        <span className="text-white/30">{progress.toFixed(0)}%</span>
                                                     </div>
-                                                    <div className="w-full bg-white/[0.04] h-1 rounded-full overflow-hidden">
-                                                    <div className={`h-full rounded-full ${progress >= 100 ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)]' : 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.3)]'}`} style={{ width: `${Math.min(progress, 100)}%` }} />
+                                                    <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
+                                                        <div className={`h-full rounded-full transition-all duration-1000 ${progress >= 100 ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)]' : 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.3)]'}`} style={{ width: `${Math.min(progress, 100)}%` }} />
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4">
-                                                <div className="space-y-1">
-                                                    <div className="flex items-center gap-1.5 text-[10px] text-white/40">
-                                                        <Eye className="w-3 h-3 text-emerald-400/60" />
-                                                        <span className="font-mono">{camp.min_views ? `${camp.min_views.toLocaleString()} views` : <span className="text-white/20">No min views</span>}</span>
+                                                <div className="space-y-1.5 min-w-[140px]">
+                                                    <div className="flex justify-between text-[10px]">
+                                                        <span className="text-white/50 font-mono">{(camp as any).view_progress?.toLocaleString()} <span className="text-white/20">/ {(camp as any).target_views?.toLocaleString()}</span></span>
+                                                        <span className="text-white/30">{((camp as any).view_progress / ((camp as any).target_views || 1) * 100).toFixed(0)}%</span>
                                                     </div>
-                                                    <div className="flex items-center gap-1.5 text-[10px] text-white/40">
-                                                        <Users className="w-3 h-3 text-blue-400/60" />
-                                                        <span className="font-mono">{camp.per_clipper_cap ? `$${camp.per_clipper_cap}/person` : <span className="text-white/20">No cap</span>}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5 text-[10px] text-white/40">
-                                                        <Film className="w-3 h-3 text-purple-400/60" />
-                                                        <span className="font-mono">{camp.per_video_cap ? `$${camp.per_video_cap}/video` : <span className="text-white/20">No cap</span>}</span>
+                                                    {/* Small Sparkline-like Progress */}
+                                                    <div className="flex gap-0.5 h-3 items-end">
+                                                        {Array.from({ length: 20 }).map((_, i) => {
+                                                            const p = ((camp as any).view_progress / ((camp as any).target_views || 1)) * 20;
+                                                            return (
+                                                                <div key={i} className={`flex-1 rounded-t-sm transition-all duration-500 ${i < p ? 'bg-emerald-500/40' : 'bg-white/5'}`} style={{ height: `${20 + Math.sin(i * 0.5) * 40}%` }} />
+                                                            );
+                                                        })}
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 text-white/70 font-mono text-sm">{camp.view_progress.toLocaleString()}</td>
                                             <td className="px-4 py-4">
-                                                <p className="text-xs text-white/60 font-mono">{new Date(camp.end_date).toLocaleDateString()}</p>
-                                                <p className={`text-[10px] mt-0.5 ${daysLeft < 3 ? 'text-red-400' : 'text-white/20'}`}>{daysLeft > 0 ? `${daysLeft}d left` : 'Expired'}</p>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-[9px] text-white/20 font-bold uppercase">Clips</span>
+                                                        <span className="text-sm font-mono text-white/70">{(camp as any).total_submissions_count || 0}</span>
+                                                    </div>
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-[9px] text-white/20 font-bold uppercase">Pending</span>
+                                                        <Link 
+                                                            to={`/admin/submissions?search=${encodeURIComponent(camp.title)}&status=Pending`}
+                                                            className={`text-sm font-mono transition-colors hover:underline ${(camp as any).pending_submissions_count > 0 ? 'text-amber-400 hover:text-amber-300' : 'text-white/30'}`}
+                                                        >
+                                                            {(camp as any).pending_submissions_count || 0}
+                                                        </Link>
+                                                    </div>
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-[9px] text-white/20 font-bold uppercase">Join</span>
+                                                        <span className="text-sm font-mono text-white/70">{(camp as any).participant_count || 0}</span>
+                                                    </div>
+                                                </div>
                                             </td>
-                                            <td className="px-4 py-4 text-center">
-                                                <button onClick={() => handleToggleFeatured(camp)} className="transition-all hover:scale-110 active:scale-95">
-                                                    {camp.is_featured ? (
-                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold border bg-purple-500/20 text-purple-400 border-purple-500/30 flex items-center gap-1 justify-center mx-auto w-fit shadow-[0_0_15px_rgba(168,85,247,0.15)]">
-                                                            <Star size={10} fill="currentColor" /> FEATURED
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-white/10 text-[10px] hover:text-white/30 flex items-center gap-1 justify-center mx-auto">
-                                                            <Star size={10} /> Normal
-                                                        </span>
-                                                    )}
+                                            <td className="px-4 py-4">
+                                                <div className="flex flex-col gap-1">
+                                                    <Badge status={camp.status} />
+                                                    <div className="flex items-center gap-1 mt-1">
+                                                        <Eye className="w-3 h-3 text-white/20" />
+                                                        <span className="text-[9px] font-mono text-white/30">{camp.min_views ? `${camp.min_views.toLocaleString()} min` : 'No min'}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-right flex items-center justify-end gap-1">
+                                                <button onClick={() => handleEditClick(camp)} className="p-2 text-white/20 hover:text-amber-400 transition-colors" title="Edit Campaign"><Pencil className="w-4 h-4" /></button>
+                                                <button onClick={() => handleToggleStatus(camp)} className="p-2 text-white/20 hover:text-white transition-colors" title={camp.status === 'Active' ? 'Pause' : 'Activate'}>
+                                                    {camp.status === 'Active' ? <ToggleRight className="w-5 h-5 text-emerald-400" /> : <ToggleLeft className="w-5 h-5" />}
                                                 </button>
-                                            </td>
-                                            <td className="px-4 py-4"><Badge status={camp.status} /></td>
-                                            <td className="px-6 py-4 text-right flex items-center justify-end gap-2 relative z-10">
-                                                <Link to={`/campaigns/${camp.id}`} target="_blank" className="p-2 text-white/20 hover:text-white/60"><Eye className="w-4 h-4" /></Link>
-                                                <button onClick={() => handleToggleStatus(camp)} className="p-2 text-white/20 hover:text-white/60">{camp.status === 'Active' ? <ToggleRight className="w-4 h-4 text-emerald-400" /> : <ToggleLeft className="w-4 h-4" />}</button>
-                                                <button onClick={() => handleEditClick(camp)} className="p-2 text-white/20 hover:text-amber-400"><Pencil className="w-4 h-4" /></button>
-                                                <button onClick={() => handleDelete(camp)} className="p-2 text-white/20 hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
+                                                <button onClick={() => handleDelete(camp)} className="p-2 text-white/20 hover:text-red-400 transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
                                             </td>
                                         </tr>
                                     );

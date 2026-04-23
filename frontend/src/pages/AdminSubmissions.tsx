@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Filter, Layers, CheckCircle2, XCircle, ExternalLink, User, Calendar } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
@@ -6,10 +7,11 @@ import { Dropdown } from '../components/Dropdown';
 
 export const AdminSubmissions = () => {
     const { token } = useAuthStore();
+    const [searchParams] = useSearchParams();
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [filterStatus, setFilterStatus] = useState('all');
+    const [search, setSearch] = useState(searchParams.get('search') || '');
+    const [filterStatus, setFilterStatus] = useState(searchParams.get('status') || 'all');
 
     const fetchSubmissions = async () => {
         try {

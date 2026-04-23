@@ -13,6 +13,7 @@ router.post('/:id/join', authenticate, CampaignController.joinCampaign);
 router.delete('/:id/leave', authenticate, CampaignController.leaveCampaign);
 
 // Admin-only routes
+router.get('/admin/all', authenticate, requireRole('admin'), CampaignController.getAllAdmin);
 router.post('/', authenticate, requireRole('admin'), CampaignController.create);
 router.put('/:id', authenticate, requireRole('admin'), CampaignController.update);
 router.patch('/:id/status', authenticate, requireRole('admin'), CampaignController.updateStatus);

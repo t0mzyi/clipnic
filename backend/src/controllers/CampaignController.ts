@@ -11,6 +11,15 @@ export class CampaignController {
     }
   }
 
+  static async getAllAdmin(req: Request, res: Response, next: NextFunction) {
+    try {
+      const campaigns = await CampaignService.getAllAdmin();
+      res.json({ success: true, data: campaigns });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
       const campaign = await CampaignService.getById(req.params.id as string);

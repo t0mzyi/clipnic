@@ -588,7 +588,7 @@ export const CampaignDetails = () => {
                     <p className="text-[10px] font-mono text-white/20">{Math.min(100, (campaign.view_progress / (campaign.target_views || 1)) * 100).toFixed(1)}% full</p>
                 </div>
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
-                    <div className="flex items-center gap-2 text-white/30"><CheckCircle className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Views Fulfilled</span></div>
+                    <div className="flex items-center gap-2 text-white/30"><CheckCircle className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Qualified Views</span></div>
                     <p className="text-2xl font-mono font-bold text-white">{campaign.view_progress.toLocaleString()}</p>
                     <p className="text-[10px] font-mono text-white/20">of {campaign.target_views?.toLocaleString()}</p>
                 </div>
@@ -668,6 +668,9 @@ export const CampaignDetails = () => {
                                             </td>
                                             <td className="px-6 py-5">
                                                 <p className="text-sm font-mono font-bold text-white/70">{sub.views?.toLocaleString() || 0}</p>
+                                                {campaign.min_views > 0 && sub.views < campaign.min_views && (
+                                                    <p className="text-[9px] text-red-400/50 uppercase font-bold tracking-tighter mt-1">Views didn't meet req</p>
+                                                )}
                                             </td>
                                             <td className="px-6 py-5">
                                                 <p className="text-sm font-mono font-bold text-emerald-400">${Number(sub.earnings || 0).toFixed(2)}</p>

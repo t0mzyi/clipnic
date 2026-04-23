@@ -429,6 +429,7 @@ export const MySubmissions = () => {
                                                     <div className="w-12 bg-white/5 h-0.5 rounded-full overflow-hidden">
                                                         <div className="bg-white h-full" style={{ width: `${(sub.views / sub.minViews) * 100}%` }} />
                                                     </div>
+                                                    <span className="text-[8px] uppercase tracking-tighter text-red-400/60 font-bold">Views didn't meet req</span>
                                                     <span className="text-[8px] uppercase tracking-tighter">to {sub.minViews / 1000}k</span>
                                                 </div>
                                             )}
@@ -552,14 +553,12 @@ export const MySubmissions = () => {
 
                                     {/* Requirements Info */}
                                     {selectedCampaign && (
-                                        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Mission Requirements</p>
-                                                <div className="flex gap-2">
-                                                    {selectedCampaign.allowed_platforms?.map((p: string) => (
-                                                        <span key={p} className="text-[9px] font-black uppercase text-white/20">{p}</span>
-                                                    ))}
-                                                </div>
+                                        <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
+                                            <div className="flex items-center gap-2 text-white/30"><CheckCircle className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Qualified Views</span></div>
+                                            <div className="flex gap-2">
+                                                {selectedCampaign.allowed_platforms?.map((p: string) => (
+                                                    <span key={p} className="text-[9px] font-black uppercase text-white/20">{p}</span>
+                                                ))}
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-1">

@@ -396,6 +396,17 @@ export class SubmissionService {
        // If it didn't (views < min), oldViews shouldn't have been in campaign stats.
        const deltaViews = contributingViews - (oldEarnings > 0 ? oldViews : 0);
 
+       console.log(`[SubmissionService] Syncing Stats for Campaign ${submission.campaign_id}:`, {
+           submissionId,
+           views,
+           min_views: campaign.min_views,
+           oldEarnings,
+           oldViews,
+           contributingViews,
+           deltaViews,
+           deltaEarnings
+       });
+
        await supabase.rpc('increment_campaign_stats', {
            camp_id: submission.campaign_id,
            earnings_add: deltaEarnings,

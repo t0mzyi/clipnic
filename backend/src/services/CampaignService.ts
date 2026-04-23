@@ -45,6 +45,39 @@ export class CampaignService {
     return data;
   }
 
+  static async getAllAdmin() {
+    const { data: campaigns, error: campErr } = await supabase
+      .from('campaigns')
+      .select(`
+        *,
+        participants:campaign_participants(count),
+        submissions:submissions(count)
+      `)
+      .order('created_at', { ascending: false });
+    
+    if (campErr) throw campErr;
+
+    // Fetch pending counts separately as we need filter
+    const { data: pendingCounts, error: pendingErr } = await supabase
+      .from('submissions')
+      .select('campaign_id')
+      .eq('status', 'Pending');
+    
+    if (pendingErr) throw pendingErr;
+
+    const pendingMap: Record<string, number> = {};
+    pendingCounts?.forEach(s => {
+        pendingMap[s.campaign_id] = (pendingMap[s.campaign_id] || 0) + 1;
+    });
+
+    return campaigns.map((c: any) => ({
+      ...c,
+      participant_count: c.participants?.[0]?.count || 0,
+      total_submissions_count: c.submissions?.[0]?.count || 0,
+      pending_submissions_count: pendingMap[c.id] || 0
+    }));
+  }
+
   static async getById(id: string) {
     const { data, error } = await supabase
       .from('campaigns')
