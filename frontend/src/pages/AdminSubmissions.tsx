@@ -18,7 +18,7 @@ export const AdminSubmissions = () => {
     const [search, setSearch] = useState(searchParams.get('search') || '');
     const [filterStatus, setFilterStatus] = useState(searchParams.get('status') || 'all');
     const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
-    const [expandedCampaigns, setExpandedCampaigns] = useState<string[]>([]);
+    const [expandedCampaignId, setExpandedCampaignId] = useState<string | null>(null);
 
     const fetchSubmissions = async () => {
         try {
@@ -100,9 +100,7 @@ export const AdminSubmissions = () => {
     }, [submissions, search, filterStatus, sortOrder]);
 
     const toggleCampaign = (id: string) => {
-        setExpandedCampaigns(prev => 
-            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-        );
+        setExpandedCampaignId(prev => prev === id ? null : id);
     };
 
     if (loading) return (
@@ -224,7 +222,7 @@ export const AdminSubmissions = () => {
                                         </p>
                                     </div>
                                 </div>
-                                <div className={`p-2 rounded-xl transition-all ${expandedCampaigns.includes(group.campaign.id) ? 'bg-white text-black rotate-180' : 'bg-white/5 text-white/40'}`}>
+                                <div className={`p-2 rounded-xl transition-all ${expandedCampaignId === group.campaign.id ? 'bg-white text-black rotate-180' : 'bg-white/5 text-white/40'}`}>
                                     <ChevronDown className="w-5 h-5" />
                                 </div>
                             </div>
@@ -232,7 +230,7 @@ export const AdminSubmissions = () => {
 
                         {/* Submissions List */}
                         <AnimatePresence>
-                            {expandedCampaigns.includes(group.campaign.id) && (
+                            {expandedCampaignId === group.campaign.id && (
                                 <motion.div 
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
