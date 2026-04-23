@@ -392,8 +392,8 @@ export class SubmissionService {
        // 6. Sync budget delta (new - old)
        const deltaEarnings = earnings - oldEarnings;
        
-       // Logic: If it previously had earnings (oldEarnings > 0), it contributed its oldViews. 
-       // If it didn't (views < min), oldViews shouldn't have been in campaign stats.
+       // Logic: If it previously met the requirement (oldEarnings > 0), it contributed its oldViews. 
+       // If it just now hit the requirement, it contributes its total views.
        const deltaViews = contributingViews - (oldEarnings > 0 ? oldViews : 0);
 
        console.log(`[SubmissionService] Syncing Stats for Campaign ${submission.campaign_id}:`, {
@@ -410,7 +410,7 @@ export class SubmissionService {
        await supabase.rpc('increment_campaign_stats', {
            camp_id: submission.campaign_id,
            earnings_add: deltaEarnings,
-           views_add: deltaViews
+           views_add: Math.floor(deltaViews) // Ensure integer
        });
 
       // 7. Auto-complete mission if budget hit

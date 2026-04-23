@@ -588,9 +588,9 @@ export const CampaignDetails = () => {
                     <p className="text-[10px] font-mono text-white/20">{Math.min(100, (campaign.view_progress / (campaign.target_views || 1)) * 100).toFixed(1)}% full</p>
                 </div>
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
-                    <div className="flex items-center gap-2 text-white/30"><CheckCircle className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Qualified Views</span></div>
-                    <p className="text-2xl font-mono font-bold text-white">{campaign.view_progress.toLocaleString()}</p>
-                    <p className="text-[10px] font-mono text-white/20">of {campaign.target_views?.toLocaleString()}</p>
+                    <div className="flex items-center gap-2 text-white/30"><CheckCircle className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Min Views Requirement</span></div>
+                    <p className="text-2xl font-mono font-bold text-white">{(campaign.min_views || 0).toLocaleString()}</p>
+                    <p className="text-[10px] font-mono text-white/20">{campaign.view_progress.toLocaleString()} views fulfilled</p>
                 </div>
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
                     <div className="flex items-center gap-2 text-amber-500/60"><Clock className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Deadline</span></div>
