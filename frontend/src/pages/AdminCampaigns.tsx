@@ -413,7 +413,7 @@ export const AdminCampaigns = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-right flex items-center justify-end gap-1">
-                                                <Link to={`/campaigns/${camp.id}`} target="_blank" className="p-2 text-white/20 hover:text-white transition-colors" title="Preview Campaign"><Eye className="w-4 h-4" /></Link>
+                                                <Link to={`/admin/campaigns/${camp.id}`} className="p-2 text-white/20 hover:text-white transition-colors" title="Campaign Analytics"><BarChart3 className="w-4 h-4" /></Link>
                                                 <button onClick={() => handleEditClick(camp)} className="p-2 text-white/20 hover:text-amber-400 transition-colors" title="Edit Campaign"><Pencil className="w-4 h-4" /></button>
                                                 <button onClick={() => handleToggleStatus(camp)} className="p-2 text-white/20 hover:text-white transition-colors" title={camp.status === 'Active' ? 'Pause' : 'Activate'}>
                                                     {camp.status === 'Active' ? <ToggleRight className="w-5 h-5 text-emerald-400" /> : <ToggleLeft className="w-5 h-5" />}

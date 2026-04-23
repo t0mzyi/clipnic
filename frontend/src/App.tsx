@@ -29,6 +29,7 @@ import { AdminUserDetails } from './pages/AdminUserDetails';
 import { AdminSettings } from './pages/AdminSettings';
 import { AdminSubmissions } from './pages/AdminSubmissions';
 import { AdminPayouts } from './pages/AdminPayouts';
+import { AdminCampaignDetails } from './pages/AdminCampaignDetails';
 import { JoinedCampaigns } from './pages/JoinedCampaigns';
 import { Login } from './pages/Login';
 import { supabase } from './lib/supabase';
@@ -356,6 +357,7 @@ const Layout = () => {
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
                             <Route path="/admin/campaigns" element={<AdminRoute><AdminCampaigns /></AdminRoute>} />
+                            <Route path="/admin/campaigns/:id" element={<AdminRoute><AdminCampaignDetails /></AdminRoute>} />
                             <Route path="/admin/submissions" element={<AdminRoute><AdminSubmissions /></AdminRoute>} />
                             <Route path="/admin/payouts" element={<AdminRoute><AdminPayouts /></AdminRoute>} />
                             <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />

@@ -603,38 +603,22 @@ export const CampaignDetails = () => {
             </div>
 
             {/* Campaign Progress (Views) */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-[#0c0c0c] border border-white/[0.06] shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <Target className="w-24 h-24 text-white" />
+            <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06]">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Campaign Progress</span>
+                    <span className="text-xs font-mono font-bold text-emerald-400">{viewsPercent}%</span>
                 </div>
-                <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="space-y-1">
-                            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em]">Live Mission Progress</span>
-                            <h4 className="text-sm font-bold text-white/50">Tracking Qualified Views Toward Goal</h4>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-2xl font-mono font-bold text-white">{viewsPercent}%</span>
-                            <p className="text-[10px] text-white/20 uppercase tracking-widest font-medium">Completed</p>
-                        </div>
-                    </div>
-                    <div className="w-full bg-white/[0.04] h-4 rounded-full overflow-hidden border border-white/[0.02]">
-                        <motion.div 
-                            initial={{ width: 0 }} 
-                            animate={{ width: `${Math.min(viewsPercent, 100)}%` }} 
-                            transition={{ duration: 1.8, ease: 'easeOut' }}
-                            className="bg-gradient-to-r from-emerald-600 via-emerald-400 to-cyan-400 h-full rounded-full shadow-[0_0_20px_rgba(52,211,153,0.3)] relative"
-                        >
-                            <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.2)_50%,transparent_100%)] w-1/2 animate-shimmer" />
-                        </motion.div>
-                    </div>
-                    <div className="mt-4 flex justify-between items-center text-[10px] font-mono text-white/30">
-                        <span>{(campaign.view_progress || 0).toLocaleString()} Views</span>
-                        <span className="flex items-center gap-1.5">
-                            <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                            {(campaign.target_views || 0).toLocaleString()} Total Goal
-                        </span>
-                    </div>
+                <div className="w-full bg-white/[0.04] h-2 rounded-full overflow-hidden">
+                    <motion.div 
+                        initial={{ width: 0 }} 
+                        animate={{ width: `${Math.min(viewsPercent, 100)}%` }} 
+                        transition={{ duration: 1.5, ease: 'easeOut' }}
+                        className="bg-emerald-500 h-full rounded-full"
+                    />
+                </div>
+                <div className="mt-2 flex justify-between text-[9px] font-mono text-white/20 uppercase tracking-tighter">
+                    <span>{campaign.view_progress.toLocaleString()} Qualified Views</span>
+                    <span>Goal: {campaign.target_views.toLocaleString()}</span>
                 </div>
             </div>
 
