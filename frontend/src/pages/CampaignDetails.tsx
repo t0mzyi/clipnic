@@ -136,6 +136,8 @@ export const CampaignDetails = () => {
             setSocialVerifyError(err.message);
             setIsVerifyingSocial(false);
         }
+    };
+
     const handleTiktokVerify = async () => {
         if (!linkedHandle) return;
         setIsVerifyingSocial(true);
