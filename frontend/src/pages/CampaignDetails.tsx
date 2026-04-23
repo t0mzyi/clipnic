@@ -420,7 +420,7 @@ export const CampaignDetails = () => {
             setIsSubmitModalOpen(false);
             setSubmissionUrl('');
         } catch (err: any) {
-            Toast.fire({ title: 'Error', text: err.message, icon: 'error', background: '#200' });
+            Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
         } finally {
             setIsSubmitting(false);
         }

@@ -506,6 +506,9 @@ export class SubmissionService {
 
     if (error) throw error;
 
+    // Trigger background refresh for stale submissions (don't await)
+    this.refreshStaleSubmissions(userId).catch(e => console.error('[SubmissionService] Background sync error:', e));
+
     let availableBalance = 0; // Accumulating
     let pendingPayout = 0;    // Goal Met (Active)
     let claimableBalance = 0; // Finalized / Ready
@@ -574,5 +577,29 @@ export class SubmissionService {
       claimed,
       breakdown
     };
+  }
+
+  static async refreshStaleSubmissions(userId: string) {
+    const STALE_THRESHOLD_MINS = 30;
+    const thresholdDate = new Date(Date.now() - STALE_THRESHOLD_MINS * 60 * 1000).toISOString();
+
+    const { data: staleSubmissions, error } = await supabase
+      .from('submissions')
+      .select('id')
+      .eq('user_id', userId)
+      .not('status', 'in', '("Paid","Rejected")')
+      .lt('updated_at', thresholdDate)
+      .limit(5); // Cap background syncs per request to avoid hitting rate limits
+
+    if (error || !staleSubmissions || staleSubmissions.length === 0) return;
+
+    console.log(`[SubmissionService] Syncing ${staleSubmissions.length} stale submissions for user ${userId}`);
+
+    // Process in background
+    for (const sub of staleSubmissions) {
+       this.refreshSubmission(userId, sub.id).catch(e => 
+          console.error(`[SubmissionService] Background refresh failed for ${sub.id}:`, e)
+       );
+    }
   }
 }

@@ -7,6 +7,38 @@ import { Dropdown } from '../components/Dropdown';
 import { AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'bottom-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    background: '#0D0D0D',
+    color: '#fff',
+    customClass: {
+        popup: 'rounded-2xl border border-white/10 shadow-2xl backdrop-blur-md bg-[#0D0D0D]/95',
+        title: 'text-sm font-bold',
+    },
+    didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+    }
+});
+
+const GlobalSwal = Swal.mixin({
+    background: '#0D0D0D',
+    color: '#fff',
+    customClass: {
+        popup: 'rounded-[32px] border border-white/10 shadow-2xl bg-[#0D0D0D]',
+        title: 'text-2xl font-bold tracking-tight pt-4',
+        htmlContainer: 'text-sm text-white/40 leading-relaxed px-6',
+        confirmButton: 'bg-white text-black px-10 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/90 transition-all mx-2',
+        cancelButton: 'bg-transparent border border-white/10 text-white/50 px-10 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all mx-2',
+        actions: 'pb-6'
+    },
+    buttonsStyling: false
+});
+
 export const MySubmissions = () => {
     const { token } = useAuthStore();
     const [submissions, setSubmissions] = useState<any[]>([]);
@@ -86,48 +118,23 @@ const handleRefresh = async (id: string) => {
         const json = await res.json();
         if (!json.success) throw new Error(json.error);
 
-        Swal.fire({
-            title: 'Views Updated!',
-            text: 'Your clip views and earnings have been synced with the latest platform data.',
-            icon: 'success',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
+        Toast.fire({ title: 'Refreshed', text: 'Clip statistics updated!', icon: 'success' });
         await fetchAll();
     } catch (err: any) {
-        Swal.fire({
-            title: 'Too Soon',
-            text: err.message,
-            icon: 'info',
-            background: '#0D0D0D',
-            color: '#fff',
-            confirmButtonColor: '#fff',
-            confirmButtonText: 'Got it',
-            customClass: {
-                popup: 'rounded-[24px] border border-white/10'
-            }
-        });
+        Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
     } finally {
         setRefreshingId(null);
     }
 };
 
 const handleDeleteSubmission = async (subId: string) => {
-    const result = await Swal.fire({
+    const result = await GlobalSwal.fire({
         title: 'Delete Submission?',
         text: "This will remove the clip and deduct your earnings from the campaign stats.",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, delete it',
-        cancelButtonText: 'Cancel',
-        background: '#0D0D0D',
-        color: '#fff',
-        confirmButtonColor: '#ef4444',
-        customClass: {
-            popup: 'rounded-[24px] border border-white/10'
-        }
+        cancelButtonText: 'Cancel'
     });
 
     if (result.isConfirmed) {
@@ -139,18 +146,10 @@ const handleDeleteSubmission = async (subId: string) => {
             const json = await res.json();
             if (!json.success) throw new Error(json.error);
 
-            Swal.fire({
-                title: 'Deleted',
-                text: 'Submission removed successfully.',
-                icon: 'success',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
-            });
+            Toast.fire({ title: 'Deleted', text: 'Submission removed successfully.', icon: 'success' });
             fetchAll(); // Refresh all stats
         } catch (err: any) {
-            Swal.fire({ title: 'Error', text: err.message, icon: 'error', background: '#0D0D0D', color: '#fff' });
+            Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
         }
     }
 };
@@ -184,7 +183,7 @@ const handleSubmitClip = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCampaignId || !submissionUrl) return;
     if (!platform) {
-        Swal.fire({ title: 'Invalid Link', text: 'Please provide a valid social link.', icon: 'error', background: '#0D0D0D', color: '#fff' });
+        Toast.fire({ title: 'Invalid Link', text: 'Please provide a valid social link.', icon: 'error' });
         return;
     }
 
@@ -199,12 +198,12 @@ const handleSubmitClip = async (e: React.FormEvent) => {
 
         if (!json.success) throw new Error(json.error);
 
-        Swal.fire({ title: 'Success!', text: 'Your clip is now in review.', icon: 'success', background: '#0D0D0D', color: '#fff' });
+        Toast.fire({ title: 'Success!', text: 'Your clip is now in review.', icon: 'success' });
         setIsSubmitModalOpen(false);
         setSubmissionUrl('');
         fetchAll();
     } catch (err: any) {
-        Swal.fire({ title: 'Error', text: err.message, icon: 'error', background: '#0D0D0D', color: '#fff' });
+        Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
     } finally {
         setIsSubmitting(false);
     }
