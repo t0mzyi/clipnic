@@ -178,11 +178,11 @@ export const Earnings = () => {
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-separate border-spacing-y-3">
                                 <thead>
-                                    <tr className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">
+                                    <tr className="text-[9px] sm:text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">
                                         <th className="pb-3 pl-6">Campaign</th>
-                                        <th className="pb-3">Views</th>
-                                        <th className="pb-3">Min Views</th>
-                                        <th className="pb-3">Earnings</th>
+                                        <th className="pb-3 whitespace-nowrap min-w-[80px]">Views</th>
+                                        <th className="pb-3 whitespace-nowrap min-w-[100px]">Min Views</th>
+                                        <th className="pb-3 whitespace-nowrap min-w-[100px]">Earnings</th>
                                         <th className="pb-3">Status</th>
                                         <th className="pb-3 pr-6">Category</th>
                                     </tr>

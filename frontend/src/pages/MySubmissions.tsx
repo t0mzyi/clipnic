@@ -395,10 +395,10 @@ export const MySubmissions = () => {
                         <thead>
                             <tr className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] px-4">
                                 <th className="pb-4 pl-6">Campaign</th>
-                                <th className="pb-4">Status</th>
-                                <th className="pb-4">Views</th>
-                                <th className="pb-4">Earnings</th>
-                                <th className="pb-4">Date</th>
+                                <th className="pb-4 whitespace-nowrap min-w-[100px]">Status</th>
+                                <th className="pb-4 whitespace-nowrap min-w-[80px]">Views</th>
+                                <th className="pb-4 whitespace-nowrap min-w-[100px]">Earnings</th>
+                                <th className="pb-4 whitespace-nowrap min-w-[100px]">Date</th>
                                 <th className="pb-4 pr-6 text-right">Actions</th>
                             </tr>
                         </thead>
