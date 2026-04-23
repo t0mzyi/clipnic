@@ -90,7 +90,6 @@ export const CampaignDetails = () => {
     const [isVerifyingSocial, setIsVerifyingSocial] = useState(false);
     const [socialVerifyError, setSocialVerifyError] = useState('');
     const [verifyCode] = useState(() => 'CLPNIC-' + Math.random().toString(36).substring(2, 8).toUpperCase());
-    const [instagramHandle, setInstagramHandle] = useState('');
     const [showYtCode, setShowYtCode] = useState(false);
     const [showIgCode, setShowIgCode] = useState(false);
 
