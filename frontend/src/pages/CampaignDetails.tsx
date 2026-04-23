@@ -165,7 +165,7 @@ export const CampaignDetails = () => {
     useEffect(() => {
         const fetchCampaign = async () => {
             try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}`, {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}?t=${Date.now()}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const json = await res.json();
@@ -180,7 +180,7 @@ export const CampaignDetails = () => {
         const fetchSubmissions = async () => {
             if (!id || !token) return;
             try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/campaign/${id}/my`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/campaign/${id}/my?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const contentType = res.headers.get("content-type");
                 if (contentType && contentType.indexOf("application/json") !== -1) {
                     const json = await res.json();
@@ -368,6 +368,11 @@ export const CampaignDetails = () => {
             setIsJoined(true);
             setJoinStep(4); // Success
             Toast.fire({ title: 'Welcome Aboard!', text: 'You are now part of this campaign.', icon: 'success' });
+            
+            // Sync: Refresh data immediately
+            fetchCampaign();
+            fetchSubmissions();
+            fetchSync();
         } catch (err: any) {
             Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
         } finally {
@@ -566,7 +571,7 @@ export const CampaignDetails = () => {
                                 <tbody className="divide-y divide-white/[0.03]">
                                     {!isJoined ? (
                                         <tr>
-                                            <td colSpan={4} className="px-6 py-12 text-center space-y-4">
+                                            <td colSpan={5} className="px-6 py-12 text-center space-y-4">
                                                 <div className="flex flex-col items-center">
                                                     <Shield className="w-10 h-10 text-white/5 mb-4" />
                                                     <p className="text-sm font-bold text-white/40">You must join this campaign to see submissions.</p>
@@ -576,7 +581,7 @@ export const CampaignDetails = () => {
                                         </tr>
                                     ) : submissions.length === 0 ? (
                                         <tr>
-                                            <td colSpan={4} className="px-6 py-8 text-center text-[10px] uppercase tracking-widest text-white/30">
+                                            <td colSpan={5} className="px-6 py-8 text-center text-[10px] uppercase tracking-widest text-white/30">
                                                 No submissions yet. Add your first clip!
                                             </td>
                                         </tr>

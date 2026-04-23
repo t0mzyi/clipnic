@@ -366,6 +366,7 @@ export class SubmissionService {
   }
 
   static async getUserSubmissions(userId: string, campaignId: string) {
+    console.log(`[SubmissionService] Fetching submissions for User: ${userId}, Campaign: ${campaignId}`);
     const { data, error } = await supabase
       .from('submissions')
       .select(`
@@ -379,7 +380,11 @@ export class SubmissionService {
       .eq('campaign_id', campaignId)
       .order('created_at', { ascending: false });
       
-    if (error) throw error;
+    if (error) {
+      console.error('[SubmissionService] Fetch error:', error);
+      throw error;
+    }
+    console.log(`[SubmissionService] Found ${data?.length || 0} submissions.`);
     return data;
   }
 
