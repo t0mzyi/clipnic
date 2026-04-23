@@ -114,8 +114,10 @@ export const Earnings = () => {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: idx * 0.05 }}
-                                    className={`p-8 rounded-3xl border shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group hover:bg-white/[0.04] transition-colors duration-500 ${
-                                        idx === 0 ? 'bg-white text-black border-white/20' : 'bg-white/[0.02] border-white/[0.05]'
+                                    className={`p-8 rounded-3xl border shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] group transition-all duration-500 ${
+                                        idx === 0 
+                                            ? 'bg-white text-black border-white/20 hover:bg-white/90' 
+                                            : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04]'
                                     }`}
                                 >
                                     <div className="flex items-center justify-between mb-5">
