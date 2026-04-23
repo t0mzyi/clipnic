@@ -69,7 +69,7 @@ const GlobalSwal = Swal.mixin({
 
 export const CampaignDetails = () => {
     const { id } = useParams();
-    const { token, user } = useAuthStore();
+    const { token, user, settings } = useAuthStore();
     const [campaign, setCampaign] = useState<Campaign | null>(null);
     const [loading, setLoading] = useState(true);
 
