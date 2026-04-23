@@ -154,18 +154,32 @@ export class SubmissionService {
     // 5. Verify ownership
     const { data: userRaw } = await supabase
         .from('users')
-        .select('instagram_handle, instagram_handles, youtube_handle, youtube_channels')
+        .select('name, email, instagram_handle, instagram_handles, youtube_handle, youtube_channels')
         .eq('id', userId)
         .single();
+
+    console.log(`[SubmissionService] Verifying submission for user: ${userRaw?.email} (${userId})`);
+    console.log(`[SubmissionService] Platform: ${validated.platform}, Video ChannelID: ${channelId}`);
 
     if (validated.platform === 'youtube') {
         if (!channelId) throw new Error("Could not pull channel details for this video.");
         
         const existingChannels = userRaw?.youtube_channels || [];
+        console.log(`[SubmissionService] User's Linked YT Channels:`, JSON.stringify(existingChannels));
+
         if (existingChannels.length === 0) throw new Error("Link a YouTube channel in Profile first.");
         
-        const isOwner = existingChannels.some((c: any) => c.channelId === channelId || c.id === channelId || c.handle === channelId);
-        if (!isOwner) throw new Error("This video does not belong to your verified channels.");
+        const isOwner = existingChannels.some((c: any) => 
+            String(c.channelId).toLowerCase() === String(channelId).toLowerCase() || 
+            String(c.id).toLowerCase() === String(channelId).toLowerCase() || 
+            String(c.handle).toLowerCase() === String(channelId).toLowerCase() ||
+            String(c.handle).toLowerCase() === `@${String(channelId).toLowerCase()}`
+        );
+
+        if (!isOwner) {
+            console.warn(`[SubmissionService] Ownership mismatch! Video: ${channelId}, Linked:`, existingChannels.map((c: any) => c.channelId || c.handle).join(', '));
+            throw new Error("This video does not belong to your verified channels.");
+        }
     } else if (validated.platform === 'instagram') {
         if (!channelId) throw new Error("Could not verify Instagram owner. Ensure the reel is public.");
         
@@ -173,7 +187,11 @@ export class SubmissionService {
         const cleanHandles = verifiedHandles.map((h: string) => h.toLowerCase().replace(/^@/, ''));
         const clipOwner = channelId.toLowerCase().replace(/^@/, '');
 
+        console.log(`[SubmissionService] User's Linked IG Handles:`, cleanHandles);
+        console.log(`[SubmissionService] Clip Owner: ${clipOwner}`);
+
         if (!cleanHandles.includes(clipOwner)) {
+            console.warn(`[SubmissionService] IG Ownership mismatch! Reel: @${clipOwner}, Linked: @${cleanHandles.join(', @')}`);
             throw new Error(`This Reel belongs to @${clipOwner}, which is not linked to your profile.`);
         }
     }
