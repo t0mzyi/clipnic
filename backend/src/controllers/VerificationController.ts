@@ -532,7 +532,7 @@ export class VerificationController {
         .from('users')
         .update({ discord_verified: true, discord_id: discordId })
         .eq('id', userId)
-        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_handle, youtube_channels, youtube_verified, instagram_handle, instagram_verified, is_blocked, bio, created_at')
+        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, instagram_handle, is_blocked')
         .single();
 
       if (error) {
@@ -690,7 +690,7 @@ export class VerificationController {
             instagram_handle: `@${handle}`
         })
         .eq('id', userId)
-        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_handle, youtube_channels, youtube_verified, instagram_handle, instagram_verified, is_blocked, bio, created_at')
+        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, instagram_handle, is_blocked')
         .single();
 
       if (error) throw error;
