@@ -278,18 +278,7 @@ export const MySubmissions = () => {
             </div>
 
             {/* KPIs - Premium Design */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
-                {/* Available Balance (Goal Met but Active) */}
-                {summary.pendingPayout > 0 && (
-                    <div className="p-6 rounded-3xl bg-blue-500/5 border border-blue-500/10 group hover:bg-blue-500/10 transition-all duration-500">
-                        <p className="text-[10px] text-blue-400 mb-3 uppercase tracking-[0.2em] font-bold flex items-center gap-2.5">
-                            <Wallet className="w-4 h-4" />
-                            Available Balance
-                        </p>
-                        <p className="text-3xl font-mono tabular-metrics text-blue-400 font-bold">${summary.pendingPayout.toFixed(2)}</p>
-                    </div>
-                )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
 
                 {/* Claimable Balance - Only show if mission ended and ready */}
                 {summary.claimableBalance > 0 && (
