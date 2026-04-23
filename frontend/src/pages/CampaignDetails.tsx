@@ -383,6 +383,7 @@ export const CampaignDetails = () => {
 
     const handleSubmitClip = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSubmitting(true);
         if (!platform) {
             Toast.fire({ title: 'Invalid Link', text: 'Please provide a valid YouTube, Instagram, or TikTok link.', icon: 'error' });
             setIsSubmitting(false);
