@@ -1,8 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, Link } from 'react-router-dom';
+import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useState, useEffect } from 'react';
-import { Shield, Eye, DollarSign, Clock, Target, Upload, ChevronLeft, X, CheckCircle, Globe, Trophy, Award, Medal, Trash2, Loader2 } from 'lucide-react';
+import { Shield, Eye, DollarSign, Clock, Target, Upload, ChevronLeft, X, CheckCircle, Globe, Trophy, Award, Medal, Trash2 } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
@@ -1036,10 +1037,11 @@ export const CampaignDetails = () => {
                                                     </div>
                                                 ) : null}
 
-                                                {(!showIgCode && !showYtCode) ? (
+                                                {(!showIgCode && !showYtCode && !showTtCode) ? (
                                                     <>
-                                                        {/* Only show manual handle input if Instagram is allowed OR if YouTube is in manual mode */}
+                                                        {/* Only show manual handle input if Instagram/TikTok is allowed OR if YouTube is in manual mode */}
                                                         {(campaign.allowed_platforms?.includes('instagram') || 
+                                                          campaign.allowed_platforms?.includes('tiktok') ||
                                                           (campaign.allowed_platforms?.includes('youtube') && settings?.youtube_auth_mode === 'manual')) && (
                                                             <div className="space-y-1.5">
                                                                 <label className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Social Handle</label>
@@ -1061,6 +1063,17 @@ export const CampaignDetails = () => {
                                                             >
                                                                 {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-pink-400/20 border-t-pink-400 animate-spin" />}
                                                                 Link Instagram Bio
+                                                            </Button>
+                                                        )}
+                                                        {campaign.allowed_platforms?.includes('tiktok') && (
+                                                            <Button
+                                                                variant="outline"
+                                                                onClick={() => { setShowTtCode(true); setPlatform('tiktok'); }}
+                                                                disabled={isVerifyingSocial || !linkedHandle}
+                                                                className="w-full py-3 rounded-xl border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/5 text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2"
+                                                            >
+                                                                {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-cyan-400/20 border-t-cyan-400 animate-spin" />}
+                                                                Link TikTok Bio
                                                             </Button>
                                                         )}
                                                         {campaign.allowed_platforms?.includes('youtube') && (
@@ -1090,26 +1103,29 @@ export const CampaignDetails = () => {
                                                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                         <div className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl text-center space-y-3">
                                                             <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest leading-relaxed">
-                                                                Add this code to your {showYtCode ? 'YouTube channel' : 'Instagram profile'} bio
+                                                                Add this code to your {showYtCode ? 'YouTube channel' : showTtCode ? 'TikTok profile' : 'Instagram profile'} bio
                                                             </p>
                                                             <div className="bg-black/60 border border-white/10 p-4 rounded-xl font-mono text-emerald-400 text-xl tracking-widest shadow-inner">
                                                                 {verifyCode}
                                                             </div>
                                                             <button 
-                                                                onClick={() => { setShowIgCode(false); setShowYtCode(false); }} 
+                                                                onClick={() => { setShowIgCode(false); setShowYtCode(false); setShowTtCode(false); }} 
                                                                 className="text-[9px] text-white/30 uppercase tracking-widest hover:text-white underline"
                                                             >
                                                                 Back to handle input
                                                             </button>
                                                         </div>
                                                         <Button
-                                                            onClick={showYtCode ? handleYouTubeVerify : handleInstagramVerify}
+                                                            onClick={showYtCode ? handleYouTubeVerify : showTtCode ? handleTiktokVerify : handleInstagramVerify}
                                                             disabled={isVerifyingSocial}
                                                             className="w-full py-4 rounded-xl bg-white text-black text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl hover:scale-[1.02] transition-all"
                                                         >
                                                             {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
-                                                            Check {showYtCode ? 'YouTube' : 'Instagram'} Bio Now
+                                                            Check {showYtCode ? 'YouTube' : showTtCode ? 'TikTok' : 'Instagram'} Bio Now
                                                         </Button>
+                                                        <p className="text-[9px] text-white/30 text-center italic">
+                                                            Once linked, you can remove this code from your bio.
+                                                        </p>
                                                     </div>
                                                 )}
                                             </div>
@@ -1130,6 +1146,7 @@ export const CampaignDetails = () => {
                                                     const verifiedHandles = user?.instagramHandles || (user?.instagramHandle ? [user.instagramHandle] : []);
                                                     return user?.instagramVerified && verifiedHandles.includes(linkedHandle);
                                                 }
+                                                if (p === 'tiktok') return user?.tiktokVerified && user?.tiktokHandle === linkedHandle;
                                                 if (p === 'youtube') return user?.youtubeVerified && (user?.youtubeHandle === linkedHandle || user?.youtubeChannels?.some((c: any) => c.handle === linkedHandle));
                                                 return false;
                                             })}

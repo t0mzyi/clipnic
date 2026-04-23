@@ -155,6 +155,7 @@ export const Profile = () => {
     const [showIgCode, setShowIgCode] = useState(false);
     const [tiktokHandle, setTiktokHandle] = useState('');
     const [showTiktokCode, setShowTiktokCode] = useState(false);
+    const [showYtCode, setShowYtCode] = useState(false);
 
     // Verification code based on user ID (consistent)
     const verifyCode = `CLPNIC-${user?.id?.slice(0, 6).toUpperCase()}`;
@@ -182,7 +183,7 @@ export const Profile = () => {
             if (!res.ok) throw new Error(data.error);
 
             Toast.fire({ title: 'Success', text: 'YouTube channel verified via bio!', icon: 'success' });
-            setShowCode(false);
+            setShowYtCode(false);
             setYoutubeUrl('');
             fetchSync();
         } catch (error: any) {
@@ -938,7 +939,7 @@ export const Profile = () => {
 
                                             {settings?.youtube_auth_mode === 'manual' ? (
                                                 <div className="w-full space-y-6">
-                                                    {!showCode ? (
+                                                    {!showYtCode ? (
                                                         <div className="space-y-4">
                                                             <div className="text-center space-y-2 mb-4">
                                                                 <h3 className="font-bold text-white uppercase text-[10px] tracking-widest">Manual Verification</h3>
@@ -956,9 +957,8 @@ export const Profile = () => {
                                                             </div>
                                                             <Button
                                                                 className="w-full rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90"
-                                                                onClick={() => {
                                                                     if (!youtubeUrl) return Toast.fire({ title: 'Error', text: 'Enter handle first', icon: 'error' });
-                                                                    setShowCode(true);
+                                                                    setShowYtCode(true);
                                                                 }}
                                                             >
                                                                 Next: Generate Code
@@ -974,7 +974,7 @@ export const Profile = () => {
                                                                 <p className="text-[10px] text-white/40 leading-relaxed italic">Add this code anywhere in your channel bio, then click verify.</p>
                                                             </div>
                                                             <div className="flex gap-3 pt-2">
-                                                                <Button variant="secondary" className="flex-1 rounded-2xl py-3 text-xs bg-white/10 border border-white/10 hover:bg-white/20" onClick={() => setShowCode(false)}>Back</Button>
+                                                                <Button variant="secondary" className="flex-1 rounded-2xl py-3 text-xs bg-white/10 border border-white/10 hover:bg-white/20" onClick={() => setShowYtCode(false)}>Back</Button>
                                                                 <Button
                                                                     disabled={isVerifying}
                                                                     className="flex-[2] rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90"
@@ -1025,7 +1025,7 @@ export const Profile = () => {
                                             <button
                                                 onClick={() => {
                                                     setSelectedSocial('');
-                                                    setShowCode(false);
+                                                    setShowYtCode(false);
                                                 }}
                                                 className="text-[10px] text-white/30 uppercase tracking-widest hover:text-white transition-colors pt-2"
                                             >
@@ -1099,7 +1099,7 @@ export const Profile = () => {
                                             <button
                                                 onClick={() => {
                                                     setSelectedSocial('');
-                                                    setShowCode(false);
+                                                    setShowYtCode(false);
                                                 }}
                                                 className="text-[10px] text-white/30 uppercase tracking-widest hover:text-white transition-colors pt-2"
                                             >
