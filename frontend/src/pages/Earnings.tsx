@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, Landmark, History, TrendingUp, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Wallet, TrendingUp, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Button } from '../components/ui/Button';
 
