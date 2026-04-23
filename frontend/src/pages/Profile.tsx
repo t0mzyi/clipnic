@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/Button';
-import { ShieldCheck, Mail, Scissors, Eye, Wallet, Trash2 } from 'lucide-react';
+import { ShieldCheck, Mail, Scissors, Eye, Wallet, Trash2, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -61,6 +61,7 @@ export const Profile = () => {
 
     // Discord state
     const [isVerifying, setIsVerifying] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [verifyError, setVerifyError] = useState('');
 
     const [searchParams, setSearchParams] = useSearchParams();
@@ -320,6 +321,20 @@ export const Profile = () => {
             } finally {
                 setIsVerifying(false);
             }
+        }
+    };
+
+    const handleSaveSettings = async () => {
+        setIsSaving(true);
+        try {
+            // Mock API call - in a real app this would call updateProfile endpoint
+            await new Promise(r => setTimeout(r, 1000));
+            Toast.fire({ title: 'Profile Updated', icon: 'success' });
+            setIsSettingsOpen(false);
+        } catch (err) {
+            Toast.fire({ title: 'Error', text: 'Failed to update profile', icon: 'error' });
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -606,7 +621,7 @@ export const Profile = () => {
                                         <Button
                                             variant="primary"
                                             disabled={isVerifying}
-                                            className="w-full rounded-2xl py-4 text-xs font-bold uppercase tracking-widest bg-white text-zinc-950 hover:bg-white/90 shadow-xl disabled:opacity-50 mt-4"
+                                            className="w-full rounded-2xl py-4 text-xs font-bold uppercase tracking-widest bg-white text-zinc-950 hover:bg-white/90 shadow-xl disabled:opacity-50 mt-4 flex items-center justify-center gap-2"
                                             onClick={async () => {
                                                 if (user?.discordVerified) {
                                                     setVerifyStep(2);
@@ -638,6 +653,7 @@ export const Profile = () => {
                                                 }
                                             }}
                                         >
+                                            {isVerifying && <Loader2 className="w-4 h-4 animate-spin" />}
                                             {isVerifying ? 'Redirecting...' : 'Verify'}
                                         </Button>
 
@@ -792,7 +808,7 @@ export const Profile = () => {
                                                             setIsVerifying(false);
                                                         }
                                                     }}>
-                                                    {isVerifying ? <div className="w-3 h-3 rounded-full border-2 border-white/20 border-t-white animate-spin" /> : null}
+                                                    {isVerifying ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
                                                     {isVerifying ? 'Redirecting...' : '+ Link Another Channel'}
                                                 </Button>
                                                 <Button variant="secondary" className="w-full rounded-2xl py-3 text-xs bg-transparent border border-white/10 text-white/50 hover:bg-white/5" onClick={() => { setIsVerifyOpen(false); setIsLinkingNew(false); }}>Close</Button>
@@ -905,7 +921,7 @@ export const Profile = () => {
                                                             }
                                                         }}
                                                     >
-                                                        {isVerifying ? <div className="w-3 h-3 rounded-full border-2 border-white/20 border-t-white animate-spin" /> : null}
+                                                        {isVerifying ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
                                                         {isVerifying ? 'Redirecting...' : 'Link with YouTube'}
                                                     </Button>
                                                 </div>
@@ -983,7 +999,7 @@ export const Profile = () => {
                                                                 className="flex-[2] rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90 flex items-center justify-center gap-2"
                                                                 onClick={handleManualInstagramVerify}
                                                             >
-                                                        {isVerifying && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
+                                                        {isVerifying && <Loader2 className="w-3 h-3 animate-spin" />}
                                                                 {isVerifying ? 'Verifying...' : 'Check Bio Now'}
                                                             </Button>
                                                         </div>
@@ -1054,9 +1070,11 @@ export const Profile = () => {
                                     </div>
                                     <Button
                                         variant="primary"
-                                        onClick={() => setIsSettingsOpen(false)}
-                                        className="w-full bg-white text-zinc-950 hover:bg-white/90 rounded-2xl py-4 text-xs font-bold uppercase tracking-widest shadow-xl"
+                                        disabled={isSaving}
+                                        onClick={handleSaveSettings}
+                                        className="w-full bg-white text-zinc-950 hover:bg-white/90 rounded-2xl py-4 text-xs font-bold uppercase tracking-widest shadow-xl flex items-center justify-center gap-2"
                                     >
+                                        {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
                                         Save Changes
                                     </Button>
                                 </div>
