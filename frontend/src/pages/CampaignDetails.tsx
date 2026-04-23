@@ -90,6 +90,8 @@ export const CampaignDetails = () => {
     const [isVerifyingSocial, setIsVerifyingSocial] = useState(false);
     const [socialVerifyError, setSocialVerifyError] = useState('');
     const [verifyCode] = useState(() => 'CLPNIC-' + Math.random().toString(36).substring(2, 8).toUpperCase());
+    const [instagramHandle, setInstagramHandle] = useState('');
+    const [instagramReelUrl, setInstagramReelUrl] = useState('');
     const [showYtCode, setShowYtCode] = useState(false);
     const [showIgCode, setShowIgCode] = useState(false);
 
@@ -259,6 +261,46 @@ export const CampaignDetails = () => {
             }
         } catch (e) {
             console.error('Sync failed:', e);
+        }
+    };
+
+    const handleInstagramReelVerify = async () => {
+        if (!instagramReelUrl) {
+            Toast.fire({ title: 'Error', text: 'Please enter your Reel URL', icon: 'error' });
+            return;
+        }
+
+        setIsVerifyingSocial(true);
+        setSocialVerifyError('');
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-instagram-reel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    reelUrl: instagramReelUrl,
+                    code: verifyCode
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw data;
+
+            Toast.fire({ title: 'Success', text: 'Instagram verified via Reel!', icon: 'success' });
+            await fetchSync();
+            // Automatically select the new handle
+            if (data.data?.instagram_handle) {
+                setLinkedHandle(data.data.instagram_handle);
+                setPlatform('instagram');
+            }
+            setShowIgCode(false);
+            setInstagramReelUrl('');
+        } catch (err: any) {
+            setSocialVerifyError(err.error || err.message || 'Verification failed');
+        } finally {
+            setIsVerifyingSocial(false);
         }
     };
 
@@ -1023,6 +1065,33 @@ export const CampaignDetails = () => {
                                                             {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
                                                             Check {showYtCode ? 'YouTube' : 'Instagram'} Bio Now
                                                         </Button>
+
+                                                        {showIgCode && (
+                                                            <div className="pt-4 border-t border-white/5 space-y-4">
+                                                                <div className="text-center space-y-1">
+                                                                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Alternative Method</p>
+                                                                    <p className="text-[9px] text-white/30 italic text-center leading-relaxed">Bio check failing? Post a Reel with the code in caption instead.</p>
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="https://www.instagram.com/reels/..."
+                                                                        value={instagramReelUrl}
+                                                                        onChange={(e) => setInstagramReelUrl(e.target.value)}
+                                                                        className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-4 text-[11px] text-white focus:outline-none focus:border-white/30 transition-all placeholder:text-white/10"
+                                                                    />
+                                                                </div>
+                                                                <Button
+                                                                    disabled={isVerifyingSocial}
+                                                                    variant="secondary"
+                                                                    className="w-full rounded-2xl py-3 text-[10px] bg-[#E1306C]/10 text-[#E1306C] border border-[#E1306C]/20 hover:bg-[#E1306C]/20 flex items-center justify-center gap-2"
+                                                                    onClick={handleInstagramReelVerify}
+                                                                >
+                                                                    {isVerifyingSocial && <div className="w-3 h-3 rounded-full border-2 border-[#E1306C]/20 border-t-[#E1306C] animate-spin" />}
+                                                                    Verify via Reel
+                                                                </Button>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
