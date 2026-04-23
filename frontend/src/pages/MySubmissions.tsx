@@ -554,7 +554,7 @@ export const MySubmissions = () => {
                                     {/* Requirements Info */}
                                     {selectedCampaign && (
                                         <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
-                                            <div className="flex items-center gap-2 text-white/30"><CheckCircle className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Qualified Views</span></div>
+                                            <div className="flex items-center gap-2 text-white/30"><CheckCircle2 className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Qualified Views</span></div>
                                             <div className="flex gap-2">
                                                 {selectedCampaign.allowed_platforms?.map((p: string) => (
                                                     <span key={p} className="text-[9px] font-black uppercase text-white/20">{p}</span>
