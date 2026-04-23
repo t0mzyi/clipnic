@@ -336,7 +336,7 @@ export const CampaignDetails = () => {
             const data = await res.json();
             if (!res.ok) throw data;
 
-            Toast.fire({ title: 'Success', text: 'Instagram account verified!', icon: 'success' });
+            Toast.fire({ title: 'Success', text: 'Instagram account verified! You can now remove the code from your bio.', icon: 'success' });
             await fetchSync();
             handleJoinSubmit(); 
         } catch (err: any) {
