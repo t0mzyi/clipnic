@@ -50,6 +50,17 @@ export class SubmissionController {
     }
   }
 
+  static async deleteSubmission(req: Request, res: Response) {
+      try {
+          const userId = (req as any).user.id;
+          const id = req.params.id;
+          await SubmissionService.deleteSubmission(userId, id as string);
+          res.json({ success: true, message: 'Submission deleted successfully' });
+      } catch (err: any) {
+          res.status(400).json({ success: false, error: err.message });
+      }
+  }
+
   static async refreshSubmission(req: Request, res: Response) {
       try {
           const userId = (req as any).user.id;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink, X, Upload, ShieldCheck, Globe, Info } from 'lucide-react';
+import { Search, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink, X, Upload, ShieldCheck, Globe, Info, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 import { Dropdown } from '../components/Dropdown';
@@ -111,6 +111,47 @@ export const MySubmissions = () => {
             });
         } finally {
             setRefreshingId(null);
+        }
+    };
+
+    const handleDeleteSubmission = async (subId: string) => {
+        const result = await Swal.fire({
+            title: 'Delete Submission?',
+            text: "This will remove the clip and deduct your earnings from the campaign stats.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it',
+            cancelButtonText: 'Cancel',
+            background: '#0D0D0D',
+            color: '#fff',
+            confirmButtonColor: '#ef4444',
+            customClass: {
+                popup: 'rounded-[24px] border border-white/10'
+            }
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/${subId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                if (!json.success) throw new Error(json.error);
+
+                Swal.fire({
+                    title: 'Deleted',
+                    text: 'Submission removed successfully.',
+                    icon: 'success',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                fetchAll(); // Refresh all stats
+            } catch (err: any) {
+                Swal.fire({ title: 'Error', text: err.message, icon: 'error', background: '#0D0D0D', color: '#fff' });
+            }
         }
     };
     
@@ -383,6 +424,13 @@ export const MySubmissions = () => {
                                             >
                                                 <ExternalLink className="w-3.5 h-3.5" />
                                             </a>
+                                            <button 
+                                                onClick={() => handleDeleteSubmission(sub.id)}
+                                                className="p-2 rounded-xl bg-red-500/5 border border-red-500/10 text-red-500/30 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                                                title="Delete Submission"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>

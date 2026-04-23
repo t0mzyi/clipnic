@@ -11,6 +11,7 @@ router.get('/earnings', authenticate, SubmissionController.getEarningsSummary);
 router.get('/campaign/:campaignId/my', authenticate, SubmissionController.getMySubmissions);
 
 router.post('/:id/refresh', authenticate, SubmissionController.refreshSubmission);
+router.delete('/:id', authenticate, SubmissionController.deleteSubmission);
 
 // Public or general route for Leaderboard
 router.get('/campaign/:campaignId/leaderboard', SubmissionController.getLeaderboard);

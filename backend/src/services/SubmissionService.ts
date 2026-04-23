@@ -19,15 +19,20 @@ export class SubmissionService {
       try {
         const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
         const videoId = match ? match[1] : null;
+        console.log(`[SubmissionService] YouTube VideoID match: ${videoId}`);
         
         if (videoId && process.env.YOUTUBE_API_KEY) {
           const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoId}&key=${process.env.YOUTUBE_API_KEY}`);
           const json = await res.json();
+          console.log(`[SubmissionService] YouTube API Response:`, JSON.stringify(json));
+          
           if (json.items && json.items.length > 0) {
-            return {
-                views: parseInt(json.items[0].statistics.viewCount, 10),
-                channelId: json.items[0].snippet.channelId
-            };
+            const views = parseInt(json.items[0].statistics.viewCount, 10);
+            const channelId = json.items[0].snippet.channelId;
+            console.log(`[SubmissionService] Fetched YouTube Views: ${views}, ChannelID: ${channelId}`);
+            return { views, channelId };
+          } else {
+            console.warn(`[SubmissionService] YouTube video not found or no stats returned.`);
           }
         }
       } catch (err) {
@@ -49,12 +54,13 @@ export class SubmissionService {
               });
               if (apifyRes.ok) {
                   const items = await apifyRes.json();
+                  console.log(`[SubmissionService] Apify Instagram Items:`, JSON.stringify(items));
                   if (items && items.length > 0) {
                       const post = items[0];
-                      return { 
-                          views: post.videoPlayCount || post.videoViewCount || 0, 
-                          channelId: post.ownerUsername ? `@${post.ownerUsername.toLowerCase()}` : null 
-                      };
+                      const views = post.videoPlayCount || post.videoViewCount || 0;
+                      const channelId = post.ownerUsername ? `@${post.ownerUsername.toLowerCase()}` : null;
+                      console.log(`[SubmissionService] Fetched Instagram Views: ${views}, Owner: ${channelId}`);
+                      return { views, channelId };
                   }
               }
           } catch (e) {
@@ -247,6 +253,37 @@ export class SubmissionService {
     }
 
     return submission;
+  }
+
+  static async deleteSubmission(userId: string, submissionId: string) {
+      // 1. Fetch submission to know what to deduct
+      const { data: submission, error: subErr } = await supabase
+          .from('submissions')
+          .select('campaign_id, earnings, views, status')
+          .eq('id', submissionId)
+          .eq('user_id', userId)
+          .single();
+      
+      if (subErr || !submission) throw new Error("Submission not found or unauthorized.");
+      if (submission.status === 'Paid') throw new Error("Cannot delete a submission that has already been paid.");
+
+      // 2. Delete from DB
+      const { error: delErr } = await supabase
+          .from('submissions')
+          .delete()
+          .eq('id', submissionId)
+          .eq('user_id', userId);
+      
+      if (delErr) throw delErr;
+
+      // 3. Deduct from Campaign Stats
+      await supabase.rpc('increment_campaign_stats', {
+          camp_id: submission.campaign_id,
+          earnings_add: -Number(submission.earnings || 0),
+          views_add: -Number(submission.views || 0)
+      });
+
+      return true;
   }
 
   static async refreshSubmission(userId: string, submissionId: string) {

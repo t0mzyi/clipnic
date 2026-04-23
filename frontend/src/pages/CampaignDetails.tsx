@@ -406,12 +406,47 @@ export const CampaignDetails = () => {
 
             Toast.fire({ title: 'Clip Submitted!', text: 'Your clip is now in review.', icon: 'success' });
             setSubmissions(prev => [json.data, ...prev]);
+            
+            // Sync: Re-fetch campaign data to update budget/views
+            fetchCampaign();
+            
             setIsSubmitModalOpen(false);
             setSubmissionUrl('');
         } catch (err: any) {
             Toast.fire({ title: 'Error', text: err.message, icon: 'error', background: '#200' });
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteSubmission = async (subId: string) => {
+        const result = await GlobalSwal.fire({
+            title: 'Delete Submission?',
+            text: "This will remove the clip and deduct your earnings from the campaign stats.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it',
+            cancelButtonText: 'Cancel',
+            background: '#0D0D0D',
+            color: '#fff',
+            confirmButtonColor: '#ef4444'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/${subId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                if (!json.success) throw new Error(json.error);
+
+                Toast.fire({ title: 'Deleted', text: 'Submission removed successfully.', icon: 'success' });
+                setSubmissions(prev => prev.filter(s => s.id !== subId));
+                fetchCampaign(); // Refresh stats
+            } catch (err: any) {
+                Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
+            }
         }
     };
 
@@ -524,7 +559,8 @@ export const CampaignDetails = () => {
                                         <th className="px-6 py-4">Clip</th>
                                         <th className="px-6 py-4">Views</th>
                                         <th className="px-6 py-4">Earned</th>
-                                        <th className="px-6 py-4 text-right">Status</th>
+                                        <th className="px-6 py-4">Status</th>
+                                        <th className="px-6 py-4 text-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/[0.03]">
@@ -561,10 +597,19 @@ export const CampaignDetails = () => {
                                             <td className="px-6 py-5">
                                                 <p className="text-sm font-mono font-bold text-emerald-400">${Number(sub.earnings || 0).toFixed(2)}</p>
                                             </td>
-                                            <td className="px-6 py-5 text-right">
+                                            <td className="px-6 py-5">
                                                 <span className={`text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-lg border ${sub.status === 'Verified' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : sub.status === 'Pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
                                                     {sub.status}
                                                 </span>
+                                            </td>
+                                            <td className="px-6 py-5 text-right">
+                                                <button 
+                                                    onClick={() => handleDeleteSubmission(sub.id)}
+                                                    className="p-2 rounded-lg bg-red-500/5 text-red-500/30 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                                                    title="Delete Submission"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
