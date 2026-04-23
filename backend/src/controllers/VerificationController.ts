@@ -645,7 +645,7 @@ export class VerificationController {
       });
 
       if (!igRes.ok) {
-          throw new Error("Could not reach Instagram. If the profile is private, bio verification will fail.");
+          throw new Error(`Could not reach Instagram (Status: ${igRes.status}). If the profile is private, bio verification will fail.`);
       }
 
       const html = await igRes.text();
