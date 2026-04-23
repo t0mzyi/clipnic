@@ -138,6 +138,30 @@ export const CampaignDetails = () => {
         }
     };
 
+    const fetchSync = async () => {
+        if (!token) return;
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/sync`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const result = await response.json();
+            if (result.success) {
+                const { updateUser } = useAuthStore.getState();
+                updateUser({
+                    discordVerified: result.data.discord_verified,
+                    youtubeVerified: result.data.youtube_verified,
+                    youtubeHandle: result.data.youtube_handle,
+                    instagramVerified: result.data.instagram_verified,
+                    instagramHandle: result.data.instagram_handle,
+                    instagramHandles: result.data.instagram_handles || (result.data.instagram_handle ? [result.data.instagram_handle] : []),
+                    youtubeChannels: result.data.youtube_channels
+                });
+            }
+        } catch (e) {
+            console.error('Sync failed:', e);
+        }
+    };
+
     useEffect(() => {
         const fetchCampaign = async () => {
             try {
@@ -212,20 +236,24 @@ export const CampaignDetails = () => {
         const ySuccess = searchParams.get('youtube_success');
 
         if (dSuccess || iSuccess || ySuccess) {
-            fetchSync();
             setIsJoinModalOpen(true);
             if (dSuccess) {
-                setJoinStep(2); // Stay on Discord step so they see Checkmark, then they click Next
+                setJoinStep(2);
                 Toast.fire({ title: 'Discord Linked!', icon: 'success' });
             }
             if (iSuccess || ySuccess) {
                 setJoinStep(3);
                 Toast.fire({ title: 'Social Linked!', icon: 'success' });
             }
-            // Clean up URL
-            window.history.replaceState({}, '', window.location.pathname);
+
+            // Sync user data to get the new handles/channels
+            fetchSync();
+
+            // Clean up URL parameters without refreshing the page
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
         }
-    }, [token]);
+    }, [token, id]); // Added id as dependency
 
     // Auto-detect platform from URL
     useEffect(() => {
@@ -279,33 +307,11 @@ export const CampaignDetails = () => {
         }, 800);
     };
 
+
     const handleNextFromDiscord = () => {
         setJoinStep(3);
     };
 
-    const fetchSync = async () => {
-        if (!token) return;
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/sync`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const result = await response.json();
-            if (result.success) {
-                const { updateUser } = useAuthStore.getState();
-                updateUser({
-                    discordVerified: result.data.discord_verified,
-                    youtubeVerified: result.data.youtube_verified,
-                    youtubeHandle: result.data.youtube_handle,
-                    instagramVerified: result.data.instagram_verified,
-                    instagramHandle: result.data.instagram_handle,
-                    instagramHandles: result.data.instagram_handles || (result.data.instagram_handle ? [result.data.instagram_handle] : []),
-                    youtubeChannels: result.data.youtube_channels
-                });
-            }
-        } catch (e) {
-            console.error('Sync failed:', e);
-        }
-    };
 
     const handleInstagramVerify = async () => {
         if (!linkedHandle) {
