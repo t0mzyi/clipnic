@@ -26,6 +26,12 @@ const InstagramIcon = () => (
     </svg>
 );
 
+const TiktokIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-cyan-400">
+        <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.36-.54.38-.89.98-1.03 1.63-.11.45-.12.92-.01 1.37.11.83.63 1.57 1.35 1.97.66.36 1.45.41 2.18.23.69-.15 1.3-.57 1.69-1.16.27-.42.41-.9.44-1.39-.03-3.9-.01-7.8-.02-11.7z"/>
+    </svg>
+);
+
 interface User {
     id: string;
     email: string;
@@ -37,6 +43,8 @@ interface User {
     youtube_handle: string;
     instagram_verified: boolean;
     instagram_handle: string;
+    tiktok_verified: boolean;
+    tiktok_handle: string;
     is_blocked: boolean;
     role: 'admin' | 'user';
     created_at: string;
@@ -328,7 +336,7 @@ export const AdminUserDetails = () => {
                             Verification Status
                         </h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {/* Discord */}
                             <div className={`p-6 rounded-3xl border ${user.discord_verified ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-white/[0.02] border-white/5'}`}>
                                 <div className="flex items-center justify-between mb-4">
@@ -361,6 +369,18 @@ export const AdminUserDetails = () => {
                                 </div>
                                 <h4 className="text-xs font-bold text-white/90 uppercase tracking-widest mb-1 font-sans">Instagram</h4>
                                 <p className="text-[11px] text-white/30 font-mono truncate">{user.instagram_handle || 'Not linked'}</p>
+                            </div>
+
+                            {/* TikTok */}
+                            <div className={`p-6 rounded-3xl border ${user.tiktok_verified ? 'bg-cyan-500/10 border-cyan-500/20' : 'bg-white/[0.02] border-white/5'}`}>
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className={user.tiktok_verified ? '' : 'opacity-20 grayscale'}>
+                                        <TiktokIcon />
+                                    </div>
+                                    {user.tiktok_verified && <ShieldCheck className="w-4 h-4 text-cyan-400" />}
+                                </div>
+                                <h4 className="text-xs font-bold text-white/90 uppercase tracking-widest mb-1 font-sans">TikTok</h4>
+                                <p className="text-[11px] text-white/30 font-mono truncate">{user.tiktok_handle || 'Not linked'}</p>
                             </div>
                         </div>
                     </div>

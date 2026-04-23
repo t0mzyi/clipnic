@@ -1,9 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, Link } from 'react-router-dom';
-import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useState, useEffect } from 'react';
-import { Shield, Eye, DollarSign, Clock, Target, Upload, ChevronLeft, X, CheckCircle, Globe, Trophy, Award, Medal, Trash2 } from 'lucide-react';
+import { Shield, Eye, DollarSign, Clock, Target, Upload, ChevronLeft, X, CheckCircle, Globe, Trophy, Award, Medal, Trash2, Loader2 } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
@@ -92,6 +91,7 @@ export const CampaignDetails = () => {
     const [verifyCode] = useState(() => 'CLPNIC-' + Math.random().toString(36).substring(2, 8).toUpperCase());
     const [showYtCode, setShowYtCode] = useState(false);
     const [showIgCode, setShowIgCode] = useState(false);
+    const [showTtCode, setShowTtCode] = useState(false);
 
     const handleYouTubeVerify = async () => {
         if (!linkedHandle) return;
@@ -136,6 +136,27 @@ export const CampaignDetails = () => {
             setSocialVerifyError(err.message);
             setIsVerifyingSocial(false);
         }
+    const handleTiktokVerify = async () => {
+        if (!linkedHandle) return;
+        setIsVerifyingSocial(true);
+        setSocialVerifyError('');
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-tiktok-bio`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ handle: linkedHandle, code: verifyCode })
+            });
+            const json = await res.json();
+            if (!json.success) throw json;
+
+            Toast.fire({ title: 'TikTok Linked!', icon: 'success' });
+            fetchSync();
+            setJoinStep(3);
+        } catch (err: any) {
+            setSocialVerifyError(err.details || err.error || err.message || 'Verification failed');
+        } finally {
+            setIsVerifyingSocial(false);
+        }
     };
 
     const fetchSync = async () => {
@@ -154,7 +175,9 @@ export const CampaignDetails = () => {
                     instagramVerified: result.data.instagram_verified,
                     instagramHandle: result.data.instagram_handle,
                     instagramHandles: result.data.instagram_handle ? [result.data.instagram_handle] : [],
-                    youtubeChannels: result.data.youtube_channels
+                    youtubeChannels: result.data.youtube_channels,
+                    tiktokVerified: result.data.tiktok_verified,
+                    tiktokHandle: result.data.tiktok_handle
                 });
             }
         } catch (e) {
@@ -258,14 +281,9 @@ export const CampaignDetails = () => {
 
     // Auto-detect platform from URL
     useEffect(() => {
-        const url = submissionUrl.toLowerCase().trim();
-        if (!url) {
-            setPlatform('');
-            return;
-        }
-        if (url.includes('youtube') || url.includes('youtu.be')) setPlatform('youtube');
-        else if (url.includes('instagram')) setPlatform('instagram');
-        else if (url.includes('tiktok')) setPlatform('tiktok');
+        if (submissionUrl.includes('youtube.com') || submissionUrl.includes('youtu.be')) setPlatform('youtube');
+        else if (submissionUrl.includes('instagram.com/reels/') || submissionUrl.includes('instagram.com/reel/')) setPlatform('instagram');
+        else if (submissionUrl.includes('tiktok.com/')) setPlatform('tiktok');
         else setPlatform('');
     }, [submissionUrl]);
 
@@ -960,6 +978,11 @@ export const CampaignDetails = () => {
                                                             <svg className="w-4 h-4 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                                                         </div>
                                                     )}
+                                                    {campaign.allowed_platforms?.includes('tiktok') && (
+                                                        <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center" title="TikTok Allowed">
+                                                            <svg className="w-4 h-4 text-cyan-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.36-.54.38-.89.98-1.03 1.63-.11.45-.12.92-.01 1.37.11.83.63 1.57 1.35 1.97.66.36 1.45.41 2.18.23.69-.15 1.3-.57 1.69-1.16.27-.42.41-.9.44-1.39-.03-3.9-.01-7.8-.02-11.7z"/></svg>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
 
@@ -973,7 +996,8 @@ export const CampaignDetails = () => {
 
                                             <div className="space-y-4">
                                                 {/* Selection UI if accounts exist */}
-                                                {((campaign.allowed_platforms?.includes('instagram') && ((user?.instagramHandles?.length || 0) > 0 || user?.instagramHandle)) ||
+                                                {((campaign.allowed_platforms?.includes('instagram') && user?.instagramVerified) ||
+                                                    (campaign.allowed_platforms?.includes('tiktok') && user?.tiktokVerified) ||
                                                     (campaign.allowed_platforms?.includes('youtube') && user?.youtubeVerified)) ? (
                                                     <div className="space-y-3">
                                                         <label className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Choose Linked Account</label>
@@ -981,7 +1005,8 @@ export const CampaignDetails = () => {
                                                             value={linkedHandle}
                                                             onChange={(val) => {
                                                                 setLinkedHandle(val);
-                                                                if (val.startsWith('@')) setPlatform('instagram');
+                                                                if (user?.instagramHandle === val || user?.instagramHandles?.includes(val)) setPlatform('instagram');
+                                                                else if (user?.tiktokHandle === val) setPlatform('tiktok');
                                                                 else setPlatform('youtube');
                                                             }}
                                                             placeholder="Select account"
@@ -991,6 +1016,11 @@ export const CampaignDetails = () => {
                                                                     value: h,
                                                                     icon: <svg className="w-3.5 h-3.5 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                                                                 })) : []),
+                                                                ...(campaign.allowed_platforms?.includes('tiktok') && user?.tiktokVerified ? [{
+                                                                    label: user.tiktokHandle!,
+                                                                    value: user.tiktokHandle!,
+                                                                    icon: <svg className="w-3.5 h-3.5 text-cyan-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.36-.54.38-.89.98-1.03 1.63-.11.45-.12.92-.01 1.37.11.83.63 1.57 1.35 1.97.66.36 1.45.41 2.18.23.69-.15 1.3-.57 1.69-1.16.27-.42.41-.9.44-1.39-.03-3.9-.01-7.8-.02-11.7z"/></svg>
+                                                                }] : []),
                                                                 ...(campaign.allowed_platforms?.includes('youtube') && user?.youtubeVerified ? (user?.youtubeChannels || []).map((c: any) => ({
                                                                     label: c.title || c.handle || c.channelId || 'YouTube Account',
                                                                     value: c.handle || c.channelId,

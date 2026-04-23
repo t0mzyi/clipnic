@@ -15,6 +15,8 @@ interface User {
   instagramVerified?: boolean;
   instagramHandle?: string;
   instagramHandles?: string[];
+  tiktokVerified?: boolean;
+  tiktokHandle?: string;
   bio?: string;
   created_at?: string;
 }

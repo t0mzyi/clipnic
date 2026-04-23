@@ -85,7 +85,9 @@ export const Profile = () => {
                     youtubeChannels: result.data.youtube_channels,
                     instagramVerified: result.data.instagram_verified,
                     instagramHandle: result.data.instagram_handle,
-                    instagramHandles: result.data.instagram_handles || (result.data.instagram_handle ? [result.data.instagram_handle] : [])
+                    instagramHandles: result.data.instagram_handles || (result.data.instagram_handle ? [result.data.instagram_handle] : []),
+                    tiktokVerified: result.data.tiktok_verified,
+                    tiktokHandle: result.data.tiktok_handle
                 };
                 // Merge metadata to prevent state flicker
                 const { user: currentUser, updateUser } = useAuthStore.getState();
@@ -150,9 +152,12 @@ export const Profile = () => {
     const { settings } = useAuthStore();
     const [youtubeUrl, setYoutubeUrl] = useState('');
     const [instagramHandle, setInstagramHandle] = useState('');
-    const [showCode, setShowCode] = useState(false);
     const [showIgCode, setShowIgCode] = useState(false);
-    const [verifyCode] = useState(() => 'CLPNIC-' + Math.random().toString(36).substring(2, 8).toUpperCase());
+    const [tiktokHandle, setTiktokHandle] = useState('');
+    const [showTiktokCode, setShowTiktokCode] = useState(false);
+
+    // Verification code based on user ID (consistent)
+    const verifyCode = `CLPNIC-${user?.id?.slice(0, 6).toUpperCase()}`;
 
     const handleManualVerify = async () => {
         if (!youtubeUrl) {
@@ -226,6 +231,46 @@ export const Profile = () => {
         }
     };
 
+    const handleManualTiktokVerify = async () => {
+        if (!tiktokHandle) {
+            Toast.fire({ title: 'Error', text: 'Please enter your TikTok handle', icon: 'error' });
+            return;
+        }
+
+        if (!showTiktokCode) {
+            setShowTiktokCode(true);
+            return;
+        }
+
+        setIsVerifying(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-tiktok-bio`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    handle: tiktokHandle,
+                    code: verifyCode
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw data;
+
+            Toast.fire({ title: 'Success', text: 'TikTok account verified!', icon: 'success' });
+            setShowTiktokCode(false);
+            setTiktokHandle('');
+            fetchSync();
+        } catch (err: any) {
+            setVerifyError(err.details || err.error || err.message || 'Verification failed');
+            Toast.fire({ title: 'Error', text: err.error || err.message || 'Verification failed', icon: 'error' });
+        } finally {
+            setIsVerifying(false);
+        }
+    };
+
     const handleRemoveInstagram = async (handle?: string) => {
         const result = await GlobalSwal.fire({
             title: 'Disconnect Instagram?',
@@ -255,6 +300,31 @@ export const Profile = () => {
                 Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
             } finally {
                 setIsVerifying(false);
+            }
+        }
+    };
+
+    const handleRemoveTiktok = async () => {
+        const result = await GlobalSwal.fire({
+            title: 'Disconnect TikTok?',
+            text: "This will stop view tracking for your TikTok clips.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, disconnect'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/tiktok`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    Toast.fire({ title: 'Disconnected', icon: 'success' });
+                    fetchSync();
+                }
+            } catch (e) {
+                Toast.fire({ title: 'Error', text: 'Failed to disconnect', icon: 'error' });
             }
         }
     };
@@ -511,8 +581,13 @@ export const Profile = () => {
                                         </div>
                                     )}
                                     {user?.instagramVerified && (
-                                        <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-medium px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-500 text-[10px] font-bold uppercase tracking-widest">
                                             <ShieldCheck className="w-3 h-3" /> IG: {user.instagramHandle}
+                                        </div>
+                                    )}
+                                    {user?.tiktokVerified && (
+                                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-500 text-[10px] font-bold uppercase tracking-widest">
+                                            <ShieldCheck className="w-3 h-3" /> TT: {user.tiktokHandle}
                                         </div>
                                     )}
                                 </div>
@@ -731,6 +806,20 @@ export const Profile = () => {
                                                 >
                                                     + Link Another Account
                                                 </Button>
+                                                <Button variant="secondary" className="w-full rounded-2xl py-3 text-xs bg-transparent border border-white/10 text-white/50 hover:bg-white/5" onClick={() => { setIsVerifyOpen(false); setIsLinkingNew(false); }}>Close</Button>
+                                            </div>
+                                        </div>
+                                    ) : selectedSocial === 'tiktok' && user?.tiktokVerified ? (
+                                        <div className="space-y-6 flex flex-col py-4 w-full text-center">
+                                            <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-500/20 mx-auto">
+                                                <ShieldCheck className="w-8 h-8" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h2 className="text-xl font-bold tracking-tight text-white">TikTok Verified</h2>
+                                                <p className="text-sm text-white/40 font-mono">{user.tiktokHandle}</p>
+                                            </div>
+                                            <div className="pt-4 space-y-3">
+                                                <Button variant="secondary" className="w-full rounded-2xl py-3 text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20" onClick={handleRemoveTiktok}>Disconnect Account</Button>
                                                 <Button variant="secondary" className="w-full rounded-2xl py-3 text-xs bg-transparent border border-white/10 text-white/50 hover:bg-white/5" onClick={() => { setIsVerifyOpen(false); setIsLinkingNew(false); }}>Close</Button>
                                             </div>
                                         </div>
@@ -1011,6 +1100,79 @@ export const Profile = () => {
                                                 onClick={() => {
                                                     setSelectedSocial('');
                                                     setShowCode(false);
+                                                }}
+                                                className="text-[10px] text-white/30 uppercase tracking-widest hover:text-white transition-colors pt-2"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </motion.div>
+                                    )}
+
+                                    {selectedSocial === 'tiktok' && (!user?.tiktokVerified || isLinkingNew) && (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            className="space-y-6 pt-6 flex flex-col items-center w-full"
+                                        >
+                                            <div className="w-16 h-16 rounded-3xl bg-cyan-500/10 flex items-center justify-center text-cyan-500 border border-cyan-500/20 mb-2">
+                                                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.36-.54.38-.89.98-1.03 1.63-.11.45-.12.92-.01 1.37.11.83.63 1.57 1.35 1.97.66.36 1.45.41 2.18.23.69-.15 1.3-.57 1.69-1.16.27-.42.41-.9.44-1.39-.03-3.9-.01-7.8-.02-11.7z"/></svg>
+                                            </div>
+
+                                            <div className="w-full space-y-4">
+                                                {!showTiktokCode ? (
+                                                    <div className="space-y-4">
+                                                        <div className="text-center space-y-2 mb-4">
+                                                            <h3 className="font-bold text-white uppercase text-[10px] tracking-widest">Link TikTok</h3>
+                                                            <p className="text-xs text-white/40 px-4 leading-relaxed">Enter your TikTok handle to link your account.</p>
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">TikTok Handle</label>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="@yourhandle"
+                                                                value={tiktokHandle}
+                                                                onChange={(e) => setTiktokHandle(e.target.value)}
+                                                                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 transition-all placeholder:text-white/10"
+                                                            />
+                                                        </div>
+                                                        <Button
+                                                            className="w-full rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90"
+                                                            onClick={() => {
+                                                                if (!tiktokHandle) return Toast.fire({ title: 'Error', text: 'Enter handle first', icon: 'error' });
+                                                                setShowTiktokCode(true);
+                                                            }}
+                                                        >
+                                                            Next: Generate Code
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-4">
+                                                        <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center space-y-3">
+                                                            <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Add to your profile bio</p>
+                                                            <div className="bg-black/40 border border-white/5 p-3 rounded-xl font-mono text-cyan-400 text-lg tracking-wider">
+                                                                {verifyCode}
+                                                            </div>
+                                                            <p className="text-[10px] text-white/40 leading-relaxed italic">Add this code to your TikTok bio, then click verify.</p>
+                                                        </div>
+                                                        <div className="flex gap-3 pt-2">
+                                                            <Button variant="secondary" className="flex-1 rounded-2xl py-3 text-xs bg-white/10 border border-white/10 hover:bg-white/20" onClick={() => setShowTiktokCode(false)}>Back</Button>
+                                                            <Button
+                                                                disabled={isVerifying}
+                                                                className="flex-[2] rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90 flex items-center justify-center gap-2"
+                                                                onClick={handleManualTiktokVerify}
+                                                            >
+                                                                {isVerifying && <Loader2 className="w-3 h-3 animate-spin" />}
+                                                                {isVerifying ? 'Verifying...' : 'Check Bio Now'}
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedSocial('');
+                                                    setShowTiktokCode(false);
                                                 }}
                                                 className="text-[10px] text-white/30 uppercase tracking-widest hover:text-white transition-colors pt-2"
                                             >

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Target, Users, Landmark, TrendingUp, LayoutGrid, CheckCircle2, DollarSign } from 'lucide-react';
-import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
@@ -148,14 +148,14 @@ export const AdminDashboard = () => {
                     
                     <div className="flex-1 w-full h-full min-h-0 relative -ml-6 focus-within:z-10 z-10">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={burnRate}>
+                            <AreaChart data={burnRate}>
                                 <defs>
-                                    <linearGradient id="barGradientPremium" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
-                                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.1} />
+                                    <linearGradient id="areaGradientPremium" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
+                                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.01} />
                                     </linearGradient>
                                     <filter id="glow">
-                                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                        <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
                                         <feMerge>
                                             <feMergeNode in="coloredBlur"/>
                                             <feMergeNode in="SourceGraphic"/>
@@ -182,7 +182,7 @@ export const AdminDashboard = () => {
                                     fontFamily="ui-monospace"
                                 />
                                 <Tooltip 
-                                    cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                                    cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
                                     contentStyle={{ 
                                         backgroundColor: 'rgba(5,5,5,0.95)', 
                                         border: '1px solid rgba(255,255,255,0.15)',
@@ -194,15 +194,17 @@ export const AdminDashboard = () => {
                                     }}
                                     itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
                                 />
-                                <Bar 
+                                <Area 
+                                    type="monotone"
                                     dataKey="burn" 
-                                    radius={[6, 6, 0, 0]}
-                                    fill="url(#barGradientPremium)"
+                                    stroke="#10b981"
+                                    strokeWidth={3}
+                                    fill="url(#areaGradientPremium)"
                                     animationDuration={1500}
                                     animationEasing="ease-out"
                                     filter="url(#glow)"
                                 />
-                            </BarChart>
+                            </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </div>

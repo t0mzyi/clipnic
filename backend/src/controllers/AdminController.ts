@@ -11,7 +11,7 @@ export class AdminController {
   static async getAllUsers(req: Request, res: Response, next: NextFunction) {
     try {
       const { q } = req.query as { q?: string };
-      let query = supabase.from('users').select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, is_blocked');
+      let query = supabase.from('users').select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, tiktok_verified, tiktok_handle, is_blocked');
       if (q) {
         query = query.ilike('email', `%${q}%`).or(`name.ilike.%${q}%`);
       }
@@ -32,7 +32,7 @@ export class AdminController {
       const { id } = req.params;
       const { data, error } = await supabase
         .from('users')
-        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, instagram_handle, is_blocked')
+        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, instagram_handle, tiktok_verified, tiktok_handle, is_blocked')
         .eq('id', id)
         .single();
       if (error) throw error;
@@ -161,7 +161,7 @@ export class AdminController {
           });
 
           const burnChart = Object.entries(burnData)
-              .map(([name, burn]) => ({ name: new Date(name).toLocaleDateString('en-US', { weekday: 'short' }), burn }))
+              .map(([name, burn]) => ({ name: new Date(name).toLocaleDateString('en-US', { weekday: 'short' }), burn: Number(burn.toFixed(2)) }))
               .reverse();
 
           // 4. Top Clippers
@@ -187,6 +187,7 @@ export class AdminController {
           });
 
           const topClippers = Object.values(usersMap)
+              .map((u: any) => ({ ...u, earnings: Number(u.earnings.toFixed(2)) }))
               .sort((a: any, b: any) => b.earnings - a.earnings)
               .slice(0, 5);
 
@@ -195,9 +196,9 @@ export class AdminController {
               data: {
                   kpis: [
                       { label: 'Active Campaigns', value: activeCampaigns?.toString() || '0', change: '+1', icon: 'Target' },
-                      { label: 'Total Budget', value: `$${(totalBudget/1000).toFixed(1)}k`, change: '+$2k', icon: 'Landmark' },
-                      { label: 'Pending Payouts', value: `$${pendingPayout.toLocaleString()}`, change: '+$400', icon: 'Users' },
-                      { label: 'Platform Throughput', value: `${totalBudget > 0 ? ((totalSpent / totalBudget)*100).toFixed(1) : 0}%`, change: '0%', icon: 'TrendingUp' }
+                      { label: 'Total Budget', value: `$${totalBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, change: '+$2k', icon: 'Landmark' },
+                      { label: 'Pending Payouts', value: `$${pendingPayout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, change: '+$400', icon: 'Users' },
+                      { label: 'Platform Throughput', value: `${totalBudget > 0 ? ((totalSpent / totalBudget)*100).toFixed(2) : 0}%`, change: '0%', icon: 'TrendingUp' }
                   ],
                   burnChart,
                   topClippers

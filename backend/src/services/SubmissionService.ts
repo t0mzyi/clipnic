@@ -119,7 +119,35 @@ export class SubmissionService {
             }
         }
       } catch (err) {
-        console.error('Instagram Scrape Error:', err);
+        console.error('[SubmissionService] Instagram fallback failed:', err);
+      }
+    } else if (platform === 'tiktok') {
+      if (apifyToken) {
+          console.log(`[SubmissionService] Using Apify for TikTok: ${url}`);
+          try {
+              const apifyRes = await fetch(`https://api.apify.com/v2/acts/clockworks~tiktok-scraper/run-sync-get-dataset-items?token=${apifyToken}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ 
+                      sources: [{ url }],
+                      resultsPerPage: 1,
+                      shouldDownloadVideo: false,
+                      shouldDownloadCovers: false
+                  })
+              });
+              if (apifyRes.ok) {
+                  const items = await apifyRes.json();
+                  if (items && items.length > 0) {
+                      const post = items[0];
+                      const views = post.playCount || post.videoViewCount || 0;
+                      const channelId = post.authorMeta?.name ? `@${post.authorMeta.name.toLowerCase()}` : null;
+                      console.log(`[SubmissionService] Fetched TikTok Views: ${views}, Author: ${channelId}`);
+                      return { views, channelId };
+                  }
+              }
+          } catch (e) {
+              console.error('[SubmissionService] Apify TikTok failed:', e);
+          }
       }
     }
     return { views: 0, channelId: null };

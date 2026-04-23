@@ -732,6 +732,74 @@ export class VerificationController {
     }
   }
 
+  static async verifyTiktokBio(req: any, res: Response, next: NextFunction) {
+    try {
+      const { id: userId } = req.user;
+      let { handle, code } = req.body;
+
+      if (!handle || !code) {
+        return res.status(400).json({ success: false, error: 'TikTok handle and verification code are required.' });
+      }
+
+      handle = handle.trim().replace(/^@/, '').toLowerCase();
+      const apifyToken = process.env.APIFY_TOKEN;
+
+      if (!apifyToken) {
+        return res.status(500).json({ success: false, error: 'Apify token not configured.' });
+      }
+
+      console.log(`[TiktokVerify] Verifying @${handle} with code ${code}`);
+
+      let bio = "";
+      try {
+        const apifyRes = await fetch(`https://api.apify.com/v2/acts/clockworks~tiktok-profile-scraper/run-sync-get-dataset-items?token=${apifyToken}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            profiles: [handle],
+            proxy: { useApifyProxy: true },
+            resultsLimit: 1
+          })
+        });
+
+        if (apifyRes.ok) {
+          const items = await apifyRes.json();
+          if (items && items.length > 0) {
+            bio = items[0].signature || items[0].bio || "";
+          }
+        }
+      } catch (e) {
+        console.error('[TiktokVerify] Apify error:', e);
+      }
+
+      const isVerified = bio.toLowerCase().includes(code.toLowerCase());
+
+      if (!isVerified) {
+        return res.status(400).json({ 
+          success: false, 
+          error: `Verification code "${code}" not found in @${handle}'s bio.`,
+          details: bio ? `We saw: "${bio.slice(0, 50)}..."` : "Could not fetch profile."
+        });
+      }
+
+      // Update Database
+      const { data, error } = await supabase
+        .from('users')
+        .update({ 
+            tiktok_verified: true, 
+            tiktok_handle: `@${handle}`
+        })
+        .eq('id', userId)
+        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, instagram_handle, tiktok_verified, tiktok_handle, is_blocked')
+        .single();
+
+      if (error) throw error;
+      res.json({ success: true, data });
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
   static async disconnectInstagram(req: any, res: Response, next: NextFunction) {
     try {
       const { id: userId } = req.user;
@@ -745,6 +813,21 @@ export class VerificationController {
       if (updateError) throw updateError;
 
       res.json({ success: true, message: 'Instagram account disconnected.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async disconnectTiktok(req: any, res: Response, next: NextFunction) {
+    try {
+      const { id: userId } = req.user;
+      const { error } = await supabase.from('users').update({ 
+          tiktok_verified: false, 
+          tiktok_handle: null
+      }).eq('id', userId);
+      
+      if (error) throw error;
+      res.json({ success: true, message: 'TikTok account disconnected.' });
     } catch (error) {
       next(error);
     }
