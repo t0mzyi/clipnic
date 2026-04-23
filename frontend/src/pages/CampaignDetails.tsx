@@ -953,7 +953,7 @@ export const CampaignDetails = () => {
                                                                 Link Instagram Bio
                                                             </Button>
                                                         )}
-                                                        {campaign.allowed_platforms?.includes('youtube') && !(user?.youtubeVerified) && (
+                                                        {campaign.allowed_platforms?.includes('youtube') && (
                                                             settings?.youtube_auth_mode === 'manual' ? (
                                                                 <Button
                                                                     variant="outline"
