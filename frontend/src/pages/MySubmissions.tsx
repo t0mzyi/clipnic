@@ -53,7 +53,7 @@ export const MySubmissions = () => {
 
     const fetchAll = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/my/summary?t=${Date.now()}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/earnings?t=${Date.now()}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
@@ -489,7 +489,7 @@ return (
                                             value={submissionUrl}
                                             onChange={(e) => setSubmissionUrl(e.target.value)}
                                             placeholder="Paste YouTube, Instagram or TikTok link..."
-                                            className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-white/20 transition-all placeholder:text-white/10"
+                                            className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-5 pr-36 py-4 text-white focus:outline-none focus:border-white/20 transition-all placeholder:text-white/10"
                                         />
                                         {submissionUrl && platform && (
                                             <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 animate-in fade-in zoom-in duration-300">
