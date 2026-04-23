@@ -152,11 +152,16 @@ export class SubmissionService {
     const { views, channelId } = await this.fetchLiveViews(validated.url, validated.platform);
     
     // 5. Verify ownership
-    const { data: userRaw } = await supabase
+    const { data: userRaw, error: userErr } = await supabase
         .from('users')
         .select('name, email, instagram_handle, instagram_handles, youtube_handle, youtube_channels')
         .eq('id', userId)
         .single();
+
+    if (userErr) {
+        console.error(`[SubmissionService] User fetch error:`, userErr);
+        throw new Error("Failed to verify your account permissions. Please try again later.");
+    }
 
     console.log(`[SubmissionService] Verifying submission for user: ${userRaw?.email} (${userId})`);
     console.log(`[SubmissionService] Platform: ${validated.platform}, Video ChannelID: ${channelId}`);
