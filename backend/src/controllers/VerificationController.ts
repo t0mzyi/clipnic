@@ -633,7 +633,7 @@ export class VerificationController {
 
       console.log(`[InstagramVerify] Requesting: ${targetUrl}`);
 
-      const igRes = await fetch(targetUrl, {
+      let igRes = await fetch(targetUrl, {
           headers: {
             'User-Agent': 'Twitterbot/1.1',
             'Accept': '*/*',
@@ -643,6 +643,18 @@ export class VerificationController {
             'Upgrade-Insecure-Requests': '1'
           }
       });
+
+      // FALLBACK: If proxy is rate limited (429), try direct request from server IP
+      if (igRes.status === 429) {
+          console.log(`[InstagramVerify] Proxy 429 - Trying direct request for ${handle}...`);
+          igRes = await fetch(`https://www.instagram.com/${handle}/`, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+              }
+          });
+      }
 
       if (!igRes.ok) {
           throw new Error(`Could not reach Instagram (Status: ${igRes.status}). If the profile is private, bio verification will fail.`);
