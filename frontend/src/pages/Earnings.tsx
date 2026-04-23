@@ -19,7 +19,12 @@ export const Earnings = () => {
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
     useEffect(() => {
-        if (token) fetchEarnings();
+        if (token) {
+            fetchEarnings();
+            // Auto-refresh every 10 seconds
+            const interval = setInterval(fetchEarnings, 10000);
+            return () => clearInterval(interval);
+        }
     }, [token]);
 
     const fetchEarnings = async () => {
@@ -45,29 +50,39 @@ export const Earnings = () => {
 
     const getCategoryIcon = (category: string) => {
         switch (category) {
-            case 'available': return <Clock className="w-4 h-4 text-emerald-500" />;
-            case 'pending': return <AlertCircle className="w-4 h-4 text-amber-500" />;
+            case 'pending_verification': return <Clock className="w-4 h-4 text-amber-500/50" />;
+            case 'accumulating': return <Clock className="w-4 h-4 text-emerald-500" />;
+            case 'ready_to_claim_after_end': return <CheckCircle2 className="w-4 h-4 text-amber-500" />;
+            case 'claimable': return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
             case 'claimed': return <CheckCircle2 className="w-4 h-4 text-purple-500" />;
+            case 'failed': return <AlertCircle className="w-4 h-4 text-red-500/50" />;
+            case 'rejected': return <AlertCircle className="w-4 h-4 text-red-500" />;
             default: return <Clock className="w-4 h-4 text-white/30" />;
         }
     };
 
     const getCategoryLabel = (category: string) => {
         switch (category) {
-            case 'available': return 'Accumulating';
-            case 'pending': return 'Ready to Claim';
+            case 'pending_verification': return 'In Review';
+            case 'accumulating': return 'Accumulating';
+            case 'ready_to_claim_after_end': return 'Reqs Met (Wait for End)';
+            case 'claimable': return 'Ready to Claim';
             case 'claimed': return 'Paid';
             case 'rejected': return 'Rejected';
+            case 'failed': return 'Goal Not Met';
             default: return category;
         }
     };
 
     const getCategoryColor = (category: string) => {
         switch (category) {
-            case 'available': return 'text-emerald-500';
-            case 'pending': return 'text-amber-500';
+            case 'pending_verification': return 'text-amber-500/50';
+            case 'accumulating': return 'text-emerald-500';
+            case 'ready_to_claim_after_end': return 'text-amber-500';
+            case 'claimable': return 'text-emerald-500';
             case 'claimed': return 'text-purple-500';
             case 'rejected': return 'text-red-500';
+            case 'failed': return 'text-red-500/50';
             default: return 'text-white/40';
         }
     };

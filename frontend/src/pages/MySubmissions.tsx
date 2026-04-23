@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink, X, Upload, Trash2 } from 'lucide-react';
+import { Search, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink, X, Upload, Trash2, Target, Coins, AlertCircle, Clock } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 import { Dropdown } from '../components/Dropdown';
@@ -159,6 +159,8 @@ export const MySubmissions = () => {
     const [selectedCampaignId, setSelectedCampaignId] = useState('');
     const [submissionUrl, setSubmissionUrl] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [urlError, setUrlError] = useState('');
+    const [isUrlChecking, setIsUrlChecking] = useState(false);
 
     const selectedCampaign = joinedCampaigns.find(c => c.id === selectedCampaignId);
 
@@ -210,9 +212,43 @@ export const MySubmissions = () => {
     };
 
     useEffect(() => {
+        if (!submissionUrl) {
+            setUrlError('');
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            setIsUrlChecking(true);
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/check-url?url=${encodeURIComponent(submissionUrl)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                if (json.success && !json.available) {
+                    setUrlError('This video has already been submitted by someone else.');
+                } else {
+                    setUrlError('');
+                }
+            } catch (err) {
+                console.error('URL check failed:', err);
+            } finally {
+                setIsUrlChecking(false);
+            }
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [submissionUrl, token]);
+
+    useEffect(() => {
         if (token) {
             fetchAll();
             fetchJoinedCampaigns();
+
+            // Real-time sync every 10 seconds
+            const interval = setInterval(() => {
+                fetchAll();
+            }, 10000);
+            return () => clearInterval(interval);
         }
     }, [token]);
 
@@ -361,14 +397,23 @@ export const MySubmissions = () => {
                                             {sub.earningCategory === 'failed' && (
                                                 <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-red-400/5 text-red-500/60 border border-red-500/10">Failed Goal</span>
                                             )}
+                                            {sub.earningCategory === 'pending_verification' && (
+                                                <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-amber-500/5 text-amber-500/50 border border-amber-500/10 flex items-center gap-1">
+                                                    In Review <Clock className="w-2.5 h-2.5" />
+                                                </span>
+                                            )}
                                             {sub.earningCategory === 'accumulating' && (
                                                 <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-white/5 text-white/30 border border-white/5">Accumulating</span>
                                             )}
-                                            {sub.earningCategory === 'pending' && (
-                                                <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20">Goal Met 🎯</span>
+                                            {sub.earningCategory === 'ready_to_claim_after_end' && (
+                                                <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1">
+                                                    Eligible <Target className="w-2.5 h-2.5" />
+                                                </span>
                                             )}
                                             {sub.earningCategory === 'claimable' && (
-                                                <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-white text-zinc-950 font-black border border-white/20">Finalized 💰</span>
+                                                <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-white text-zinc-950 font-black border border-white/20 flex items-center gap-1">
+                                                    Finalized <Coins className="w-2.5 h-2.5" />
+                                                </span>
                                             )}
                                             {sub.earningCategory === 'claimed' && (
                                                 <span className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Paid Out</span>
@@ -487,7 +532,13 @@ export const MySubmissions = () => {
                                                 className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-white/20 transition-all placeholder:text-white/10"
                                             />
                                         </div>
-                                        {submissionUrl && platform && (
+                                        {urlError && (
+                                            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-bold uppercase tracking-widest animate-in fade-in slide-in-from-top-1">
+                                                <AlertCircle className="w-3 h-3" />
+                                                {urlError}
+                                            </div>
+                                        )}
+                                        {submissionUrl && platform && !urlError && (
                                             <div className="flex items-center justify-between px-2 animate-in fade-in slide-in-from-top-2 duration-300">
                                                 <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Detected Platform</span>
                                                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
@@ -525,13 +576,18 @@ export const MySubmissions = () => {
 
                                     <Button
                                         onClick={handleSubmitClip}
-                                        disabled={isSubmitting || !selectedCampaignId || !submissionUrl || !platform}
+                                        disabled={isSubmitting || isUrlChecking || !!urlError || !selectedCampaignId || !submissionUrl || !platform}
                                         className="w-full py-5 rounded-2xl bg-white text-zinc-950 text-xs font-black uppercase tracking-[0.2em] shadow-[0_20px_40px_rgba(255,255,255,0.1)] hover:scale-[1.02] transition-all disabled:opacity-30 disabled:hover:scale-100"
                                     >
                                         {isSubmitting ? (
                                             <div className="flex items-center gap-3">
                                                 <div className="w-4 h-4 rounded-full border-2 border-zinc-950/20 border-t-zinc-950 animate-spin" />
                                                 Verifying & Submitting...
+                                            </div>
+                                        ) : isUrlChecking ? (
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-4 h-4 rounded-full border-2 border-zinc-950/20 border-t-zinc-950 animate-spin" />
+                                                Checking Availability...
                                             </div>
                                         ) : 'Submit for Review'}
                                     </Button>

@@ -94,6 +94,11 @@ export const CampaignDetails = () => {
     const [showIgCode, setShowIgCode] = useState(false);
     const [showTtCode, setShowTtCode] = useState(false);
 
+    // URL Validation states
+    const [isCheckingUrl, setIsCheckingUrl] = useState(false);
+    const [isUrlValid, setIsUrlValid] = useState(true);
+    const [urlError, setUrlError] = useState('');
+
     const handleYouTubeVerify = async () => {
         if (!linkedHandle) return;
         setIsVerifyingSocial(true);
@@ -248,11 +253,20 @@ export const CampaignDetails = () => {
     useEffect(() => {
         if (id) {
             fetchCampaign();
-            if (token) {
+            fetchSubmissions();
+            fetchLeaderboard();
+
+            // Auto-refresh every 10 seconds for real-time feel
+            const interval = setInterval(() => {
+                fetchCampaign();
                 fetchSubmissions();
+                fetchLeaderboard();
+            }, 10000);
+
+            if (token) {
                 checkParticipation();
             }
-            fetchLeaderboard();
+            return () => clearInterval(interval);
         }
     }, [id, token]);
 
@@ -289,6 +303,37 @@ export const CampaignDetails = () => {
         else if (submissionUrl.includes('tiktok.com/')) setPlatform('tiktok');
         else setPlatform('');
     }, [submissionUrl]);
+
+    // Debounced URL Availability Check
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (submissionUrl && submissionUrl.length > 10) {
+                setIsCheckingUrl(true);
+                setUrlError('');
+                try {
+                    const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/check-url?url=${encodeURIComponent(submissionUrl)}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                        setIsUrlValid(json.data.available);
+                        if (!json.data.available) {
+                            setUrlError('This video has already been submitted to Clipnic.');
+                        }
+                    }
+                } catch (err) {
+                    console.error('URL check failed:', err);
+                } finally {
+                    setIsCheckingUrl(false);
+                }
+            } else {
+                setIsUrlValid(true);
+                setUrlError('');
+            }
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [submissionUrl, token]);
 
     // Lock body scroll when any modal is open
     useEffect(() => {
@@ -532,18 +577,20 @@ export const CampaignDetails = () => {
             {/* Quick Stats Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
-                    <div className="flex items-center gap-2 text-white/30"><DollarSign className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Total Budget</span></div>
-                    <p className="text-2xl font-mono font-bold text-white">${campaign.total_budget.toLocaleString()}</p>
+                    <div className="flex items-center gap-2 text-white/30"><Target className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Budget Views</span></div>
+                    <p className="text-2xl font-mono font-bold text-white">{(campaign.target_views || 0).toLocaleString()}</p>
                 </div>
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
-                    <div className="flex items-center gap-2 text-white/30"><Target className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Spent</span></div>
-                    <p className="text-2xl font-mono font-bold text-emerald-400">${campaign.budget_used.toFixed(2)}</p>
-                    <p className="text-[10px] font-mono text-white/20">{budgetPercent}% used</p>
+                    <div className="flex items-center gap-2 text-white/30"><Eye className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Views Remaining</span></div>
+                    <p className="text-2xl font-mono font-bold text-emerald-400">
+                        {Math.max(0, (campaign.target_views || 0) - campaign.view_progress).toLocaleString()}
+                    </p>
+                    <p className="text-[10px] font-mono text-white/20">{Math.min(100, (campaign.view_progress / (campaign.target_views || 1)) * 100).toFixed(1)}% full</p>
                 </div>
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
-                    <div className="flex items-center gap-2 text-white/30"><Eye className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Total Views</span></div>
+                    <div className="flex items-center gap-2 text-white/30"><CheckCircle2 className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Views Fulfilled</span></div>
                     <p className="text-2xl font-mono font-bold text-white">{campaign.view_progress.toLocaleString()}</p>
-                    <p className="text-[10px] font-mono text-white/20">{campaign.min_views > 0 ? `${campaign.min_views.toLocaleString()} min views` : 'No min views'}</p>
+                    <p className="text-[10px] font-mono text-white/20">of {campaign.target_views?.toLocaleString()}</p>
                 </div>
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
                     <div className="flex items-center gap-2 text-amber-500/60"><Clock className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Deadline</span></div>
@@ -1209,9 +1256,23 @@ export const CampaignDetails = () => {
                                         value={submissionUrl}
                                         onChange={(e) => setSubmissionUrl(e.target.value)}
                                         placeholder="https://..."
-                                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/20 transition-all font-mono placeholder:text-white/10"
+                                        className={`w-full bg-white/[0.03] border rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-all font-mono placeholder:text-white/10 ${
+                                            !isUrlValid ? 'border-red-500/50' : 'border-white/[0.08] focus:border-white/20'
+                                        }`}
                                     />
+                                    {isCheckingUrl && (
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                            <div className="w-4 h-4 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+                                        </div>
+                                    )}
                                 </div>
+
+                                {urlError && (
+                                    <div className="flex items-center gap-2 text-red-400 text-[10px] font-bold uppercase tracking-widest animate-in slide-in-from-top-1 duration-300">
+                                        <AlertCircle className="w-3 h-3" />
+                                        {urlError}
+                                    </div>
+                                )}
 
                                  {submissionUrl && (
                                     <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -1241,9 +1302,17 @@ export const CampaignDetails = () => {
                                     </div>
                                 )}
 
-                                <Button type="submit" disabled={isSubmitting} variant="primary" className="w-full text-xs py-4 rounded-xl font-bold uppercase tracking-widest bg-white text-black hover:bg-white/90 shadow-xl disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+                                <Button 
+                                    type="submit" 
+                                    disabled={isSubmitting || isCheckingUrl || !isUrlValid || !platform || (platform && campaign?.allowed_platforms && !campaign.allowed_platforms.includes(platform))} 
+                                    variant="primary" 
+                                    className="w-full text-xs py-4 rounded-xl font-bold uppercase tracking-widest bg-white text-black hover:bg-white/90 shadow-xl disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                                >
                                     {isSubmitting && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}
-                                    {isSubmitting ? (platform === 'youtube' ? 'Verifying Ownership...' : 'Submitting...') : 'Submit Clip'}
+                                    {isSubmitting ? (platform === 'youtube' ? 'Verifying Ownership...' : 'Submitting...') : 
+                                     isCheckingUrl ? 'Checking Video...' : 
+                                     !isUrlValid ? 'Duplicate Video' : 
+                                     'Submit Clip'}
                                 </Button>
                             </form>
                         </motion.div>

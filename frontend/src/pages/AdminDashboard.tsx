@@ -25,7 +25,11 @@ export const AdminDashboard = () => {
             }
         };
 
-        if (token) fetchStats();
+        if (token) {
+            fetchStats();
+            const interval = setInterval(fetchStats, 10000);
+            return () => clearInterval(interval);
+        }
     }, [token]);
 
     const iconMap: Record<string, any> = {

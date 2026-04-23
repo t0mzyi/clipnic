@@ -45,12 +45,11 @@ export const Profile = () => {
     // Member since date
     const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'April 2024';
 
-    // Mock user stats
-    const stats = {
-        totalClips: '0',
-        totalViews: '0',
+    const [stats, setStats] = useState({
+        totalClips: 0,
+        totalViews: 0,
         currentBalance: '$0.00',
-    };
+    });
 
     // Modal state
     const [isVerifyOpen, setIsVerifyOpen] = useState(false);
@@ -66,9 +65,29 @@ export const Profile = () => {
 
     const [searchParams, setSearchParams] = useSearchParams();
 
+    const fetchStats = useCallback(async () => {
+        if (!token) return;
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/earnings?t=${Date.now()}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success) {
+                setStats({
+                    totalClips: json.data.breakdown.length,
+                    totalViews: json.data.breakdown.reduce((sum: number, s: any) => sum + (s.views || 0), 0),
+                    currentBalance: `$${json.data.claimableBalance.toFixed(2)}`
+                });
+            }
+        } catch (err) {
+            console.error('Failed to fetch profile stats:', err);
+        }
+    }, [token]);
+
     // Re-sync with backend (useful after OAuth redirects)
     const fetchSync = useCallback(async () => {
         if (!token) return;
+        fetchStats();
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/sync`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -100,7 +119,18 @@ export const Profile = () => {
         } catch (e) {
             console.error(e);
         }
-    }, [token, login]);
+    }, [token, login, fetchStats]);
+
+    useEffect(() => {
+        if (token) {
+            fetchSync();
+            // Auto-refresh every 10 seconds for real-time feel
+            const interval = setInterval(() => {
+                fetchStats();
+            }, 10000);
+            return () => clearInterval(interval);
+        }
+    }, [token, fetchSync, fetchStats]);
 
     useEffect(() => {
         const dError = searchParams.get('discord_error');
@@ -1222,9 +1252,9 @@ export const Profile = () => {
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">Email</label>
-                                        <div className="relative">
-                                            <input type="email" readOnly className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-5 py-4 text-base text-white/40 cursor-not-allowed focus:outline-none font-medium" value={user?.email || ''} />
-                                            <Mail className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+                                        <div className="relative flex items-center">
+                                            <input type="email" readOnly className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-5 py-4 pr-12 text-base text-white/40 cursor-not-allowed focus:outline-none font-medium" value={user?.email || ''} />
+                                            <Mail className="absolute right-5 w-4 h-4 text-white/20" />
                                         </div>
                                     </div>
                                     <div className="space-y-2">

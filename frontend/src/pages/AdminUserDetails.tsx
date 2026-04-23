@@ -396,10 +396,10 @@ export const AdminUserDetails = () => {
                             <>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                                     {[
-                                        { label: 'Total', value: earnings.totalEarnings, icon: TrendingUp, color: 'text-blue-500' },
-                                        { label: 'Available', value: earnings.availableBalance, icon: Wallet, color: 'text-emerald-500' },
-                                        { label: 'Claimable', value: earnings.pendingPayout + earnings.claimableBalance, icon: History, color: 'text-amber-500' },
-                                        { label: 'Claimed', value: earnings.claimed, icon: Landmark, color: 'text-purple-500' },
+                                        { label: 'Total Earned', value: earnings.totalEarnings, icon: TrendingUp, color: 'text-blue-500' },
+                                        { label: 'Accumulating', value: earnings.availableBalance, icon: Wallet, color: 'text-emerald-500' },
+                                        { label: 'Pending Payout', value: earnings.pendingPayout, icon: History, color: 'text-amber-500' },
+                                        { label: 'Ready to Claim', value: earnings.claimableBalance, icon: Landmark, color: 'text-purple-500' },
                                     ].map((s, i) => (
                                         <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 relative group/card overflow-hidden">
                                             <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest flex items-center gap-1.5 mb-2 relative z-10">
@@ -431,12 +431,17 @@ export const AdminUserDetails = () => {
                                                     <p className="text-sm font-mono font-bold text-white/90">${item.earnings.toFixed(2)}</p>
                                                     <p className="text-[9px] text-white/30 font-mono">{item.views?.toLocaleString()} views</p>
                                                 </div>
-                                                <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg border whitespace-nowrap ${
-                                                    item.status === 'Paid' ? 'text-purple-400 bg-purple-500/10 border-purple-500/20' :
-                                                    item.status === 'Verified' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' :
-                                                    item.status === 'Pending' ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' :
-                                                    'text-red-400 bg-red-500/10 border-red-500/20'
-                                                }`}>{item.status}</span>
+                                                <div className="flex flex-col items-end gap-1">
+                                                    <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg border whitespace-nowrap ${
+                                                        item.status === 'Paid' ? 'text-purple-400 bg-purple-500/10 border-purple-500/20' :
+                                                        item.status === 'Verified' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' :
+                                                        item.status === 'Pending' ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' :
+                                                        'text-red-400 bg-red-500/10 border-red-500/20'
+                                                    }`}>{item.status}</span>
+                                                    <span className="text-[8px] text-white/30 uppercase tracking-widest font-mono italic">
+                                                        {item.earningCategory.replace(/_/g, ' ')}
+                                                    </span>
+                                                </div>
                                                 {item.status !== 'Paid' && item.status !== 'Rejected' && (
                                                     <button
                                                         disabled={markingPaid === item.id}

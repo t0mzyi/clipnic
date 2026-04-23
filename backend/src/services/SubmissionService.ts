@@ -177,16 +177,18 @@ export class SubmissionService {
         throw new Error("You must join this campaign before submitting clips.");
     }
 
-    // 2.5 Check for duplicate URL (any user)
+    // 2.5 Check for duplicate URL (Global check)
+    // Normalize URL to handle common variations (query params, short links)
+    const normalizedUrl = validated.url.split('?')[0].split('#')[0].replace(/\/$/, '');
+    
     const { data: existing } = await supabase
         .from('submissions')
-        .select('id')
-        .eq('campaign_id', validated.campaign_id)
-        .eq('url', validated.url)
+        .select('id, campaign_id')
+        .eq('url', normalizedUrl)
         .maybeSingle();
 
     if (existing) {
-        throw new Error("This video has already been submitted for this mission.");
+        throw new Error("This video has already been submitted to our platform.");
     }
 
     // 3. Check platform restrictions
@@ -247,38 +249,41 @@ export class SubmissionService {
         }
     }
 
-    // 6. Calculate earnings based on current views (Potential earnings)
-    let earnings = (views / 1000) * campaign.cpm_rate;
+    // 6. Calculate earnings based on current views (Only if Verified and min_views met)
+    let earnings = 0;
+    let contributingViews = 0;
 
-    if (campaign.per_video_cap && earnings > campaign.per_video_cap) {
-        earnings = campaign.per_video_cap;
+    if (views >= (campaign.min_views || 0)) {
+        earnings = (views / 1000) * campaign.cpm_rate;
+        contributingViews = views;
+        if (campaign.per_video_cap && earnings > campaign.per_video_cap) {
+            earnings = campaign.per_video_cap;
+        }
     }
 
     // 7. Final Insert
     const { data: submission, error } = await supabase
-      .from('submissions')
-      .insert({
-        campaign_id: validated.campaign_id,
-        user_id: userId,
-        url: validated.url,
-        platform: validated.platform,
-        views,
-        earnings,
-        status: 'Pending'
-      })
-      .select()
-      .single();
-      
-    if (error) {
-       if (error.code === '23505') throw new Error("You have already submitted this specific video link.");
-       throw error;
-    }
+        .from('submissions')
+        .insert({
+            user_id: userId,
+            campaign_id: validated.campaign_id,
+            url: normalizedUrl, // Store normalized
+            platform: validated.platform,
+            views,
+            earnings,
+            status: 'Verified',
+            updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+    
+    if (error) throw error;
 
-    // 7. Update Campaign Budget & Views
+    // 8. Update Campaign Stats
     await supabase.rpc('increment_campaign_stats', {
         camp_id: validated.campaign_id,
         earnings_add: earnings,
-        views_add: views
+        views_add: contributingViews
     });
 
     // 8. Auto-complete mission if budget hit
@@ -342,27 +347,30 @@ export class SubmissionService {
       const campaign = submission.campaigns;
       if (!campaign) throw new Error("Campaign data missing.");
 
-      // 2. Check 10-minute cooldown
+      // 2. Check 1-minute cooldown (for real-time feel)
       const lastUpdated = new Date(submission.updated_at).getTime();
       const now = Date.now();
       const diffMinutes = (now - lastUpdated) / (1000 * 60);
 
-      if (diffMinutes < 10) {
-          const remainingSeconds = Math.ceil((10 - diffMinutes) * 60);
-          const remMin = Math.floor(remainingSeconds / 60);
-          const remSec = remainingSeconds % 60;
-          throw new Error(`Please wait ${remMin}m ${remSec}s before refreshing again.`);
+      if (diffMinutes < 1) {
+          const remainingSeconds = Math.ceil((1 - diffMinutes) * 60);
+          throw new Error(`Please wait ${remainingSeconds}s before refreshing again.`);
       }
 
       // 3. Fetch fresh views
       const { views } = await this.fetchLiveViews(submission.url, submission.platform);
       
-      // 4. Recalculate earnings (Potential)
-      let earnings = (views / 1000) * campaign.cpm_rate;
+       // 4. Recalculate earnings (Only if min_views met)
+       let earnings = 0;
+       let contributingViews = 0;
 
-      if (campaign.per_video_cap && earnings > campaign.per_video_cap) {
-          earnings = campaign.per_video_cap;
-      }
+       if (views >= (campaign.min_views || 0)) {
+           earnings = (views / 1000) * campaign.cpm_rate;
+           contributingViews = views;
+           if (campaign.per_video_cap && earnings > campaign.per_video_cap) {
+               earnings = campaign.per_video_cap;
+           }
+       }
 
       // 5. Update DB
       const oldEarnings = Number(submission.earnings || 0);
@@ -381,15 +389,18 @@ export class SubmissionService {
       
       if (updateErr) throw updateErr;
 
-      // 6. Sync budget delta (new - old)
-      const deltaEarnings = earnings - oldEarnings;
-      const deltaViews = views - oldViews;
+       // 6. Sync budget delta (new - old)
+       const deltaEarnings = earnings - oldEarnings;
+       
+       // Logic: If it previously had earnings (oldEarnings > 0), it contributed its oldViews. 
+       // If it didn't (views < min), oldViews shouldn't have been in campaign stats.
+       const deltaViews = contributingViews - (oldEarnings > 0 ? oldViews : 0);
 
-      await supabase.rpc('increment_campaign_stats', {
-          camp_id: submission.campaign_id,
-          earnings_add: deltaEarnings,
-          views_add: deltaViews
-      });
+       await supabase.rpc('increment_campaign_stats', {
+           camp_id: submission.campaign_id,
+           earnings_add: deltaEarnings,
+           views_add: deltaViews
+       });
 
       // 7. Auto-complete mission if budget hit
       const { data: updatedCampaign } = await supabase
@@ -554,18 +565,20 @@ export class SubmissionService {
       const isPastDeadline = campaign?.end_date ? new Date(campaign.end_date) < now : false;
       const isCampaignEnded = campaign?.status === 'Completed' || isPastDeadline;
 
-      let earningCategory = 'available'; 
+      let earningCategory = 'pending_verification'; 
 
       if (sub.status === 'Paid') {
         earningCategory = 'claimed';
         claimed += earnings;
       } else if (sub.status === 'Rejected') {
         earningCategory = 'rejected';
+      } else if (sub.status === 'Pending') {
+        earningCategory = 'pending_verification';
+        // Potential earnings but not added to any balance yet
       } else if (isCampaignEnded) {
          // Mission Over - check if goal was met
          if (minViews > 0 && sub.views < minViews) {
             earningCategory = 'failed';
-            // Finalized at 0 if goal missed
          } else {
             earningCategory = 'claimable';
             claimableBalance += earnings;
@@ -576,7 +589,7 @@ export class SubmissionService {
             earningCategory = 'accumulating';
             availableBalance += earnings;
          } else {
-            earningCategory = 'pending'; // Goal Met
+            earningCategory = 'ready_to_claim_after_end'; // Goal Met but campaign active
             pendingPayout += earnings;
          }
       }
@@ -608,20 +621,25 @@ export class SubmissionService {
   }
 
   static async refreshStaleSubmissions(userId: string) {
-    const STALE_THRESHOLD_MINS = 30;
-    const thresholdDate = new Date(Date.now() - STALE_THRESHOLD_MINS * 60 * 1000).toISOString();
+    // Platform-specific thresholds
+    const THRESHOLD_IG_TT = 10; // 10 minutes for Instagram/TikTok
+    const THRESHOLD_YT = 1;    // 1 minute for YouTube (it's free)
 
+    const dateIgTt = new Date(Date.now() - THRESHOLD_IG_TT * 60 * 1000).toISOString();
+    const dateYt = new Date(Date.now() - THRESHOLD_YT * 60 * 1000).toISOString();
+
+    // Fetch stale submissions
     const { data: staleSubmissions, error } = await supabase
       .from('submissions')
-      .select('id')
+      .select('id, platform, updated_at')
       .eq('user_id', userId)
       .not('status', 'in', '("Paid","Rejected")')
-      .lt('updated_at', thresholdDate)
-      .limit(5); // Cap background syncs per request to avoid hitting rate limits
+      .or(`and(platform.eq.youtube,updated_at.lt.${dateYt}),and(platform.in.("(instagram,tiktok)"),updated_at.lt.${dateIgTt})`)
+      .limit(5); // Cap background syncs per request
 
     if (error || !staleSubmissions || staleSubmissions.length === 0) return;
 
-    console.log(`[SubmissionService] Syncing ${staleSubmissions.length} stale submissions for user ${userId}`);
+    console.log(`[SubmissionService] Syncing ${staleSubmissions.length} stale submissions (YT: ${THRESHOLD_YT}m, Others: ${THRESHOLD_IG_TT}m) for user ${userId}`);
 
     // Process in background
     for (const sub of staleSubmissions) {
@@ -629,5 +647,19 @@ export class SubmissionService {
           console.error(`[SubmissionService] Background refresh failed for ${sub.id}:`, e)
        );
     }
+  }
+
+  static async checkUrlAvailability(url: string) {
+    if (!url) return { available: true };
+    const normalizedUrl = url.split('?')[0].split('#')[0].replace(/\/$/, '');
+    
+    const { data, error } = await supabase
+      .from('submissions')
+      .select('id, campaign_id')
+      .eq('url', normalizedUrl)
+      .maybeSingle();
+
+    if (error) throw error;
+    return { available: !data, existingCampaignId: data?.campaign_id };
   }
 }
