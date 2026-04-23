@@ -157,6 +157,8 @@ export const MySubmissions = () => {
                 Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
             }
         }
+    };
+
     const handleEdit = async () => {
         if (!editingSub || !editUrl) return;
         setIsSubmittingEdit(true);
