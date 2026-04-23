@@ -646,6 +646,8 @@ export const MySubmissions = () => {
                         </motion.div>
                     </div>
                 )}
+            </AnimatePresence>
+
             {/* Edit Submission Modal */}
             <AnimatePresence>
                 {isEditModalOpen && (
