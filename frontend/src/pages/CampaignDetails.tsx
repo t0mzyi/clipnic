@@ -311,7 +311,7 @@ export const CampaignDetails = () => {
                 setIsCheckingUrl(true);
                 setUrlError('');
                 try {
-                    const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/check-url?url=${encodeURIComponent(submissionUrl)}`, {
+                    const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/check-url?url=${encodeURIComponent(submissionUrl)}${platform ? `&platform=${platform}` : ''}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     const json = await res.json();
