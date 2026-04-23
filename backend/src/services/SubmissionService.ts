@@ -693,4 +693,78 @@ export class SubmissionService {
     if (error) throw error;
     return { available: !data, existingCampaignId: data?.campaign_id };
   }
+
+  static async update(userId: string, submissionId: string, payload: any) {
+    // 1. Validate payload
+    const validated = createSubmissionSchema.parse(payload);
+    
+    // 2. Fetch existing submission
+    const { data: sub, error: subErr } = await supabase
+      .from('submissions')
+      .select('*, campaigns(*)')
+      .eq('id', submissionId)
+      .eq('user_id', userId)
+      .single();
+
+    if (subErr || !sub) throw new Error("Submission not found.");
+    if (sub.status !== 'Rejected') throw new Error("Only rejected submissions can be edited.");
+
+    const campaign = sub.campaigns;
+    if (!campaign) throw new Error("Campaign not found.");
+
+    // 2.5 Check for duplicate URL (Exclude self)
+    const canonicalUrl = this.canonicalizeUrl(validated.url, validated.platform);
+    const { data: existing } = await supabase
+      .from('submissions')
+      .select('id')
+      .eq('url', canonicalUrl)
+      .neq('id', submissionId)
+      .maybeSingle();
+
+    if (existing) throw new Error("This video has already been submitted to our platform.");
+
+    // 3. Fetch fresh views and verify ownership
+    const { views, channelId } = await this.fetchLiveViews(validated.url, validated.platform);
+    const { data: userRaw } = await supabase.from('users').select('*').eq('id', userId).single();
+    
+    if (validated.platform === 'youtube') {
+        const existingChannels = userRaw?.youtube_channels || [];
+        const isOwner = existingChannels.some((c: any) => 
+            String(c.channelId).toLowerCase() === String(channelId).toLowerCase() || 
+            String(c.id).toLowerCase() === String(channelId).toLowerCase() || 
+            String(c.handle).toLowerCase() === String(channelId).toLowerCase() ||
+            String(c.handle).toLowerCase() === `@${String(channelId).toLowerCase()}`
+        );
+        if (!isOwner) throw new Error("This video does not belong to your verified channels.");
+    } else if (validated.platform === 'instagram') {
+        const cleanHandle = (userRaw?.instagram_handle || '').toLowerCase().replace(/^@/, '');
+        const clipOwner = (channelId || '').toLowerCase().replace(/^@/, '');
+        if (cleanHandle !== clipOwner) throw new Error(`This Reel belongs to @${clipOwner}, which is not linked.`);
+    }
+
+    // 4. Update
+    let earnings = 0;
+    if (views >= (campaign.min_views || 0)) {
+        earnings = (views / 1000) * campaign.cpm_rate;
+        if (campaign.per_video_cap && earnings > campaign.per_video_cap) earnings = campaign.per_video_cap;
+    }
+
+    const { data: updated, error: updateErr } = await supabase
+      .from('submissions')
+      .update({
+          url: canonicalUrl,
+          platform: validated.platform,
+          views,
+          earnings,
+          status: 'Pending', // Back to pending
+          rejection_reason: null, // Clear reason
+          updated_at: new Date().toISOString()
+      })
+      .eq('id', submissionId)
+      .select()
+      .single();
+
+    if (updateErr) throw updateErr;
+    return updated;
+  }
 }

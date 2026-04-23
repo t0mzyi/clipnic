@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink, X, Upload, Trash2, Target, Coins, AlertCircle, Clock } from 'lucide-react';
+import { Search, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink, X, Upload, Trash2, Target, Coins, AlertCircle, Clock, Pencil, Youtube, Instagram } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 import { Dropdown } from '../components/Dropdown';
@@ -53,6 +53,11 @@ export const MySubmissions = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [platformFilter, setPlatformFilter] = useState('All');
     const [sortOrder, setSortOrder] = useState('Newest');
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingSub, setEditingSub] = useState<any>(null);
+    const [editUrl, setEditUrl] = useState('');
+    const [editPlatform, setEditPlatform] = useState('');
+    const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
 
     const filteredSubmissions = useMemo(() => {
         let result = [...submissions];
@@ -152,6 +157,38 @@ export const MySubmissions = () => {
                 Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
             }
         }
+    const handleEdit = async () => {
+        if (!editingSub || !editUrl) return;
+        setIsSubmittingEdit(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/${editingSub.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ url: editUrl, platform: editPlatform })
+            });
+            const json = await res.json();
+            if (json.success) {
+                Toast.fire({ title: 'Resubmitted!', icon: 'success' });
+                setIsEditModalOpen(false);
+                fetchAll();
+            } else {
+                throw new Error(json.error);
+            }
+        } catch (err: any) {
+            Swal.fire({ title: 'Error', text: err.message, icon: 'error' });
+        } finally {
+            setIsSubmittingEdit(false);
+        }
+    };
+
+    const openEditModal = (sub: any) => {
+        setEditingSub(sub);
+        setEditUrl(sub.url);
+        setEditPlatform(sub.platform);
+        setIsEditModalOpen(true);
     };
 
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
@@ -451,6 +488,15 @@ export const MySubmissions = () => {
                                     </td>
                                     <td className="py-5 pr-6 rounded-r-2xl border-y border-r border-white/[0.05] text-right">
                                         <div className="flex items-center justify-end gap-3">
+                                            {sub.earningCategory === 'rejected' && (
+                                                <button
+                                                    onClick={() => openEditModal(sub)}
+                                                    className="p-2 rounded-xl bg-amber-500/5 border border-amber-500/10 text-amber-500/50 hover:text-amber-500 hover:bg-amber-500/10 transition-all"
+                                                    title="Edit & Resubmit"
+                                                >
+                                                    <Pencil className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
                                             <button
                                                 disabled={refreshingId === sub.id}
                                                 onClick={() => handleRefresh(sub.id)}
@@ -595,6 +641,75 @@ export const MySubmissions = () => {
                                     </Button>
 
 
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            {/* Edit Submission Modal */}
+            <AnimatePresence>
+                {isEditModalOpen && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsEditModalOpen(false)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-lg bg-[#0c0c0c] border border-white/10 rounded-[40px] shadow-2xl overflow-hidden"
+                        >
+                            <div className="p-8">
+                                <div className="flex items-center justify-between mb-8">
+                                    <div>
+                                        <h2 className="text-xl font-bold text-white">Edit Submission</h2>
+                                        <p className="text-sm text-white/40 mt-1">Update your clip details and resubmit</p>
+                                    </div>
+                                    <button onClick={() => setIsEditModalOpen(false)} className="p-2 rounded-xl bg-white/5 text-white/40 hover:text-white transition-colors">
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <button
+                                            onClick={() => setEditPlatform('youtube')}
+                                            className={`p-4 rounded-3xl border transition-all flex flex-col items-center gap-3 ${editPlatform === 'youtube' ? 'bg-red-500/10 border-red-500/40' : 'bg-white/5 border-white/10 hover:border-white/20'}`}
+                                        >
+                                            <Youtube className={`w-6 h-6 ${editPlatform === 'youtube' ? 'text-red-500' : 'text-white/20'}`} />
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">YouTube</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setEditPlatform('instagram')}
+                                            className={`p-4 rounded-3xl border transition-all flex flex-col items-center gap-3 ${editPlatform === 'instagram' ? 'bg-pink-500/10 border-pink-500/40' : 'bg-white/5 border-white/10 hover:border-white/20'}`}
+                                        >
+                                            <Instagram className={`w-6 h-6 ${editPlatform === 'instagram' ? 'text-pink-500' : 'text-white/20'}`} />
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">Instagram</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] ml-4">New Video URL</label>
+                                        <input
+                                            type="url"
+                                            value={editUrl}
+                                            onChange={(e) => setEditUrl(e.target.value)}
+                                            placeholder="https://..."
+                                            className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 px-6 text-white text-sm focus:outline-none focus:border-white/20 focus:bg-white/[0.05] transition-all"
+                                        />
+                                    </div>
+
+                                    <button
+                                        disabled={isSubmittingEdit || !editUrl}
+                                        onClick={handleEdit}
+                                        className="w-full py-5 rounded-[2rem] bg-white text-black font-black uppercase tracking-[0.2em] text-[11px] hover:bg-white/90 disabled:opacity-50 transition-all"
+                                    >
+                                        {isSubmittingEdit ? 'Resubmitting...' : 'Update & Resubmit'}
+                                    </button>
                                 </div>
                             </div>
                         </motion.div>

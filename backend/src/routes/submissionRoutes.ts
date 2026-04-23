@@ -12,6 +12,7 @@ router.get('/campaign/:campaignId/my', authenticate, SubmissionController.getMyS
 
 router.post('/:id/refresh', authenticate, SubmissionController.refreshSubmission);
 router.get('/check-url', authenticate, SubmissionController.checkUrlAvailability);
+router.patch('/:id', authenticate, SubmissionController.updateSubmission);
 router.delete('/:id', authenticate, SubmissionController.deleteSubmission);
 
 // Public or general route for Leaderboard

@@ -87,8 +87,21 @@ export class SubmissionController {
       const url = req.query.url as string;
       const result = await SubmissionService.checkUrlAvailability(url);
       res.json({ success: true, ...result });
+    }
+  }
+
+  static async updateSubmission(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user.id;
+      const id = req.params.id;
+      const updated = await SubmissionService.update(userId, id as string, req.body);
+      res.json({ success: true, data: updated });
     } catch (err: any) {
-      res.status(400).json({ success: false, error: err.message });
+      if (err.message.includes('already submitted')) {
+          res.status(409).json({ success: false, error: err.message });
+      } else {
+          res.status(400).json({ success: false, error: err.message });
+      }
     }
   }
 }
