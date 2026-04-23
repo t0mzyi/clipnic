@@ -957,6 +957,7 @@ export const Profile = () => {
                                                             </div>
                                                             <Button
                                                                 className="w-full rounded-2xl py-3 text-xs bg-white text-zinc-950 hover:bg-white/90"
+                                                                onClick={() => {
                                                                     if (!youtubeUrl) return Toast.fire({ title: 'Error', text: 'Enter handle first', icon: 'error' });
                                                                     setShowYtCode(true);
                                                                 }}
@@ -1010,8 +1011,8 @@ export const Profile = () => {
                                                             }
                                                         }}
                                                     >
-                                                        {isVerifying ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-                                                        {isVerifying ? 'Redirecting...' : 'Link with YouTube'}
+                                                        {isVerifying && <Loader2 className="w-3 h-3 animate-spin" />}
+                                                        {isVerifying ? 'Redirecting...' : 'Securely Link Channel'}
                                                     </Button>
                                                 </div>
                                             )}
