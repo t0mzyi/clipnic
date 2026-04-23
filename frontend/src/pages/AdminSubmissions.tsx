@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { 
     Search, Filter, Layers, CheckCircle2, XCircle, 
-    ExternalLink, User, Calendar, ChevronDown, ChevronUp,
-    Video, DollarSign, Eye, AlertCircle
+    ExternalLink, User, Calendar, ChevronDown, 
+    Video, AlertCircle, Clock
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
