@@ -162,63 +162,64 @@ export const CampaignDetails = () => {
         }
     };
 
-    useEffect(() => {
-        const fetchCampaign = async () => {
-            try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}?t=${Date.now()}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+    const fetchCampaign = async () => {
+        if (!id) return;
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}?t=${Date.now()}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success) setCampaign(json.data);
+        } catch (err) {
+            console.error('Failed to fetch campaign:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchSubmissions = async () => {
+        if (!id || !token) return;
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/campaign/${id}/my?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
                 const json = await res.json();
-                if (json.success) setCampaign(json.data);
-            } catch (err) {
-                console.error('Failed to fetch campaign:', err);
-            } finally {
-                setLoading(false);
+                if (json.success) setSubmissions(json.data);
+            } else {
+                const text = await res.text();
+                console.error('Failed to fetch submissions (non-JSON):', text.slice(0, 100));
             }
-        };
+        } catch (err) { console.error('Failed to fetch my submissions:', err); }
+    };
 
-        const fetchSubmissions = async () => {
-            if (!id || !token) return;
-            try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/campaign/${id}/my?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const contentType = res.headers.get("content-type");
-                if (contentType && contentType.indexOf("application/json") !== -1) {
-                    const json = await res.json();
-                    if (json.success) setSubmissions(json.data);
-                } else {
-                    const text = await res.text();
-                    console.error('Failed to fetch submissions (non-JSON):', text.slice(0, 100));
-                }
-            } catch (err) { console.error('Failed to fetch my submissions:', err); }
-        };
-
-        const fetchLeaderboard = async () => {
-            if (!id) return;
-            try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/campaign/${id}/leaderboard`);
-                const contentType = res.headers.get("content-type");
-                if (contentType && contentType.indexOf("application/json") !== -1) {
-                    const json = await res.json();
-                    if (json.success) setLeaderboard(json.data);
-                } else {
-                    const text = await res.text();
-                    console.error('Failed to fetch leaderboard (non-JSON):', text.slice(0, 100));
-                }
-            } catch (err) { console.error('Failed to fetch leaderboard:', err); }
-        };
-
-        const checkParticipation = async () => {
-            try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/participations`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+    const fetchLeaderboard = async () => {
+        if (!id) return;
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/campaign/${id}/leaderboard`);
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
                 const json = await res.json();
-                if (json.success && Array.isArray(json.data)) {
-                    setIsJoined(json.data.includes(id));
-                }
-            } catch (err) { console.error(err); }
-        };
+                if (json.success) setLeaderboard(json.data);
+            } else {
+                const text = await res.text();
+                console.error('Failed to fetch leaderboard (non-JSON):', text.slice(0, 100));
+            }
+        } catch (err) { console.error('Failed to fetch leaderboard:', err); }
+    };
 
+    const checkParticipation = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/participations`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success && Array.isArray(json.data)) {
+                setIsJoined(json.data.includes(id));
+            }
+        } catch (err) { console.error(err); }
+    };
+
+    useEffect(() => {
         if (id) {
             fetchCampaign();
             if (token) {
