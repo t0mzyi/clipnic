@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useState, useEffect } from 'react';
-import { Shield, Eye, DollarSign, Clock, Target, Upload, ChevronLeft, X, CheckCircle, Globe, Trophy, Award, Medal, Trash2 } from 'lucide-react';
+import { Shield, Eye, Clock, Target, Upload, ChevronLeft, X, CheckCircle, Globe, Trophy, Award, Medal, Trash2, AlertCircle } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
@@ -588,7 +588,7 @@ export const CampaignDetails = () => {
                     <p className="text-[10px] font-mono text-white/20">{Math.min(100, (campaign.view_progress / (campaign.target_views || 1)) * 100).toFixed(1)}% full</p>
                 </div>
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
-                    <div className="flex items-center gap-2 text-white/30"><CheckCircle2 className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Views Fulfilled</span></div>
+                    <div className="flex items-center gap-2 text-white/30"><CheckCircle className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Views Fulfilled</span></div>
                     <p className="text-2xl font-mono font-bold text-white">{campaign.view_progress.toLocaleString()}</p>
                     <p className="text-[10px] font-mono text-white/20">of {campaign.target_views?.toLocaleString()}</p>
                 </div>
