@@ -104,8 +104,8 @@ export const AdminDashboard = () => {
             </header>
 
 
-            {/* KPI Grid - Forced 4 Columns on Mobile */}
-            <div className="grid grid-cols-4 gap-2 sm:gap-6">
+            {/* KPI Grid - 2x2 on Mobile, 4 Cols on Desktop */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                 {kpis.map((kpi: any, idx: number) => {
                     const Icon = typeof kpi.icon === 'string' ? iconMap[kpi.icon] : kpi.icon;
                     return (

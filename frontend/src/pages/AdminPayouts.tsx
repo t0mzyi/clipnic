@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Button } from '../components/ui/Button';
-import { 
+import {
     CheckCircle2, ArrowRight,
     Search,
     AlertCircle, Wallet, Calendar, DollarSign, Users
@@ -65,13 +65,13 @@ export const AdminPayouts = () => {
             try {
                 const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/payouts`, {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ 
-                        userId, 
-                        notes: result.value 
+                    body: JSON.stringify({
+                        userId,
+                        notes: result.value
                     })
                 });
                 const json = await res.json();
@@ -99,7 +99,7 @@ export const AdminPayouts = () => {
         }
     };
 
-    const filteredPending = eligible.filter(u => 
+    const filteredPending = eligible.filter(u =>
         u.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         u.user.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -114,22 +114,22 @@ export const AdminPayouts = () => {
         >
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/[0.06]">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-                        <DollarSign className="w-8 h-8 text-white/50" /> Payout Management
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
+                        <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-white/50" /> Payouts
                     </h1>
-                    <p className="text-white/40 mt-1">Review, validate, and process earnings for all clippers.</p>
+                    <p className="text-xs sm:text-sm text-white/40 mt-1">Review, validate, and process earnings.</p>
                 </div>
 
-                <div className="flex bg-white/[0.03] p-1 rounded-2xl border border-white/5">
-                    <button 
+                <div className="flex bg-white/[0.03] p-1 rounded-2xl border border-white/5 w-fit">
+                    <button
                         onClick={() => setActiveTab('pending')}
-                        className={`px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'pending' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
+                        className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'pending' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
                     >
                         Eligible
                     </button>
-                    <button 
+                    <button
                         onClick={() => setActiveTab('history')}
-                        className={`px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
+                        className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
                     >
                         History
                     </button>
@@ -137,7 +137,7 @@ export const AdminPayouts = () => {
             </header>
 
             {activeTab === 'pending' && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
                     <div className="glass-panel p-6 rounded-3xl space-y-2">
                         <div className="flex items-center gap-2 text-white/30 text-[10px] uppercase font-bold tracking-widest">
                             <Wallet className="w-3.5 h-3.5 text-emerald-500" /> Total Pending
@@ -146,11 +146,11 @@ export const AdminPayouts = () => {
                     </div>
                     <div className="glass-panel p-6 rounded-3xl space-y-2">
                         <div className="flex items-center gap-2 text-white/30 text-[10px] uppercase font-bold tracking-widest">
-                            <Users className="w-3.5 h-3.5 text-blue-400" /> Active Clippers
+                            <Users className="w-3.5 h-3.5 text-blue-400" /> Eligible Clippers
                         </div>
                         <p className="text-3xl font-mono font-bold text-white">{eligible.length}</p>
                     </div>
-                    <div className="glass-panel p-6 rounded-3xl space-y-2">
+                    <div className="glass-panel p-6 rounded-3xl space-y-2 col-span-2 md:col-span-1">
                         <div className="flex items-center gap-2 text-white/30 text-[10px] uppercase font-bold tracking-widest">
                             <AlertCircle className="w-3.5 h-3.5 text-amber-500" /> Avg. Payout
                         </div>
@@ -162,8 +162,8 @@ export const AdminPayouts = () => {
             <div className="space-y-4">
                 <div className="relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         placeholder={activeTab === 'pending' ? "Search clippers to pay..." : "Search past payouts..."}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -225,7 +225,7 @@ export const AdminPayouts = () => {
                                                     <span className="text-lg font-mono font-bold text-emerald-400">${item.totalClaimable.toFixed(2)}</span>
                                                 </td>
                                                 <td className="px-8 py-6 text-right">
-                                                    <Button 
+                                                    <Button
                                                         onClick={() => handleProcessPayout(item.user.id, item.user.name, item.totalClaimable)}
                                                         disabled={isProcessing === item.user.id}
                                                         className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl py-2 px-6 text-[10px] font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.1)] group"

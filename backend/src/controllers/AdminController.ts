@@ -30,13 +30,28 @@ export class AdminController {
   static async getUser(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const { data, error } = await supabase
+      const campaignId = req.query.campaignId as string;
+
+      const { data: user, error: userErr } = await supabase
         .from('users')
         .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, instagram_handle, tiktok_verified, tiktok_handle, is_blocked, youtube_channels')
         .eq('id', id)
         .single();
-      if (error) throw error;
-      res.json({ success: true, data });
+      
+      if (userErr) throw userErr;
+
+      let linkedHandle = null;
+      if (campaignId) {
+          const { data: participant } = await supabase
+              .from('campaign_participants')
+              .select('linked_handle')
+              .eq('user_id', id)
+              .eq('campaign_id', campaignId)
+              .maybeSingle();
+          linkedHandle = participant?.linked_handle;
+      }
+
+      res.json({ success: true, data: { ...user, linked_handle: linkedHandle } });
     } catch (error) {
       next(error);
     }

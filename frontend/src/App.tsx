@@ -191,6 +191,17 @@ const Layout = () => {
     const location = useLocation();
 
     useEffect(() => {
+        if (mobileMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [mobileMenuOpen]);
+
+    useEffect(() => {
         const syncBackend = async (session: any, isInitial = false) => {
             if (session) {
                 setIsSyncing(true);

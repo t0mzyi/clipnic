@@ -102,7 +102,7 @@ export const AdminSubmissions = () => {
         setSelectedSubmission(sub);
         setIsUserModalOpen(true);
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${userId}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${userId}?campaignId=${sub.campaign_id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
@@ -168,14 +168,14 @@ export const AdminSubmissions = () => {
                     <p className="text-white/40 mt-1 font-medium">Grouped by Campaign for easier management.</p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                     <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-3 flex items-center gap-4">
-                        <div className="bg-emerald-500/20 text-emerald-500 p-2 rounded-xl">
-                            <CheckCircle2 className="w-5 h-5" />
+                <div className="flex flex-wrap items-center gap-3">
+                     <div className="bg-white/5 border border-white/10 rounded-2xl px-4 sm:px-5 py-2 sm:py-3 flex items-center gap-3 sm:gap-4">
+                        <div className="bg-emerald-500/20 text-emerald-500 p-1.5 sm:p-2 rounded-xl">
+                            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Global Verified</span>
-                            <span className="text-xl font-bold text-white tabular-nums">
+                            <span className="text-[9px] sm:text-[10px] text-white/30 font-bold uppercase tracking-widest">Global Verified</span>
+                            <span className="text-lg sm:text-xl font-bold text-white tabular-nums">
                                 {submissions.filter(s => s.status === 'Verified').length}
                             </span>
                         </div>
@@ -442,6 +442,12 @@ export const AdminSubmissions = () => {
                                                     <div>
                                                         <p className="text-[10px] font-bold text-emerald-500/40 uppercase tracking-widest">Active Submission</p>
                                                         <h4 className="text-sm font-bold text-white uppercase">{selectedSubmission.platform} Content</h4>
+                                                        {selectedUser.linked_handle && (
+                                                            <div className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 w-fit">
+                                                                <span className="text-[10px] font-bold text-emerald-500 uppercase">Linked Handle:</span>
+                                                                <span className="text-[10px] font-mono text-emerald-500 font-black">{selectedUser.linked_handle}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col gap-2">

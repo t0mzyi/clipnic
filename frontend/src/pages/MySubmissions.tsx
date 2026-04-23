@@ -471,8 +471,7 @@ export const MySubmissions = () => {
                                                     <div className="w-12 bg-white/5 h-0.5 rounded-full overflow-hidden">
                                                         <div className="bg-white h-full" style={{ width: `${(sub.views / sub.minViews) * 100}%` }} />
                                                     </div>
-                                                    <span className="text-[8px] uppercase tracking-tighter text-red-400/60 font-bold">Views didn't meet req</span>
-                                                    <span className="text-[8px] uppercase tracking-tighter">to {sub.minViews / 1000}k</span>
+                                                    <span className="text-[8px] uppercase tracking-tighter text-red-400/60 font-bold whitespace-nowrap">Goal: {sub.minViews / 1000}k</span>
                                                 </div>
                                             )}
                                         </div>
