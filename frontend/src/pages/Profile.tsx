@@ -516,21 +516,23 @@ export const Profile = () => {
                         </p>
                         <p className="text-4xl font-mono tracking-tight font-medium text-white/90">{stats.totalViews}</p>
                     </div>
-                    <div className="p-8 rounded-3xl bg-white text-zinc-950 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-5 opacity-10">
-                            <Wallet className="w-10 h-10" />
+                    {parseFloat(stats.currentBalance.replace('$', '')) > 0 && (
+                        <div className="p-8 rounded-3xl bg-white text-zinc-950 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-5 opacity-10">
+                                <Wallet className="w-10 h-10" />
+                            </div>
+                            <p className="text-black/50 text-xs font-semibold uppercase tracking-widest mb-2.5">
+                                Balance
+                            </p>
+                            <p className="text-4xl font-mono tracking-tight font-bold">{stats.currentBalance}</p>
+                            <button
+                                onClick={() => setIsWithdrawOpen(true)}
+                                className="mt-6 w-full py-3 bg-black text-white rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-black/90 transition-colors"
+                            >
+                                Withdraw
+                            </button>
                         </div>
-                        <p className="text-black/50 text-xs font-semibold uppercase tracking-widest mb-2.5">
-                            Balance
-                        </p>
-                        <p className="text-4xl font-mono tracking-tight font-bold">{stats.currentBalance}</p>
-                        <button
-                            onClick={() => setIsWithdrawOpen(true)}
-                            className="mt-6 w-full py-3 bg-black text-white rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-black/90 transition-colors"
-                        >
-                            Withdraw
-                        </button>
-                    </div>
+                    )}
                 </div>
 
                 <div className="flex flex-col gap-8 w-full">
@@ -592,14 +594,8 @@ export const Profile = () => {
                                                 <svg className="w-6 h-6 group-hover/icon:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                                             </button>
                                             <button
-                                                onClick={() => {
-                                                    Toast.fire({
-                                                        title: 'Coming Soon!',
-                                                        text: 'TikTok integration will be available shortly.',
-                                                        icon: 'info'
-                                                    });
-                                                }}
-                                                className="w-14 h-14 rounded-2xl bg-[#00f2fe]/10 border border-[#00f2fe]/20 flex flex-col items-center justify-center text-[#00f2fe] hover:bg-[#00f2fe]/20 transition-all shadow-[0_8px_16px_-8px_rgba(0,242,254,0.15)] opacity-50 group/icon"
+                                                onClick={() => { setSelectedSocial('tiktok'); setVerifyStep(2); setIsVerifyOpen(true); }}
+                                                className="w-14 h-14 rounded-2xl bg-[#00f2fe]/10 border border-[#00f2fe]/20 flex flex-col items-center justify-center text-[#00f2fe] hover:bg-[#00f2fe]/20 transition-all shadow-[0_8px_16px_-8px_rgba(0,242,254,0.15)] group/icon"
                                             >
                                                 <svg className="w-6 h-6 group-hover/icon:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg>
                                             </button>
