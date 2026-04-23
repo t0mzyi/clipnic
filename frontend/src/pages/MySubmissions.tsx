@@ -225,7 +225,7 @@ export const MySubmissions = () => {
                 });
                 const json = await res.json();
                 if (json.success && !json.available) {
-                    setUrlError('This video has already been submitted by someone else.');
+                    setUrlError('This video has already been submitted by you / someone else.');
                 } else {
                     setUrlError('');
                 }

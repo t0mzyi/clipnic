@@ -62,11 +62,15 @@ export class PayoutService {
               userBuckets[user.id] = {
                   user,
                   totalClaimable: 0,
-                  submissionIds: []
+                  submissionIds: [],
+                  campaigns: []
               };
           }
           userBuckets[user.id].totalClaimable += earnings;
           userBuckets[user.id].submissionIds.push(sub.id);
+          if (campaign?.title && !userBuckets[user.id].campaigns.includes(campaign.title)) {
+              userBuckets[user.id].campaigns.push(campaign.title);
+          }
       }
     }
 

@@ -208,10 +208,17 @@ export const AdminPayouts = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-6">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/5 text-[10px] font-mono font-bold text-white/40">
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/5 text-[10px] font-mono font-bold text-white/40 w-fit">
                                                             {item.submissionIds.length} Verified Clips
                                                         </span>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {item.campaigns?.map((c: string) => (
+                                                                <span key={c} className="text-[9px] text-white/20 bg-white/[0.02] px-2 py-0.5 rounded border border-white/5">
+                                                                    {c}
+                                                                </span>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-6">

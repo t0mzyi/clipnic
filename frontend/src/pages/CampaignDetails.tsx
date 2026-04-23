@@ -298,9 +298,10 @@ export const CampaignDetails = () => {
 
     // Auto-detect platform from URL
     useEffect(() => {
-        if (submissionUrl.includes('youtube.com') || submissionUrl.includes('youtu.be')) setPlatform('youtube');
-        else if (submissionUrl.includes('instagram.com/reels/') || submissionUrl.includes('instagram.com/reel/')) setPlatform('instagram');
-        else if (submissionUrl.includes('tiktok.com/')) setPlatform('tiktok');
+        const url = submissionUrl.toLowerCase();
+        if (url.includes('youtube.com') || url.includes('youtu.be')) setPlatform('youtube');
+        else if (url.includes('instagram.com')) setPlatform('instagram');
+        else if (url.includes('tiktok.com')) setPlatform('tiktok');
         else setPlatform('');
     }, [submissionUrl]);
 

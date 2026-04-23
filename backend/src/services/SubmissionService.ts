@@ -270,7 +270,7 @@ export class SubmissionService {
             platform: validated.platform,
             views,
             earnings,
-            status: 'Verified',
+            status: 'Pending',
             updated_at: new Date().toISOString()
         })
         .select()
