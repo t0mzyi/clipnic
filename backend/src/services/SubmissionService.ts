@@ -504,7 +504,8 @@ export class SubmissionService {
     const now = new Date();
 
     for (const sub of (submissions || [])) {
-      const campaign = sub.campaigns;
+      // @ts-ignore - Supabase join might return array or object
+      const campaign = Array.isArray(sub.campaigns) ? sub.campaigns[0] : sub.campaigns;
       const minViews = campaign?.min_views || 0;
       const earnings = Number(sub.earnings || 0);
       const isPastDeadline = campaign?.end_date ? new Date(campaign.end_date) < now : false;

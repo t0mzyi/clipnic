@@ -356,7 +356,7 @@ return (
                                             {sub.platform === 'tiktok' && <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg>}
                                         </div>
                                         <div>
-                                            <p className="text-sm font-medium text-white/90">{sub.campaigns?.title || 'Unknown Campaign'}</p>
+                                            <p className="text-sm font-medium text-white/90">{sub.campaignTitle || 'Unknown Campaign'}</p>
                                             <p className="text-[10px] text-white/30 mt-0.5 truncate max-w-[200px]">{sub.url}</p>
                                         </div>
                                     </div>
@@ -489,16 +489,19 @@ return (
                                             value={submissionUrl}
                                             onChange={(e) => setSubmissionUrl(e.target.value)}
                                             placeholder="Paste YouTube, Instagram or TikTok link..."
-                                            className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-5 pr-36 py-4 text-white focus:outline-none focus:border-white/20 transition-all placeholder:text-white/10"
+                                            className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-white/20 transition-all placeholder:text-white/10"
                                         />
-                                        {submissionUrl && platform && (
-                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 animate-in fade-in zoom-in duration-300">
+                                    </div>
+                                    {submissionUrl && platform && (
+                                        <div className="flex items-center justify-between px-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                                            <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Detected Platform</span>
+                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
                                                 <span className={`text-[10px] font-bold uppercase tracking-widest ${platform === 'youtube' ? 'text-red-500' : platform === 'instagram' ? 'text-pink-500' : 'text-cyan-400'}`}>
-                                                    {platform} Detected
+                                                    {platform === 'youtube' ? 'YouTube Shorts' : platform === 'instagram' ? 'Instagram Reels' : 'TikTok'}
                                                 </span>
                                             </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Requirements Info */}
