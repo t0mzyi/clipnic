@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink } from 'lucide-react';
+import { Search, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink, X, Upload, ShieldCheck, Globe, Info } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 import { Dropdown } from '../components/Dropdown';
+import { AnimatePresence } from 'framer-motion';
+import { Button } from '../components/ui/Button';
 
 export const MySubmissions = () => {
     const { token } = useAuthStore();
@@ -112,8 +114,66 @@ export const MySubmissions = () => {
         }
     };
     
+    const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+    const [joinedCampaigns, setJoinedCampaigns] = useState<any[]>([]);
+    const [selectedCampaignId, setSelectedCampaignId] = useState('');
+    const [submissionUrl, setSubmissionUrl] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const selectedCampaign = joinedCampaigns.find(c => c.id === selectedCampaignId);
+
+    const platform = useMemo(() => {
+        if (submissionUrl.includes('youtube.com') || submissionUrl.includes('youtu.be')) return 'youtube';
+        if (submissionUrl.includes('instagram.com')) return 'instagram';
+        if (submissionUrl.includes('tiktok.com')) return 'tiktok';
+        return null;
+    }, [submissionUrl]);
+
+    const fetchJoinedCampaigns = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/my/joined`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success) setJoinedCampaigns(json.data);
+        } catch (err) { console.error('Failed to fetch joined campaigns:', err); }
+    };
+
+    const handleSubmitClip = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedCampaignId || !submissionUrl) return;
+        if (!platform) {
+            Swal.fire({ title: 'Invalid Link', text: 'Please provide a valid social link.', icon: 'error', background: '#0D0D0D', color: '#fff' });
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ campaign_id: selectedCampaignId, url: submissionUrl, platform })
+            });
+            const json = await res.json();
+
+            if (!json.success) throw new Error(json.error);
+
+            Swal.fire({ title: 'Success!', text: 'Your clip is now in review.', icon: 'success', background: '#0D0D0D', color: '#fff' });
+            setIsSubmitModalOpen(false);
+            setSubmissionUrl('');
+            fetchAll();
+        } catch (err: any) {
+            Swal.fire({ title: 'Error', text: err.message, icon: 'error', background: '#0D0D0D', color: '#fff' });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+    
     useEffect(() => {
-        if (token) fetchAll();
+        if (token) {
+            fetchAll();
+            fetchJoinedCampaigns();
+        }
     }, [token]);
 
     return (
@@ -131,6 +191,13 @@ export const MySubmissions = () => {
                         <h1 className="text-4xl font-bold tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/50 mb-2">My Submissions</h1>
                         <p className="text-white/40 text-lg font-light tracking-tight">Track and manage your clips.</p>
                     </div>
+                    <button 
+                        onClick={() => setIsSubmitModalOpen(true)}
+                        className="flex items-center gap-2 bg-white text-zinc-950 hover:bg-white/90 font-bold uppercase tracking-widest px-8 py-4 rounded-2xl transition-all shadow-2xl text-xs"
+                    >
+                        <Upload className="w-4 h-4" />
+                        Submit New Clip
+                    </button>
                 </div>
             </div>
 
@@ -324,6 +391,115 @@ export const MySubmissions = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Submit Modal */}
+            <AnimatePresence>
+                {isSubmitModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 overflow-y-auto">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="bg-[#0D0D0D] border border-white/10 rounded-[32px] p-6 sm:p-10 max-w-xl w-full relative shadow-[0_32px_64px_-16px_rgba(0,0,0,1)]"
+                        >
+                            <button onClick={() => setIsSubmitModalOpen(false)} className="absolute top-8 right-8 text-white/20 hover:text-white transition-all p-2 hover:bg-white/5 rounded-full"><X className="w-5 h-5" /></button>
+
+                            <div className="space-y-8">
+                                <div className="space-y-3">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">New Submission</span>
+                                    </div>
+                                    <h2 className="text-3xl font-bold tracking-tight">Submit a Clip</h2>
+                                    <p className="text-sm text-white/40 leading-relaxed">Choose a mission and paste your clip link.</p>
+                                </div>
+
+                                <div className="space-y-6">
+                                    {/* Campaign Selector */}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] ml-1">1. Select Mission</label>
+                                        <Dropdown 
+                                            value={selectedCampaignId}
+                                            onChange={setSelectedCampaignId}
+                                            options={[
+                                                { label: 'Select a mission...', value: '', icon: <Layers size={14} /> },
+                                                ...joinedCampaigns.map(c => ({
+                                                    label: c.title,
+                                                    value: c.id,
+                                                    icon: <div className="w-2 h-2 rounded-full bg-white/20" />
+                                                }))
+                                            ]}
+                                        />
+                                    </div>
+
+                                    {/* URL Input */}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] ml-1">2. Video Link</label>
+                                        <div className="relative group">
+                                            <input 
+                                                type="text" 
+                                                value={submissionUrl}
+                                                onChange={(e) => setSubmissionUrl(e.target.value)}
+                                                placeholder="Paste YouTube, Instagram or TikTok link..."
+                                                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-white/20 transition-all placeholder:text-white/10"
+                                            />
+                                            {platform && (
+                                                <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 animate-in fade-in zoom-in duration-300">
+                                                    <span className={`text-[10px] font-bold uppercase tracking-widest ${platform === 'youtube' ? 'text-red-500' : platform === 'instagram' ? 'text-pink-500' : 'text-cyan-400'}`}>
+                                                        {platform} Detected
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Requirements Info */}
+                                    {selectedCampaign && (
+                                        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Mission Requirements</p>
+                                                <div className="flex gap-2">
+                                                    {selectedCampaign.allowed_platforms?.map((p: string) => (
+                                                        <span key={p} className="text-[9px] font-black uppercase text-white/20">{p}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <p className="text-[9px] text-white/20 uppercase font-bold">Min Views</p>
+                                                    <p className="text-sm font-mono text-white/60">{selectedCampaign.min_views?.toLocaleString() || 0}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[9px] text-white/20 uppercase font-bold">CPM Rate</p>
+                                                    <p className="text-sm font-mono text-emerald-400/80">${selectedCampaign.cpm_rate?.toFixed(2)}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <Button
+                                        onClick={handleSubmitClip}
+                                        disabled={isSubmitting || !selectedCampaignId || !submissionUrl || !platform}
+                                        className="w-full py-5 rounded-2xl bg-white text-zinc-950 text-xs font-black uppercase tracking-[0.2em] shadow-[0_20px_40px_rgba(255,255,255,0.1)] hover:scale-[1.02] transition-all disabled:opacity-30 disabled:hover:scale-100"
+                                    >
+                                        {isSubmitting ? (
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-4 h-4 rounded-full border-2 border-zinc-950/20 border-t-zinc-950 animate-spin" />
+                                                Verifying & Submitting...
+                                            </div>
+                                        ) : 'Submit for Review'}
+                                    </Button>
+
+                                    <div className="flex items-center justify-center gap-2 text-[9px] text-white/20 uppercase tracking-[0.2em] font-bold">
+                                        <ShieldCheck className="w-3 h-3" />
+                                        Encrypted & Verified via Apify
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 };
