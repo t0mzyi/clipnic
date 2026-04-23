@@ -297,15 +297,25 @@ export const MySubmissions = () => {
                     <p className="text-3xl font-mono tabular-metrics text-blue-400 font-bold">${summary.pendingPayout.toFixed(2)}</p>
                 </div>
 
-                {/* Claimable Balance */}
-                <div className="p-6 rounded-3xl bg-white text-zinc-950 shadow-[0_0_40px_rgba(255,255,255,0.1)] group overflow-hidden relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-black/[0.03] to-transparent pointer-events-none" />
-                    <p className="text-black/40 text-[10px] mb-3 uppercase tracking-[0.2em] font-extrabold flex items-center gap-2.5 relative z-10">
-                        <Wallet className="w-4 h-4" />
-                        Claimable
-                    </p>
-                    <p className="text-4xl font-mono tabular-metrics font-black relative z-10">${summary.claimableBalance.toFixed(2)}</p>
-                </div>
+                {/* Claimable Balance - Only show if mission ended and ready */}
+                {summary.claimableBalance > 0 ? (
+                    <div className="p-6 rounded-3xl bg-white text-zinc-950 shadow-[0_0_40px_rgba(255,255,255,0.1)] group overflow-hidden relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-black/[0.03] to-transparent pointer-events-none" />
+                        <p className="text-black/40 text-[10px] mb-3 uppercase tracking-[0.2em] font-extrabold flex items-center gap-2.5 relative z-10">
+                            <Wallet className="w-4 h-4" />
+                            Ready to Claim
+                        </p>
+                        <p className="text-4xl font-mono tabular-metrics font-black relative z-10">${summary.claimableBalance.toFixed(2)}</p>
+                    </div>
+                ) : (
+                    <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] opacity-40">
+                        <p className="text-[10px] text-white/30 mb-3 uppercase tracking-[0.2em] font-bold flex items-center gap-2.5">
+                            <Clock className="w-4 h-4 text-white/20" />
+                            Next Payout
+                        </p>
+                        <p className="text-3xl font-mono tabular-metrics text-white/40 tracking-tighter italic text-xs">Locked Until Mission Ends</p>
+                    </div>
+                )}
 
                 {/* Total Paid */}
                 <div className="p-6 rounded-3xl bg-emerald-500/5 border border-emerald-500/10 group hover:bg-emerald-500/10 transition-all duration-500">

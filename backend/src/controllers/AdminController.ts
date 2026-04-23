@@ -11,7 +11,7 @@ export class AdminController {
   static async getAllUsers(req: Request, res: Response, next: NextFunction) {
     try {
       const { q } = req.query as { q?: string };
-      let query = supabase.from('users').select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, tiktok_verified, tiktok_handle, is_blocked');
+      let query = supabase.from('users').select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, is_blocked, created_at');
       if (q) {
         query = query.ilike('email', `%${q}%`).or(`name.ilike.%${q}%`);
       }

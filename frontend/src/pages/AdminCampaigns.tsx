@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, ToggleLeft, ToggleRight, Users, Film, Pencil, Search, Eye, Globe, Filter, CheckCircle2, Star } from 'lucide-react';
+import { Plus, Trash2, ToggleLeft, ToggleRight, Users, Film, Pencil, Search, Eye, Globe, Filter, CheckCircle2, Star, BarChart3 } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';
 
 interface Campaign {

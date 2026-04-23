@@ -31,6 +31,7 @@ interface User {
     instagram_verified: boolean;
     is_blocked: boolean;
     role: 'admin' | 'user';
+    created_at: string;
 }
 
 const Toast = Swal.mixin({
@@ -216,8 +217,8 @@ export const AdminUsers = () => {
                             </thead>
                             <tbody className="divide-y divide-white/[0.03]">
                                 {[...users].sort((a, b) => {
-                                    const dateA = new Date((a as any).created_at || 0).getTime();
-                                    const dateB = new Date((b as any).created_at || 0).getTime();
+                                    const dateA = new Date(a.created_at || 0).getTime();
+                                    const dateB = new Date(b.created_at || 0).getTime();
                                     return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
                                 }).map((user) => {
                                     const isAdmin = user.role === 'admin';

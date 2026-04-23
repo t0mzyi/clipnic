@@ -47,17 +47,17 @@ export class PayoutService {
       const isPastDeadline = campaign?.end_date ? new Date(campaign.end_date) < now : false;
       const isCampaignEnded = campaign?.status === 'Completed' || isPastDeadline;
 
-      // Logic: If met requirement or campaign ended and met requirement
+      // Logic: ONLY claimable if the campaign has ended or passed its deadline
       let isClaimable = false;
-      if (minViews > 0) {
-          if (sub.views >= minViews) isClaimable = true;
-          // If campaign ended but views didn't hit minViews, it's failed (not claimable)
-      } else {
-          // No min views, always claimable if verified
-          isClaimable = true;
+      if (isCampaignEnded && sub.status === 'Verified') {
+          if (minViews > 0) {
+              if (sub.views >= minViews) isClaimable = true;
+          } else {
+              isClaimable = true;
+          }
       }
 
-      if (isClaimable && sub.status === 'Verified') {
+      if (isClaimable) {
           if (!userBuckets[user.id]) {
               userBuckets[user.id] = {
                   user,

@@ -442,7 +442,7 @@ export const AdminUserDetails = () => {
                                                         {item.earningCategory.replace(/_/g, ' ')}
                                                     </span>
                                                 </div>
-                                                {item.status !== 'Paid' && item.status !== 'Rejected' && (
+                                                {item.status !== 'Paid' && item.status !== 'Rejected' && item.earningCategory === 'claimable' && (
                                                     <button
                                                         disabled={markingPaid === item.id}
                                                         onClick={() => handleMarkPaid(item.id)}
