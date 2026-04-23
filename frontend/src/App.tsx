@@ -32,7 +32,6 @@ import { AdminPayouts } from './pages/AdminPayouts';
 import { AdminCampaignDetails } from './pages/AdminCampaignDetails';
 import { JoinedCampaigns } from './pages/JoinedCampaigns';
 import { Login } from './pages/Login';
-import { Landing } from './pages/Landing';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './store/useAuthStore';
 
@@ -330,12 +329,11 @@ const Layout = () => {
         return <Navigate to="/dashboard" replace />;
     }
 
-    // Show landing page or login page without sidebar layout
-    if (location.pathname === '/' || location.pathname === '/login') {
+    // Show login page without sidebar layout
+    if (location.pathname === '/login') {
         return (
             <AnimatePresence mode="wait">
                 <Routes location={location} key={location.pathname}>
-                    <Route path="/" element={<Landing />} />
                     <Route path="/login" element={<Login />} />
                 </Routes>
             </AnimatePresence>
@@ -375,7 +373,7 @@ const Layout = () => {
                 <div className="px-4 sm:px-6 md:px-12 pt-6 md:pt-16 pb-24 max-w-7xl mx-auto">
                     <AnimatePresence mode="wait">
                         <Routes>
-                            <Route path="/" element={<Landing />} />
+                            <Route path="/" element={<Navigate to="/campaigns" replace />} />
                             <Route path="/dashboard" element={<ClipperDashboard />} />
                             <Route path="/campaigns" element={<CampaignsFeed />} />
                             <Route path="/campaigns/joined" element={<JoinedCampaigns />} />

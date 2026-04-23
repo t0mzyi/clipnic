@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipnic | Dominate the Reach</title>
+    <link rel="icon" type="image/webp" href="/logo.webp">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="landing-container">
+        <div class="glow-top"></div>
+        <div class="glow-bottom"></div>
+
+        <nav class="landing-nav">
+            <a href="/" class="landing-logo">
+                <img src="/logo.webp" alt="Logo">
+                <span>CLIPNIC</span>
+            </a>
+            <div class="nav-links">
+                <a href="#how-it-works" class="nav-link">How it works</a>
+                <a href="#pricing" class="nav-link">Pricing</a>
+                <a href="#about" class="nav-link">Network</a>
+            </div>
+            <a href="/login" class="nav-cta">Launch App</a>
+        </nav>
+
+        <main class="hero">
+            <div id="mode-badge" class="badge">For Creators & Editors</div>
+
+            <h1 id="hero-title" class="hero-h1">
+                Don't just post. <br><span class="text-emerald">Dominate</span> the reach.
+            </h1>
+
+            <p id="hero-desc" class="hero-p">
+                Monetize your storytelling. Access exclusive high-CPM campaigns from global brands and turn your reach into consistent revenue.
+            </p>
+
+            <div class="toggle-wrapper">
+                <button id="toggle-clippers" class="toggle-btn active">Clippers</button>
+                <button id="toggle-brands" class="toggle-btn">Brands</button>
+            </div>
+
+            <div class="card-3d-wrapper">
+                <div id="feature-card" class="card-3d">
+                    <div class="card-content">
+                        <div id="feature-tag" class="feature-tag">Editor Benefits</div>
+                        <h2 id="card-title" class="card-h2">Post shorts, earn high-yield CPMs.</h2>
+                        <ul id="card-list" class="card-list">
+                            <li><i data-lucide="zap"></i> High CPM rates across all niches</li>
+                            <li><i data-lucide="play"></i> Verified reach attribution system</li>
+                            <li><i data-lucide="globe"></i> Exclusive global brand network</li>
+                            <li><i data-lucide="check"></i> Automated weekly payouts</li>
+                        </ul>
+                        <a href="/login" class="card-cta">
+                            <span id="cta-text">Start Clipping</span>
+                            <i data-lucide="arrow-right" style="width: 16px; height: 16px; margin-left: 8px; vertical-align: middle;"></i>
+                        </a>
+                    </div>
+
+                    <div class="card-visual">
+                        <div id="visual-clippers" class="floating-element clippers-visual">
+                            <div class="visual-mockup">
+                                <div class="mock-line-s"></div>
+                                <div class="mock-line-m"></div>
+                                <div class="mock-grid">
+                                    <div class="mock-box"></div>
+                                    <div class="mock-box"></div>
+                                </div>
+                                <div class="mock-chart">
+                                    <i data-lucide="bar-chart-3" style="width: 48px; height: 48px;"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="visual-brands" class="floating-element brands-visual hidden">
+                            <div class="visual-mockup brands">
+                                <div class="mock-header">
+                                    <div class="mock-avatar"></div>
+                                    <div class="mock-line-s"></div>
+                                </div>
+                                <div class="mock-line-l"></div>
+                                <div class="mock-line-m"></div>
+                                <div class="mock-footer">
+                                    <div class="mock-stat"></div>
+                                    <div class="mock-stat"></div>
+                                    <div class="mock-stat"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="landing-footer">
+            <p class="footer-text">&copy; 2026 Clipnic Platform. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        const toggleClippers = document.getElementById('toggle-clippers');
+        const toggleBrands = document.getElementById('toggle-brands');
+        const modeBadge = document.getElementById('mode-badge');
+        const heroTitle = document.getElementById('hero-title');
+        const heroDesc = document.getElementById('hero-desc');
+        const featureTag = document.getElementById('feature-tag');
+        const cardTitle = document.getElementById('card-title');
+        const cardList = document.getElementById('card-list');
+        const ctaText = document.getElementById('cta-text');
+        const visualClippers = document.getElementById('visual-clippers');
+        const visualBrands = document.getElementById('visual-brands');
+        const featureCard = document.getElementById('feature-card');
+
+        const updateUI = (mode) => {
+            // Apply card flip animation
+            featureCard.style.transform = 'rotateX(10deg) scale(0.98)';
+            featureCard.style.opacity = '0';
+
+            setTimeout(() => {
+                if (mode === 'clippers') {
+                    modeBadge.innerText = 'For Creators & Editors';
+                    heroTitle.innerHTML = "Don't just post. <br><span class='text-emerald'>Dominate</span> the reach.";
+                    heroDesc.innerText = 'Monetize your storytelling. Access exclusive high-CPM campaigns from global brands and turn your reach into consistent revenue.';
+                    featureTag.innerText = 'Editor Benefits';
+                    cardTitle.innerText = 'Post shorts, earn high-yield CPMs.';
+                    cardList.innerHTML = `
+                        <li><i data-lucide="zap"></i> High CPM rates across all niches</li>
+                        <li><i data-lucide="play"></i> Verified reach attribution system</li>
+                        <li><i data-lucide="globe"></i> Exclusive global brand network</li>
+                        <li><i data-lucide="check"></i> Automated weekly payouts</li>
+                    `;
+                    ctaText.innerText = 'Start Clipping';
+                    visualClippers.classList.remove('hidden');
+                    visualBrands.classList.add('hidden');
+                } else {
+                    modeBadge.innerText = 'For Agencies & Brands';
+                    heroTitle.innerHTML = "Scale your brand's <br><span class='text-emerald'>viral footprint</span>.";
+                    heroDesc.innerText = 'Connect with elite clippers who specialize in viral storytelling. Scale your presence across TikTok, Reels, and Shorts with performance-driven reach.';
+                    featureTag.innerText = 'Brand Growth';
+                    cardTitle.innerText = 'Performance-driven creator scaling.';
+                    cardList.innerHTML = `
+                        <li><i data-lucide="bar-chart-3"></i> Guaranteed viral reach metrics</li>
+                        <li><i data-lucide="users"></i> Vetted elite clippers only</li>
+                        <li><i data-lucide="shield-check"></i> Fraud-proof content verification</li>
+                        <li><i data-lucide="zap"></i> Direct-to-consumer viral impact</li>
+                    `;
+                    ctaText.innerText = 'Start Campaign';
+                    visualClippers.classList.add('hidden');
+                    visualBrands.classList.remove('hidden');
+                }
+                lucide.createIcons();
+                featureCard.style.transform = 'rotateX(0deg) scale(1)';
+                featureCard.style.opacity = '1';
+            }, 300);
+        };
+
+        toggleClippers.addEventListener('click', () => {
+            if (toggleClippers.classList.contains('active')) return;
+            toggleClippers.classList.add('active');
+            toggleBrands.classList.remove('active');
+            updateUI('clippers');
+        });
+
+        toggleBrands.addEventListener('click', () => {
+            if (toggleBrands.classList.contains('active')) return;
+            toggleBrands.classList.add('active');
+            toggleClippers.classList.remove('active');
+            updateUI('brands');
+        });
+    </script>
+</body>
+</html>
