@@ -281,12 +281,27 @@ const Layout = () => {
     const currentUser = useAuthStore(s => s.user);
     if (loading || (isSyncing && !currentUser)) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="flex flex-col items-center gap-6 text-center px-6">
-                    <div className="w-10 h-10 border-2 border-white/10 border-t-emerald-500 rounded-full animate-spin shadow-[0_0_15px_rgba(16,185,129,0.2)]" />
-                    <div className="space-y-2">
-                        <p className="text-[10px] text-white/20 uppercase tracking-[0.3em] font-bold">Syncing Session</p>
-                        <p className="text-[9px] text-white/10 lowercase italic">Securing your connection...</p>
+            <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+                <div className="flex flex-col items-center gap-8">
+                    <motion.div
+                        animate={{ 
+                            scale: [0.98, 1.05, 0.98],
+                            opacity: [0.4, 0.8, 0.4]
+                        }}
+                        transition={{ 
+                            duration: 2.5, 
+                            repeat: Infinity,
+                            ease: "easeInOut" 
+                        }}
+                        className="relative"
+                    >
+                        <img src="/logo.webp" alt="Loading..." className="w-16 h-16 object-contain brightness-125" />
+                        <div className="absolute inset-0 rounded-full bg-white/5 blur-2xl -z-10 scale-150" />
+                    </motion.div>
+                    <div className="flex items-center gap-3 justify-center">
+                        <div className="w-1 h-1 rounded-full bg-white/10 animate-pulse" style={{ animationDelay: '0ms' }} />
+                        <div className="w-1 h-1 rounded-full bg-white/10 animate-pulse" style={{ animationDelay: '300ms' }} />
+                        <div className="w-1 h-1 rounded-full bg-white/10 animate-pulse" style={{ animationDelay: '600ms' }} />
                     </div>
                 </div>
             </div>

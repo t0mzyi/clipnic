@@ -326,7 +326,7 @@ export class SubmissionService {
       return true;
   }
 
-  static async refreshSubmission(userId: string, submissionId: string) {
+  static async refreshSubmission(userId: string, submissionId: string, force: boolean = false) {
       // 1. Fetch submission and its campaign details
       const { data: submission, error: subErr } = await supabase
           .from('submissions')
@@ -347,7 +347,7 @@ export class SubmissionService {
       const now = Date.now();
       const diffMinutes = (now - lastUpdated) / (1000 * 60);
 
-      if (diffMinutes < 1) {
+      if (!force && diffMinutes < 1) {
           const remainingSeconds = Math.ceil((1 - diffMinutes) * 60);
           throw new Error(`Please wait ${remainingSeconds}s before refreshing again.`);
       }
@@ -628,7 +628,7 @@ export class SubmissionService {
 
     // Process in background
     for (const sub of staleSubmissions) {
-       this.refreshSubmission(userId, sub.id).catch(e => 
+       this.refreshSubmission(userId, sub.id, true).catch(e => 
           console.error(`[SubmissionService] Background refresh failed for ${sub.id}:`, e)
        );
     }

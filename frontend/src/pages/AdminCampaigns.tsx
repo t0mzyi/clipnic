@@ -319,13 +319,18 @@ export const AdminCampaigns = () => {
                                     const progress = camp.total_budget > 0 ? (camp.budget_used / camp.total_budget) * 100 : 0;
                                     return (
                                         <tr key={camp.id} 
-                                            className="group hover:bg-white/[0.02] transition-all duration-200 relative"
-                                            style={camp.banner_url ? { 
-                                                backgroundImage: `linear-gradient(rgba(12,12,12,0.94), rgba(12,12,12,0.94)), url(${camp.banner_url})`, 
-                                                backgroundSize: 'cover', 
-                                                backgroundPosition: 'center',
-                                                backgroundRepeat: 'no-repeat'
-                                            } : undefined}>
+                                            className="group hover:bg-white/[0.02] transition-all duration-200 relative overflow-hidden"
+                                        >
+                                            {/* Subtle Banner Background */}
+                                            {camp.banner_url && (
+                                                <td className="absolute inset-0 z-0 pointer-events-none opacity-[0.07] overflow-hidden">
+                                                    <div 
+                                                        className="absolute inset-0 bg-center bg-cover bg-no-repeat transition-transform duration-700 group-hover:scale-110"
+                                                        style={{ backgroundImage: `url(${camp.banner_url})` }}
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-[#0c0c0c] via-transparent to-[#0c0c0c]" />
+                                                </td>
+                                            )}
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-col">
                                                     <Link to={`/campaigns/${camp.id}`} target="_blank" className="font-bold text-white/90 hover:text-white transition-colors">
