@@ -8,7 +8,7 @@ import {
     TrendingUp, Calendar, DollarSign, 
     ExternalLink, CheckCircle2, XCircle,
     Pencil, ToggleRight, ToggleLeft, Trash2,
-    BarChart, LayoutGrid
+    BarChart, LayoutGrid, Upload
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
