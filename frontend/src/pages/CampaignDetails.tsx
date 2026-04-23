@@ -1112,31 +1112,33 @@ export const CampaignDetails = () => {
                                     />
                                 </div>
 
-                                <div className="space-y-1.5">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Detected Platform</label>
-                                        {campaign?.allowed_platforms && (
-                                            <span className="text-[8px] font-bold text-white/20 uppercase tracking-widest border border-white/10 px-1.5 py-0.5 rounded">
-                                                Allowed: {campaign.allowed_platforms.join(', ')}
-                                            </span>
-                                        )}
+                                 {submissionUrl && (
+                                    <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Detected Platform</label>
+                                            {campaign?.allowed_platforms && (
+                                                <span className="text-[8px] font-bold text-white/20 uppercase tracking-widest border border-white/10 px-1.5 py-0.5 rounded">
+                                                    Allowed: {campaign.allowed_platforms.join(', ')}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="w-full bg-white/[0.02] border border-white/[0.04] rounded-xl px-4 py-3 text-sm text-white/50 flex items-center gap-3">
+                                            {!platform && <span className="text-white/20 italic">Detecting...</span>}
+                                            {platform === 'youtube' && <span className="text-red-500 font-bold">YouTube Shorts</span>}
+                                            {platform === 'instagram' && <span className="text-pink-500 font-bold">Instagram Reels</span>}
+                                            {platform === 'tiktok' && <span className="text-cyan-400 font-bold">TikTok</span>}
+                                            
+                                            {platform && campaign?.allowed_platforms && !campaign.allowed_platforms.includes(platform) && (
+                                                <span className="ml-auto text-[10px] text-red-400 font-bold bg-red-400/10 px-2 py-0.5 rounded-md">Wrong Platform</span>
+                                            )}
+                                            {platform && campaign?.allowed_platforms && campaign.allowed_platforms.includes(platform) && (
+                                                <div className="ml-auto w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="w-full bg-white/[0.02] border border-white/[0.04] rounded-xl px-4 py-3 text-sm text-white/50 flex items-center gap-3">
-                                        {!platform && <span className="text-white/20 italic">Waiting for link...</span>}
-                                        {platform === 'youtube' && <span className="text-red-500 font-bold">YouTube Shorts</span>}
-                                        {platform === 'instagram' && <span className="text-pink-500 font-bold">Instagram Reels</span>}
-                                        {platform === 'tiktok' && <span className="text-cyan-400 font-bold">TikTok</span>}
-                                        
-                                        {platform && campaign?.allowed_platforms && !campaign.allowed_platforms.includes(platform) && (
-                                            <span className="ml-auto text-[10px] text-red-400 font-bold bg-red-400/10 px-2 py-0.5 rounded-md">Wrong Platform</span>
-                                        )}
-                                        {platform && campaign?.allowed_platforms && campaign.allowed_platforms.includes(platform) && (
-                                            <div className="ml-auto w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                                                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                                )}
 
                                 <Button type="submit" disabled={isSubmitting} variant="primary" className="w-full text-xs py-4 rounded-xl font-bold uppercase tracking-widest bg-white text-black hover:bg-white/90 shadow-xl disabled:opacity-50 transition-all flex items-center justify-center gap-2">
                                     {isSubmitting && <div className="w-3 h-3 rounded-full border-2 border-black/20 border-t-black animate-spin" />}

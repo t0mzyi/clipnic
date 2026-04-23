@@ -443,7 +443,7 @@ export const MySubmissions = () => {
                                                 placeholder="Paste YouTube, Instagram or TikTok link..."
                                                 className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-white/20 transition-all placeholder:text-white/10"
                                             />
-                                            {platform && (
+                                            {submissionUrl && platform && (
                                                 <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 animate-in fade-in zoom-in duration-300">
                                                     <span className={`text-[10px] font-bold uppercase tracking-widest ${platform === 'youtube' ? 'text-red-500' : platform === 'instagram' ? 'text-pink-500' : 'text-cyan-400'}`}>
                                                         {platform} Detected
