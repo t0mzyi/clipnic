@@ -115,23 +115,26 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         tourStepIdxRef.current = tourStepIdx;
     }, [tourStepIdx]);
 
+    // Auto-sync Google name if available and not set
+    useEffect(() => {
+        if (user && !user.name) {
+            const googleName = user.user_metadata?.full_name;
+            if (googleName) {
+                setName(googleName);
+                // Optionally auto-save it immediately
+                supabase.from('users').update({ name: googleName }).eq('id', user.id).then();
+            }
+        }
+    }, [user]);
+
     const handleSaveProfile = async () => {
         if (!agreed) return;
         setIsSaving(true);
         try {
-            const { data, error } = await supabase
-                .from('users')
-                .update({ name, bio })
-                .eq('id', user?.id)
-                .select()
-                .single();
-            
-            if (!error && data) {
-                updateUser({ ...user, name: data.name, bio: data.bio } as any);
-                setStep(2);
-            }
+            // Just update agreement timestamp if needed, or just move to welcome
+            setStep(2);
         } catch (err) {
-            console.error('Failed to save profile:', err);
+            console.error('Failed to proceed:', err);
         } finally {
             setIsSaving(false);
         }
@@ -369,71 +372,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                         <AnimatePresence mode="wait">
                             {step === 1 && (
                                 <motion.div 
-                                    key="step1"
-                                    initial={{ x: 20, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    exit={{ x: -20, opacity: 0 }}
-                                    className="space-y-6 sm:space-y-8"
-                                >
-                                    <div className="space-y-2">
-                                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6">
-                                            <User className="text-emerald-400 w-6 h-6" />
-                                        </div>
-                                        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Let's setup your profile</h2>
-                                        <p className="text-white/40 text-xs sm:text-sm">Tell us a bit about yourself to get started.</p>
-                                    </div>
-
-                                    <div className="space-y-6">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-bold uppercase tracking-widest text-white/20 px-1">Display Name</label>
-                                            <input 
-                                                value={name}
-                                                onChange={(e) => setName(e.target.value)}
-                                                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-5 sm:px-6 py-3 sm:py-4 text-white focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-white/10 text-sm"
-                                                placeholder="Your name"
-                                            />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-bold uppercase tracking-widest text-white/20 px-1">Bio</label>
-                                            <textarea 
-                                                value={bio}
-                                                onChange={(e) => setBio(e.target.value)}
-                                                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 sm:px-6 py-3 sm:py-4 text-white focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-white/10 min-h-[80px] sm:min-h-[120px] resize-none text-sm"
-                                                placeholder="Tell us about yourself, your niche, or your clipping journey..."
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-6 pt-4">
-                                        <label className="flex items-start gap-4 cursor-pointer group">
-                                            <div className="relative mt-1">
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={agreed}
-                                                    onChange={(e) => setAgreed(e.target.checked)}
-                                                    className="peer sr-only" 
-                                                />
-                                                <CustomTick checked={agreed} />
-                                            </div>
-                                            <p className="text-xs text-white/30 leading-relaxed group-hover:text-white/50 transition-colors">
-                                                By continuing, you agree to our <span className="text-emerald-400 font-medium hover:underline cursor-pointer">Clipper Terms & Conditions</span>, <span className="text-white/60">Terms of Service</span>, and <span className="text-white/60">Privacy Policy</span>.
-                                            </p>
-                                        </label>
-
-                                        <Button 
-                                            disabled={!agreed || !name || isSaving}
-                                            onClick={handleSaveProfile}
-                                            className="w-full rounded-2xl py-4 sm:py-5 text-[11px] sm:text-sm uppercase font-bold tracking-[0.2em] shadow-[0_20px_40px_-12px_rgba(16,185,129,0.3)]"
-                                        >
-                                            {isSaving ? 'Saving...' : 'Continue'}
-                                        </Button>
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {step === 2 && (
-                                <motion.div 
                                     key="step-welcome"
                                     initial={{ x: 20, opacity: 0 }}
                                     animate={{ x: 0, opacity: 1 }}
@@ -465,19 +403,38 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                         </p>
                                     </div>
 
-                                    <div className="flex flex-col gap-3 sm:gap-4 pt-4 sm:pt-8">
-                                        <Button 
-                                            onClick={() => setTourActive(true)}
-                                            className="w-full rounded-2xl py-4 sm:py-5 text-[11px] sm:text-sm uppercase font-bold tracking-[0.2em] shadow-[0_20px_40px_-12px_rgba(255,255,255,0.1)]"
-                                        >
-                                            Interactive Tour
-                                        </Button>
-                                        <button 
-                                            onClick={onComplete}
-                                            className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] hover:text-white transition-colors py-1"
-                                        >
-                                            Skip Introduction
-                                        </button>
+                                    <div className="space-y-6 pt-4">
+                                        <label className="flex items-start gap-4 cursor-pointer group text-left px-4">
+                                            <div className="relative mt-1">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={agreed}
+                                                    onChange={(e) => setAgreed(e.target.checked)}
+                                                    className="peer sr-only" 
+                                                />
+                                                <CustomTick checked={agreed} />
+                                            </div>
+                                            <p className="text-xs text-white/30 leading-relaxed group-hover:text-white/50 transition-colors">
+                                                By continuing, you agree to our <span className="text-emerald-400 font-medium hover:underline cursor-pointer">Clipper Terms & Conditions</span>, <span className="text-white/60">Terms of Service</span>, and <span className="text-white/60">Privacy Policy</span>.
+                                            </p>
+                                        </label>
+
+                                        <div className="flex flex-col gap-3 sm:gap-4">
+                                            <Button 
+                                                disabled={!agreed}
+                                                onClick={() => setTourActive(true)}
+                                                className="w-full rounded-2xl py-4 sm:py-5 text-[11px] sm:text-sm uppercase font-bold tracking-[0.2em] shadow-[0_20px_40px_-12px_rgba(16,185,129,0.3)] disabled:opacity-50"
+                                            >
+                                                Start Interactive Tour
+                                            </Button>
+                                            <button 
+                                                disabled={!agreed}
+                                                onClick={onComplete}
+                                                className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] hover:text-white transition-colors py-1 disabled:opacity-30"
+                                            >
+                                                Skip Introduction
+                                            </button>
+                                        </div>
                                     </div>
                                 </motion.div>
                             )}

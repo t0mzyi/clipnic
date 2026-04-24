@@ -115,6 +115,8 @@ export const Profile = () => {
             if (result.success) {
                 const userData = {
                     ...result.data,
+                    // Auto-sync name if Discord name is available and different
+                    name: result.data.discord_name || result.data.name,
                     avatarUrl: result.data.avatar_url,
                     discordVerified: result.data.discord_verified,
                     discordId: result.data.discord_id,
@@ -1270,7 +1272,16 @@ export const Profile = () => {
                                 <div className="space-y-5">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">Display Name</label>
-                                        <input type="text" className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 text-base text-white focus:outline-none focus:border-white/30 transition-all font-medium" defaultValue={user?.name || ''} placeholder="Set your display name" />
+                                        <div className="relative flex items-center">
+                                            <input 
+                                                type="text" 
+                                                readOnly 
+                                                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-5 py-4 text-base text-white/40 cursor-not-allowed focus:outline-none font-medium" 
+                                                value={user?.name || ''} 
+                                            />
+                                            <ShieldCheck className="absolute right-5 w-4 h-4 text-white/20" />
+                                        </div>
+                                        <p className="text-[9px] text-white/20 px-1 italic">Synced with your verified identity (Google/Discord)</p>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.1em] ml-1">Email</label>
@@ -1286,7 +1297,26 @@ export const Profile = () => {
                                     <Button
                                         variant="primary"
                                         disabled={isSaving}
-                                        onClick={handleSaveSettings}
+                                        onClick={async () => {
+                                            setIsSaving(true);
+                                            try {
+                                                const bioValue = (document.querySelector('textarea') as HTMLTextAreaElement).value;
+                                                const { error } = await supabase
+                                                    .from('users')
+                                                    .update({ bio: bioValue })
+                                                    .eq('id', user?.id);
+                                                
+                                                if (error) throw error;
+                                                
+                                                Toast.fire({ title: 'Profile Updated', icon: 'success' });
+                                                setIsSettingsOpen(false);
+                                                fetchSync(true);
+                                            } catch (err) {
+                                                Toast.fire({ title: 'Error', text: 'Failed to update bio', icon: 'error' });
+                                            } finally {
+                                                setIsSaving(false);
+                                            }
+                                        }}
                                         className="w-full bg-white text-zinc-950 hover:bg-white/90 rounded-2xl py-4 text-xs font-bold uppercase tracking-widest shadow-xl flex items-center justify-center gap-2"
                                     >
                                         {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
