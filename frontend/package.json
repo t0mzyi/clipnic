@@ -13,6 +13,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@supabase/supabase-js": "^2.104.0",
     "@tailwindcss/vite": "^4.2.2",
+    "@vercel/speed-insights": "^2.0.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.8.0",
     "react": "^19.2.5",

@@ -41,6 +41,7 @@ import { BugReportModal } from './components/BugReportModal';
 import { AlertModal } from './components/ui/AlertModal';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { Button } from './components/ui/Button';
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 
 const BrandUnderConstruction = () => (
@@ -543,6 +544,7 @@ function App() {
 
     return (
         <BrowserRouter>
+            <SpeedInsights />
             <AlertModal />
             <ToastContainer />
             <BugReportModal isOpen={isBugReportOpen} onClose={() => setIsBugReportOpen(false)} />
