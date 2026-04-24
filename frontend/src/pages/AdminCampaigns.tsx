@@ -53,14 +53,14 @@ const defaultForm = {
     auto_start: true,
 };
 
-const InputField = ({ label, required = false, ...props }: any) => (
+const InputField = ({ label, required = false, className = '', ...props }: any) => (
     <div className="space-y-1.5">
         <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest">
             {label} {required && <span className="text-red-400">*</span>}
         </label>
         <input
             {...props}
-            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-white/25 transition-all"
+            className={`w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-white/25 transition-all ${className}`}
         />
     </div>
 );
@@ -571,7 +571,14 @@ export const AdminCampaigns = () => {
                                                     disabled={form.auto_start}
                                                     className={`w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-white/25 transition-all ${form.auto_start ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
                                                 />
-                                                <InputField label="End Date & Time" required type="datetime-local" value={form.end_date} onChange={set('end_date')} />
+                                                <InputField 
+                                                    label="End Date & Time" 
+                                                    required 
+                                                    type="datetime-local" 
+                                                    value={form.end_date} 
+                                                    onChange={set('end_date')} 
+                                                    min={form.start_date}
+                                                />
                                             </div>
                                             {!form.auto_start && (
                                                 <p className="text-[9px] text-amber-500/60 font-medium italic">* Manual start: Campaign will remain "Paused" until you activate it manually, regardless of start date.</p>

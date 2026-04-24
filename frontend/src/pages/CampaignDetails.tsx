@@ -574,9 +574,27 @@ export const CampaignDetails = () => {
 
                         {/* Dynamic Top Button */}
                         {isJoined ? (
-                            <Button variant="primary" onClick={() => setIsSubmitModalOpen(true)} className="flex items-center gap-2 bg-white text-zinc-950 hover:bg-white/90 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base">
-                                <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
-                                Submit Clip
+                            <Button 
+                                variant="primary" 
+                                disabled={isComingSoon}
+                                onClick={() => setIsSubmitModalOpen(true)} 
+                                className={`flex items-center gap-2 font-bold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-2xl text-xs sm:text-base ${
+                                    isComingSoon 
+                                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/20 opacity-50 cursor-not-allowed' 
+                                        : 'bg-white text-zinc-950 hover:bg-white/90'
+                                }`}
+                            >
+                                {isComingSoon ? (
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500/60" />
+                                        <span>Starts {new Date(campaign.start_date!).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric' })}</span>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
+                                        Submit Clip
+                                    </>
+                                )}
                             </Button>
                         ) : (
                             <Button

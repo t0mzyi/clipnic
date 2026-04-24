@@ -625,7 +625,7 @@ export const MySubmissions = () => {
 
                                     <Button
                                         onClick={handleSubmitClip}
-                                        disabled={isSubmitting || isUrlChecking || !!urlError || !selectedCampaignId || !submissionUrl || !platform}
+                                        disabled={isSubmitting || isUrlChecking || !!urlError || !selectedCampaignId || !submissionUrl || !platform || selectedCampaign?.status === 'Coming Soon'}
                                         className="w-full py-5 rounded-2xl bg-white text-zinc-950 text-xs font-black uppercase tracking-[0.2em] shadow-[0_20px_40px_rgba(255,255,255,0.1)] hover:scale-[1.02] transition-all disabled:opacity-30 disabled:hover:scale-100"
                                     >
                                         {isSubmitting ? (
@@ -637,6 +637,11 @@ export const MySubmissions = () => {
                                             <div className="flex items-center gap-3">
                                                 <div className="w-4 h-4 rounded-full border-2 border-zinc-950/20 border-t-zinc-950 animate-spin" />
                                                 Checking Availability...
+                                            </div>
+                                        ) : selectedCampaign?.status === 'Coming Soon' ? (
+                                            <div className="flex items-center gap-3">
+                                                <Clock className="w-4 h-4" />
+                                                Campaign Not Started
                                             </div>
                                         ) : 'Submit for Review'}
                                     </Button>

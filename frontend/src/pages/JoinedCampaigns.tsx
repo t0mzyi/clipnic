@@ -118,8 +118,17 @@ export const JoinedCampaigns = () => {
                                     to={`/clippers/campaigns/${camp.id}`}
                                     className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-all group/btn"
                                 >
-                                    Campaign Control
-                                    <ChevronRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+                                    {camp.status === 'Coming Soon' ? (
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="w-3 h-3" />
+                                            <span>Pre-Joined • Launches Soon</span>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            Campaign Control
+                                            <ChevronRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+                                        </>
+                                    )}
                                 </Link>
                             </div>
                         </motion.div>
