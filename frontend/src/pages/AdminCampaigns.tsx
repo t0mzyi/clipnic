@@ -602,6 +602,7 @@ export const AdminCampaigns = () => {
                                                 <p className="text-sm text-white/60">Everything looks good. Review the details below.</p>
                                             </div>
                                         </div>
+
                                         <div className="space-y-1">
                                             <h3 className="text-xl font-bold">{form.title}</h3>
                                             <p className="text-white/40 text-xs line-clamp-2">{form.description}</p>
@@ -624,17 +625,18 @@ export const AdminCampaigns = () => {
                                         <div className="space-y-2">
                                             <p className="text-[9px] text-white/30 uppercase font-bold">Requirements</p>
                                             <div className="flex flex-wrap gap-2">
-                                                {form.allowed_platforms.map(p => <span key={p} className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-[10px] font-bold uppercase">{p}</span>)}
+                                                {form.allowed_platforms.map(p => (
+                                                    <span key={p} className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-[10px] font-bold uppercase">{p}</span>
+                                                ))}
                                                 {form.requires_dedicated_social && <span className="px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-tight">Dedicated Account Required</span>}
                                                 {form.requires_discord && <span className="px-2 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-tight">Discord Link Required</span>}
-                                            </div>
                                             </div>
                                         </div>
                                     </motion.div>
                                 )}
                             </div>
 
-                             <div className="mt-8 pt-6 border-t border-white/[0.05] flex gap-3">
+                            <div className="mt-8 pt-6 border-t border-white/[0.05] flex gap-3">
                                 {step > 1 && <Button variant="outline" onClick={() => setStep(s => s - 1)} className="px-8 py-3 rounded-xl text-xs">Back</Button>}
                                 {step < 4 ? (
                                     <Button variant="primary" onClick={() => {
