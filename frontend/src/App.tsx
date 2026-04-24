@@ -34,6 +34,7 @@ import { JoinedCampaigns } from './pages/JoinedCampaigns';
 import { Login } from './pages/Login';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './store/useAuthStore';
+import { Onboarding } from './components/Onboarding';
 
 const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void }) => {
     const location = useLocation();
@@ -187,7 +188,8 @@ const Layout = () => {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
-    const { login, logout } = useAuthStore();
+    const [showOnboarding, setShowOnboarding] = useState(false);
+    const { login, logout, user } = useAuthStore();
     const location = useLocation();
 
     useEffect(() => {
@@ -287,6 +289,23 @@ const Layout = () => {
         return () => subscription.unsubscribe();
     }, [login, logout]);
 
+    useEffect(() => {
+        // Check for onboarding
+        if (user && !loading && !isSyncing) {
+            const demoSeen = localStorage.getItem('clipnic_demo_seen');
+            const isAdmin = user.role === 'admin';
+            // Only show to non-admins who haven't completed bio or haven't seen demo
+            if (!isAdmin && (!user.bio || !demoSeen)) {
+                setShowOnboarding(true);
+            }
+        }
+    }, [user, loading, isSyncing]);
+
+    const handleOnboardingComplete = () => {
+        localStorage.setItem('clipnic_demo_seen', 'true');
+        setShowOnboarding(false);
+    };
+
     // Only show full-screen loader if we're genuinely waiting for the first session check
     // OR if we're syncing and don't even have basic user info in the store yet.
     const currentUser = useAuthStore(s => s.user);
@@ -342,7 +361,8 @@ const Layout = () => {
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans flex flex-col md:flex-row">
-
+            {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
+            
             {/* Mobile Header - Hidden for Admins as they use the Dock */}
             {!location.pathname.startsWith('/admin') && (
                 <div className="md:hidden sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-between px-6">
