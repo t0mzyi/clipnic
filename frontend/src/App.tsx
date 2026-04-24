@@ -14,7 +14,8 @@ import {
     Settings,
     LogOut,
     Shield,
-    Menu
+    Menu,
+    Bug
 } from 'lucide-react';
 import { CampaignsFeed } from './pages/CampaignsFeed';
 import { CampaignDetails } from './pages/CampaignDetails';
@@ -36,8 +37,9 @@ import { supabase } from './lib/supabase';
 import { useAuthStore } from './store/useAuthStore';
 import { Onboarding } from './components/Onboarding';
 import { Footer } from './components/Footer';
+import { BugReportModal } from './components/BugReportModal';
 
-const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void }) => {
+const Sidebar = ({ isOpen, closeMenu, onReportBug }: { isOpen: boolean, closeMenu: () => void, onReportBug: () => void }) => {
     const location = useLocation();
     const { user } = useAuthStore();
     const isAdmin = user?.role === 'admin';
@@ -104,6 +106,14 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
                         {isAdminPortal ? "Switch to Clipper View" : "Go to Admin Dash"}
                     </Link>
                 )}
+
+                <button
+                    onClick={onReportBug}
+                    className="w-full transition-colors py-2 px-3 rounded-lg flex items-center gap-3 text-white/30 hover:text-white/70 hover:bg-white/5 group"
+                >
+                    <Bug size={18} className="transition-colors group-hover:text-red-400" />
+                    Report Bug
+                </button>
 
                 <button
                     onClick={async () => {
@@ -184,7 +194,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 // Layout
-const Layout = () => {
+const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -385,7 +395,7 @@ const Layout = () => {
                 </div>
             )}
 
-            <Sidebar isOpen={mobileMenuOpen} closeMenu={() => setMobileMenuOpen(false)} />
+            <Sidebar isOpen={mobileMenuOpen} closeMenu={() => setMobileMenuOpen(false)} onReportBug={onReportBug} />
             {location.pathname.startsWith('/admin') && <AdminDock />}
 
             {/* Mobile overlay backdrop */}
@@ -439,9 +449,12 @@ const Layout = () => {
 };
 
 function App() {
+    const [isBugReportOpen, setIsBugReportOpen] = useState(false);
+
     return (
         <BrowserRouter>
-            <Layout />
+            <BugReportModal isOpen={isBugReportOpen} onClose={() => setIsBugReportOpen(false)} />
+            <Layout onReportBug={() => setIsBugReportOpen(true)} />
         </BrowserRouter>
     )
 }
