@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
     User, 
     X
@@ -91,6 +91,7 @@ const CustomTick = ({ checked }: { checked: boolean }) => (
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, closeMenu }) => {
     const { user, updateUser } = useAuthStore();
     const navigate = useNavigate();
+    const location = useLocation();
     const [step, setStep] = useState(1);
     const [name, setName] = useState(user?.name || '');
     const [bio, setBio] = useState('');
@@ -175,6 +176,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     useEffect(() => {
         if (!tourActive) return;
 
+        const currentStep = TOUR_STEPS[tourStepIdx];
+        
+        // 1. Navigation handling
+        if (!location.pathname.startsWith(currentStep.path)) {
+            navigate(currentStep.path);
+        }
+
         const updateSpotlight = () => {
             // ALWAYS use the Ref to avoid closure issues during high-frequency polling
             const currentIdx = tourStepIdxRef.current;
@@ -220,7 +228,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         return () => {
             if (pollingRef.current) cancelAnimationFrame(pollingRef.current);
         };
-    }, [tourActive, isMobile, openMenu, closeMenu, navigate]);
+    }, [tourActive, isMobile, openMenu, closeMenu, navigate, tourStepIdx, location.pathname]);
 
     if (tourActive) {
         const currentStep = TOUR_STEPS[tourStepIdx];
