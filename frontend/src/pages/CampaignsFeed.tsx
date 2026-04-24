@@ -21,6 +21,7 @@ interface Campaign {
     status: string;
     is_featured: boolean;
     start_date?: string;
+    end_date: string;
     auto_start?: boolean;
 }
 

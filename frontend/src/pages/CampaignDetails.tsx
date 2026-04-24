@@ -28,6 +28,7 @@ interface Campaign {
     status: string;
     view_progress: number;
     target_views: number;
+    is_featured: boolean;
     start_date?: string;
     auto_start?: boolean;
 }
@@ -101,7 +102,7 @@ export const CampaignDetails = () => {
     const [urlError, setUrlError] = useState('');
 
     const now = new Date();
-    const isComingSoon = campaign?.start_date && new Date(campaign.start_date) > now;
+    const isComingSoon = Boolean(campaign?.start_date && new Date(campaign.start_date) > now);
 
     const handleYouTubeVerify = async () => {
         if (!linkedHandle) return;

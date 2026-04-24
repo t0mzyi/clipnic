@@ -135,6 +135,10 @@ export const AdminCampaigns = () => {
         if (!form.end_date) return "Select a deadline for this campaign.";
         if (new Date(form.end_date) <= new Date()) return "Deadline must be in the future.";
         
+        if (form.start_date && new Date(form.end_date) <= new Date(form.start_date)) {
+            return "The campaign must end AFTER it starts. Check your dates.";
+        }
+        
         if (form.allowed_platforms.length === 0) return "Select at least one platform (YouTube/IG/TikTok).";
         
         return null;

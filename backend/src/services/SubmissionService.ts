@@ -10,9 +10,9 @@ const createSubmissionSchema = z.object({
 
 export class SubmissionService {
   /**
-   * Fetches the live view count for a supported platform. 
+   * Fetches the live view count and metadata for a supported platform. 
    */
-  static async fetchLiveViews(url: string, platform: string): Promise<{views: number, channelId: string | null}> {
+  static async fetchLiveViews(url: string, platform: string): Promise<{views: number, channelId: string | null, publishedAt: string | null}> {
     const apifyToken = process.env.APIFY_TOKEN;
 
     if (platform === 'youtube') {
@@ -26,12 +26,14 @@ export class SubmissionService {
           const json = await res.json();
           console.log(`[SubmissionService] YouTube API Response:`, JSON.stringify(json));
           
-          if (json.items && json.items.length > 0) {
-            const views = parseInt(json.items[0].statistics.viewCount, 10);
-            const channelId = json.items[0].snippet.channelId;
-            console.log(`[SubmissionService] Fetched YouTube Views: ${views}, ChannelID: ${channelId}`);
-            return { views, channelId };
-          } else {
+            if (json.items && json.items.length > 0) {
+              const video = json.items[0];
+              const views = parseInt(video.statistics.viewCount, 10);
+              const channelId = video.snippet.channelId;
+              const publishedAt = video.snippet.publishedAt;
+              console.log(`[SubmissionService] Fetched YouTube Views: ${views}, ChannelID: ${channelId}, Published: ${publishedAt}`);
+              return { views, channelId, publishedAt };
+            } else {
             console.warn(`[SubmissionService] YouTube video not found or no stats returned.`);
           }
         }
@@ -59,8 +61,9 @@ export class SubmissionService {
                       const post = items[0];
                       const views = post.videoPlayCount || post.videoViewCount || 0;
                       const channelId = post.ownerUsername ? `@${post.ownerUsername.toLowerCase()}` : null;
-                      console.log(`[SubmissionService] Fetched Instagram Views: ${views}, Owner: ${channelId}`);
-                      return { views, channelId };
+                      const publishedAt = post.timestamp;
+                      console.log(`[SubmissionService] Fetched Instagram Views: ${views}, Owner: ${channelId}, Published: ${publishedAt}`);
+                      return { views, channelId, publishedAt };
                   }
               }
           } catch (e) {
@@ -141,8 +144,10 @@ export class SubmissionService {
                       const post = items[0];
                       const views = post.playCount || post.videoViewCount || 0;
                       const channelId = post.authorMeta?.name ? `@${post.authorMeta.name.toLowerCase()}` : null;
-                      console.log(`[SubmissionService] Fetched TikTok Views: ${views}, Author: ${channelId}`);
-                      return { views, channelId };
+                      // TikTok timestamps are often in seconds
+                      const publishedAt = post.createTime ? new Date(post.createTime * 1000).toISOString() : null;
+                      console.log(`[SubmissionService] Fetched TikTok Views: ${views}, Author: ${channelId}, Published: ${publishedAt}`);
+                      return { views, channelId, publishedAt };
                   }
               }
           } catch (e) {
@@ -150,7 +155,7 @@ export class SubmissionService {
           }
       }
     }
-    return { views: 0, channelId: null };
+    return { views: 0, channelId: null, publishedAt: null };
   }
 
   static async create(userId: string, data: any) {
@@ -196,8 +201,18 @@ export class SubmissionService {
     }
 
     // 4. Fetch live views and channel ID via external APIs
-    const { views, channelId } = await this.fetchLiveViews(validated.url, validated.platform);
+    const { views, channelId, publishedAt } = await this.fetchLiveViews(validated.url, validated.platform);
     
+    // 4.5 Validate video creation date vs campaign start date
+    if (campaign.start_date && publishedAt) {
+        const campaignStart = new Date(campaign.start_date);
+        const videoPublished = new Date(publishedAt);
+
+        if (videoPublished < campaignStart) {
+            console.warn(`[SubmissionService] Video published before campaign start. Video: ${publishedAt}, Campaign: ${campaign.start_date}`);
+            throw new Error(`This video was published before the campaign started (${campaignStart.toLocaleDateString()}). Only new content is allowed.`);
+        }
+    }
     // 5. Verify ownership
     const { data: userRaw, error: userErr } = await supabase
         .from('users')
@@ -353,8 +368,14 @@ export class SubmissionService {
       }
 
       // 3. Fetch fresh views
-      const { views } = await this.fetchLiveViews(submission.url, submission.platform);
+      const { views, publishedAt } = await this.fetchLiveViews(submission.url, submission.platform);
       
+      // 3.5 Re-validate start date (mostly for edge cases)
+      if (campaign.start_date && publishedAt) {
+          if (new Date(publishedAt) < new Date(campaign.start_date)) {
+              throw new Error("This video was published before the campaign started.");
+          }
+      }
        // 4. Recalculate earnings (Only if min_views met)
        let earnings = 0;
        let contributingViews = 0;
@@ -724,7 +745,15 @@ export class SubmissionService {
     if (existing) throw new Error("This video has already been submitted to our platform.");
 
     // 3. Fetch fresh views and verify ownership
-    const { views, channelId } = await this.fetchLiveViews(validated.url, validated.platform);
+    const { views, channelId, publishedAt } = await this.fetchLiveViews(validated.url, validated.platform);
+    
+    // 3.1 Validate start date
+    if (campaign.start_date && publishedAt) {
+        if (new Date(publishedAt) < new Date(campaign.start_date)) {
+            throw new Error(`This video was published before the campaign started (${new Date(campaign.start_date).toLocaleDateString()}).`);
+        }
+    }
+
     const { data: userRaw } = await supabase.from('users').select('*').eq('id', userId).single();
     
     if (validated.platform === 'youtube') {
