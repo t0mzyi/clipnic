@@ -276,7 +276,7 @@ export const CampaignDetails = () => {
                                 </thead>
                                 <tbody className="divide-y divide-white/[0.03]">
                                     {!isJoined ? (
-                                        <tr><td colSpan={5} className="px-8 py-20 text-center text-white/20 text-sm italic">Join this mission to see your stats.</td></tr>
+                                        <tr><td colSpan={5} className="px-8 py-20 text-center text-white/20 text-sm italic">Join this campaign to see your stats.</td></tr>
                                     ) : submissions.length === 0 ? (
                                         <tr><td colSpan={5} className="px-8 py-12 text-center text-white/20 text-xs uppercase tracking-widest">No clips submitted yet.</td></tr>
                                     ) : (

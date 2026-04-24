@@ -12,6 +12,7 @@ router.get('/users', AdminController.getAllUsers);
 router.get('/users/:id', AdminController.getUser);
 router.patch('/users/:id/block', AdminController.toggleBlock);
 router.patch('/users/:id/role', AdminController.updateUserRole);
+router.delete('/users/:id', AdminController.deleteUser);
 router.get('/users/:id/earnings', AdminController.getUserEarnings);
 
 // Submission management

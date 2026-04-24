@@ -164,7 +164,7 @@ export const Profile = () => {
                         {[
                             { label: 'Total Earned', value: `$${stats.totalEarned.toFixed(2)}`, icon: Wallet, color: 'text-emerald-400' },
                             { label: 'Total Views', value: stats.totalViews.toLocaleString(), icon: TrendingUp, color: 'text-cyan-400' },
-                            { label: 'Missions', value: stats.missionsJoined, icon: Trophy, color: 'text-amber-400' }
+                            { label: 'Campaigns', value: stats.missionsJoined, icon: Trophy, color: 'text-amber-400' }
                         ].map((stat, i) => (
                             <div key={i} className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-2">
                                 <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{stat.label}</p>

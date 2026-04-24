@@ -39,7 +39,7 @@ const TOUR_STEPS: TourStep[] = [
         target: '#sidebar-active-campaigns',
         path: '/clippers/campaigns',
         title: 'Active Campaigns',
-        content: 'Browse available missions from top brands. Check CPM rates and joining rules to start earning.',
+        content: 'Browse available campaigns from top brands. Check CPM rates and joining rules to start earning.',
         position: 'right'
     },
     {

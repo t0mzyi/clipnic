@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
-import { Search, ShieldCheck, ShieldAlert, MessageSquare, ExternalLink, Users, Calendar } from 'lucide-react';
+import { Search, ShieldCheck, ShieldAlert, MessageSquare, ExternalLink, Users, Calendar, Trash2 } from 'lucide-react';
 import Swal from '../lib/swal';
 import { Dropdown } from '../components/Dropdown';
 
@@ -125,6 +125,53 @@ export const AdminUsers = () => {
                 text: 'Something went wrong.',
                 icon: 'error'
             });
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleDeleteUser = async (userId: string, userName: string) => {
+        const { value: confirmName } = await Swal.fire({
+            title: 'Delete User?',
+            text: `This action is IRREVERSIBLE. All submissions, earnings, and linked data for ${userName} will be purged. To confirm, please type your name: "${useAuthStore.getState().user?.name}"`,
+            input: 'text',
+            inputPlaceholder: 'Type your name here...',
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#27272a',
+            confirmButtonText: 'Permanently Delete',
+            background: '#0c0c0c',
+            color: '#fff',
+            customClass: { 
+                popup: 'rounded-3xl border border-white/10',
+                input: 'bg-black border-white/10 text-white rounded-xl mx-6 mb-4'
+            }
+        });
+
+        const currentAdminName = useAuthStore.getState().user?.name || '';
+        if (confirmName !== currentAdminName) {
+            if (confirmName) {
+                Toast.fire({ title: 'Confirmation Failed', text: 'The name you entered does not match your profile.', icon: 'error' });
+            }
+            return;
+        }
+
+        setActionLoading(userId);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${userId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.success) {
+                setUsers(users.filter(u => u.id !== userId));
+                Toast.fire({ title: 'User Deleted', icon: 'success' });
+            } else {
+                throw new Error(json.error || 'Failed to delete user.');
+            }
+        } catch (err: any) {
+            Swal.fire({ title: 'Error', text: err.message, icon: 'error', background: '#0c0c0c', color: '#fff' });
         } finally {
             setActionLoading(null);
         }
@@ -283,6 +330,13 @@ export const AdminUsers = () => {
                                                         className={`text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg border transition-all ${isAdmin ? 'bg-white/[0.04] text-white/40 border-white/[0.06] hover:bg-white/[0.08]' : 'bg-red-500 text-white border-red-500 hover:bg-red-600 shadow-[0_2px_8px_rgba(239,68,68,0.2)]'}`}
                                                     >
                                                         {actionLoading === user.id ? '...' : (isAdmin ? 'Revoke' : 'Make Admin')}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteUser(user.id, user.name || user.email)}
+                                                        disabled={actionLoading === user.id}
+                                                        className="p-2.5 rounded-xl bg-red-500/5 text-red-500/30 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                                                    >
+                                                        {actionLoading === user.id ? '...' : <Trash2 size={14} />}
                                                     </button>
                                                     <Link 
                                                         to={`/admin/users/${user.id}`}

@@ -349,4 +349,44 @@ export class AdminController {
           next(error);
       }
   }
+
+  /**
+   * DELETE /admin/users/:id
+   * Permanently deletes a user from the database and auth.
+   */
+  static async deleteUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+
+      // 1. Delete from public.users table (cascades should handle linked data)
+      const { error: dbError } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', id);
+      
+      if (dbError) throw dbError;
+
+      // 2. Delete from Supabase Auth (Requires service role)
+      const { error: authError } = await supabase.auth.admin.deleteUser(id as string);
+
+      if (authError) {
+          console.warn('Auth deletion failed (Missing Service Role Key?):', authError.message);
+      }
+
+      // Log action
+      await AuditService.log({
+        actorId: (req as any).user?.id || 'system',
+        actorRole: 'admin',
+        action: 'USER_DELETED',
+        targetId: id as string,
+        targetType: 'user',
+        metadata: { deletedAt: new Date().toISOString() },
+        ip: req.ip
+      });
+
+      res.json({ success: true, message: 'User permanently deleted' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
