@@ -100,11 +100,18 @@ export const Profile = () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
-            if (json.url) window.location.href = json.url;
-            else throw new Error('Failed to get verification URL');
+            if (res.ok && json.url) {
+                window.location.href = json.url;
+            } else {
+                throw new Error(json.error || 'Failed to initialize Discord session.');
+            }
         } catch (err: any) { 
-            console.error(err);
-            Toast.fire({ title: 'Connection Error', text: 'Could not reach Discord gateway.', icon: 'error' });
+            console.error('[DiscordConnect]', err);
+            Toast.fire({ 
+                title: 'Link Error', 
+                text: err.message.includes('fetch') ? 'Backend server unreachable. Ensure port 5000 is open.' : err.message, 
+                icon: 'error' 
+            });
             setDiscordLoading(false);
         }
     };
