@@ -384,7 +384,6 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
     }
 
     return (
-    return (
         <div className="h-screen bg-black text-white selection:bg-white selection:text-black font-sans flex flex-col overflow-hidden">
             {showOnboarding && (
                 <Onboarding 
