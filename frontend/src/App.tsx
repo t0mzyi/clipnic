@@ -454,6 +454,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                 </div>
                 {!location.pathname.startsWith('/admin') && <Footer />}
             </main>
+          </div>
         </div>
     );
 };
