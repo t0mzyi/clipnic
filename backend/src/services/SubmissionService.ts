@@ -118,7 +118,7 @@ export class SubmissionService {
                  }
               }
 
-              return { views: viewsNum, channelId: ownerHandle };
+              return { views: viewsNum, channelId: ownerHandle, publishedAt: null };
             }
         }
       } catch (err) {
