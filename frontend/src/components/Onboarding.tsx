@@ -101,6 +101,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     // Tour State
     const [tourActive, setTourActive] = useState(false);
     const [tourStepIdx, setTourStepIdx] = useState(0);
+    const tourStepIdxRef = useRef(0);
     const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
     const [modalActive, setModalActive] = useState(false);
     const prevModalActive = useRef(false);
@@ -108,6 +109,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     const stepAtModalStart = useRef<number | null>(null);
 
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+    // Sync ref with state
+    useEffect(() => {
+        tourStepIdxRef.current = tourStepIdx;
+    }, [tourStepIdx]);
 
     const handleSaveProfile = async () => {
         if (!agreed) return;
@@ -135,7 +141,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         setTourStepIdx(prev => {
             const next = prev + 1;
             if (next < TOUR_STEPS.length) return next;
-            // Completion
             onComplete();
             navigate('/clippers/campaigns');
             return prev;
@@ -146,7 +151,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     useEffect(() => {
         if (!tourActive) return;
         
-        // 1. Verification success handling
         if (tourStepIdx === 0 && user?.discordVerified) {
             setTourStepIdx(1);
         }
@@ -154,18 +158,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
             setTourStepIdx(2);
         }
 
-        // 2. Modal lifecycle handling
         if (modalActive) {
             if (stepAtModalStart.current === null) {
                 stepAtModalStart.current = tourStepIdx;
             }
         } else if (prevModalActive.current === true) {
-            // Modal just closed
-            // We advance ONLY if the step hasn't already moved forward due to verification
-            if (stepAtModalStart.current === tourStepIdx) {
-                if (tourStepIdx === 0 || tourStepIdx === 1) {
-                    handleNextTour();
-                }
+            if (stepAtModalStart.current === tourStepIdx && (tourStepIdx === 0 || tourStepIdx === 1)) {
+                handleNextTour();
             }
             stepAtModalStart.current = null;
         }
@@ -173,36 +172,28 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         prevModalActive.current = modalActive;
     }, [user, tourActive, tourStepIdx, modalActive, handleNextTour]);
 
-    // Tour Logic
+    // Tour Spotlight Polling Logic
     useEffect(() => {
         if (!tourActive) return;
 
-        const currentStep = TOUR_STEPS[tourStepIdx];
-        
-        // 1. Navigation handling
-        if (!location.pathname.startsWith(currentStep.path)) {
-            navigate(currentStep.path);
-        }
-
-        // 2. Spotlight Calculation Logic
         const updateSpotlight = () => {
-            const modalEl = document.querySelector('#verification-modal') || document.querySelector('#withdraw-modal');
+            // ALWAYS use the Ref to avoid closure issues during high-frequency polling
+            const currentIdx = tourStepIdxRef.current;
+            const currentStep = TOUR_STEPS[currentIdx];
             
+            const modalEl = document.querySelector('#verification-modal') || document.querySelector('#withdraw-modal');
             let isReallyActive = false;
             if (modalEl) {
                 const style = window.getComputedStyle(modalEl);
-                if (parseFloat(style.opacity) > 0.1) {
-                    isReallyActive = true;
-                }
+                if (parseFloat(style.opacity) > 0.1) isReallyActive = true;
             }
             
             setModalActive(isReallyActive);
 
-            // Re-target based on the CURRENT tourStepIdx to ensure synchronization
-            const el = document.querySelector(TOUR_STEPS[tourStepIdx].target);
+            const el = document.querySelector(currentStep.target);
             if (el && !isReallyActive) {
                 if (isMobile) {
-                    if (TOUR_STEPS[tourStepIdx].target.startsWith('#sidebar-') && openMenu) {
+                    if (currentStep.target.startsWith('#sidebar-') && openMenu) {
                         openMenu();
                     } else if (closeMenu) {
                         closeMenu();
@@ -210,11 +201,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                 }
 
                 const rect = el.getBoundingClientRect();
-                
                 if (rect.width > 0 && rect.height > 0) {
                     setSpotlightRect(rect);
-                    if (!TOUR_STEPS[tourStepIdx].target.startsWith('#sidebar-')) {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Minimal smooth scrolling for targeted elements
+                    if (!currentStep.target.startsWith('#sidebar-')) {
+                        const isInView = rect.top >= 0 && rect.bottom <= window.innerHeight;
+                        if (!isInView) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
                     }
                 }
             } else {
@@ -224,11 +218,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         };
 
         pollingRef.current = requestAnimationFrame(updateSpotlight);
-
         return () => {
             if (pollingRef.current) cancelAnimationFrame(pollingRef.current);
         };
-    }, [tourActive, tourStepIdx, location.pathname, isMobile, openMenu, closeMenu, navigate]);
+    }, [tourActive, isMobile, openMenu, closeMenu, navigate]);
 
     if (tourActive) {
         const currentStep = TOUR_STEPS[tourStepIdx];
@@ -241,10 +234,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                     <AnimatePresence>
                         {spotlightRect && !modalActive && (
                             <motion.path
-                                key={`spotlight-${tourStepIdx}`} // Unique key per step
+                                key={`spotlight-${tourStepIdx}`}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
+                                transition={{ duration: 0.2 }}
                                 d={holePath}
                                 fill="rgba(0,0,0,0.75)"
                                 fillRule="evenodd"
@@ -255,10 +249,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                 </svg>
 
                 {/* Tooltip */}
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="popLayout">
                     <motion.div
-                        key={modalActive ? 'paused' : `step-${tourStepIdx}`} // Ensure new key on step change
-                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                        key={modalActive ? 'paused' : `step-${tourStepIdx}`}
+                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
                         animate={{ 
                             opacity: 1, 
                             scale: 1, 
@@ -278,6 +272,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                         ? Math.max(20, (spotlightRect ? spotlightRect.top + (spotlightRect.height / 2) - 100 : window.innerHeight / 2 - 100))
                                         : Math.min(window.innerHeight - 250, (spotlightRect ? spotlightRect.bottom + 24 : window.innerHeight / 2 + 100))))
                         }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
                         className="absolute z-[2001] w-[320px] sm:w-80 bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto"
                     >
                         <div className="space-y-4">
@@ -445,7 +441,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                             className="relative z-10"
                                         >
                                             <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center border border-white/10 shadow-2xl">
-                                                <img src="/logo.webp" alt="Logo" className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
+                                                <img src="/logo.webp" alt="Logo" className="w-12 h-12 object-contain group-hover:scale-105 transition-transform duration-300" />
                                             </div>
                                         </motion.div>
                                     </div>
@@ -478,7 +474,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                         </AnimatePresence>
                     </div>
                 </motion.div>
-            </motion.div>
+            </div>
         </AnimatePresence>
     );
 };
