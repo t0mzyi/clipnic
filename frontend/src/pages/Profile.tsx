@@ -16,6 +16,7 @@ export const Profile = () => {
     const [loading, setLoading] = useState(true);
     const [isVerifyOpen, setIsVerifyOpen] = useState(false);
     const [withdrawLoading, setWithdrawLoading] = useState(false);
+    const [discordLoading, setDiscordLoading] = useState(false);
 
     const fetchStats = useCallback(async () => {
         if (!token) return;
@@ -88,6 +89,23 @@ export const Profile = () => {
             } catch (err: any) {
                 Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
             } finally { setWithdrawLoading(false); }
+        }
+    };
+
+    const handleDiscordLink = async () => {
+        if (user?.discordVerified || discordLoading) return;
+        setDiscordLoading(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/discord`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.url) window.location.href = json.url;
+            else throw new Error('Failed to get verification URL');
+        } catch (err: any) { 
+            console.error(err);
+            Toast.fire({ title: 'Connection Error', text: 'Could not reach Discord gateway.', icon: 'error' });
+            setDiscordLoading(false);
         }
     };
 
@@ -188,13 +206,27 @@ export const Profile = () => {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                              {/* Discord Status */}
-                             <div id="profile-discord-step" className={`p-5 rounded-2xl border transition-all ${user?.discordVerified ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-white/[0.02] border-white/[0.05] opacity-40'}`}>
-                                <div className="flex items-center justify-between mb-3">
-                                    <CheckCircle2 className={`w-5 h-5 ${user?.discordVerified ? 'text-indigo-400' : 'text-white/20'}`} />
+                             <div 
+                                id="profile-discord-step" 
+                                onClick={handleDiscordLink}
+                                className={`p-5 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${user?.discordVerified ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-indigo-500/30 hover:bg-indigo-500/5'}`}
+                             >
+                                <div className="flex items-center justify-between mb-3 relative z-10">
+                                    {discordLoading ? (
+                                        <Loader2 className="w-5 h-5 text-indigo-400 animate-spin" />
+                                    ) : (
+                                        <CheckCircle2 className={`w-5 h-5 ${user?.discordVerified ? 'text-indigo-400' : 'text-white/20 group-hover:text-indigo-400'}`} />
+                                    )}
                                     {user?.discordVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
                                 </div>
-                                <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Discord</h4>
-                                <p className="text-xs text-white/30 font-mono truncate">{user?.discordVerified ? 'Verified Account' : 'Not Connected'}</p>
+                                <div className="relative z-10">
+                                    <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Discord</h4>
+                                    <p className="text-xs text-white/30 font-mono truncate">{user?.discordVerified ? 'Verified Account' : (discordLoading ? 'Connecting...' : 'Click to Connect')}</p>
+                                </div>
+                                
+                                {!user?.discordVerified && !discordLoading && (
+                                    <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                )}
                             </div>
 
                             {/* YouTube Status */}
