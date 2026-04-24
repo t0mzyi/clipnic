@@ -68,7 +68,7 @@ const BrandUnderConstruction = () => (
                 >
                     Join Our Discord
                 </a>
-                <Link to="/" className="px-8 py-3 rounded-full border border-white/10 text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">Return to Core</Link>
+                <Link to="/" className="px-8 py-3 rounded-full border border-white/10 text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">Return to Home</Link>
             </div>
         </div>
     </div>
