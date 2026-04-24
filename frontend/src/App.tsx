@@ -37,7 +37,6 @@ import ComingSoon from './pages/ComingSoon';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './store/useAuthStore';
 import { Onboarding } from './components/Onboarding';
-import { Footer } from './components/Footer';
 import { BugReportModal } from './components/BugReportModal';
 import { AlertModal } from './components/ui/AlertModal';
 import { ToastContainer } from './components/ui/ToastContainer';
@@ -539,7 +538,6 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                     </main>
                 </div>
             </div>
-            {!location.pathname.startsWith('/admin') && <Footer />}
         </div>
     );
 };
