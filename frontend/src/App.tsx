@@ -60,7 +60,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
             {!isAdminPortal ? (
                 <>
                     <nav className="flex flex-col gap-2 text-sm font-medium mb-8 mt-14">
-                        <Link onClick={closeMenu} to="/clippers/campaigns" className={`transition-all py-3 px-4 rounded-xl flex items-center gap-3 ${location.pathname === '/clippers/campaigns' ? 'bg-white/15 text-white font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link id="sidebar-active-campaigns" onClick={closeMenu} to="/clippers/campaigns" className={`transition-all py-3 px-4 rounded-xl flex items-center gap-3 ${location.pathname === '/clippers/campaigns' ? 'bg-white/15 text-white font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
                             <Globe size={18} className={location.pathname === '/clippers/campaigns' ? 'text-emerald-400' : ''} />
                             <span className="glassy-text">Active Campaigns</span>
                         </Link>
@@ -68,23 +68,23 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
 
                     <div className="mb-4 text-xs font-bold text-white/20 uppercase tracking-[0.2em] px-4 py-2 rounded-xl glassy-glow-premium">Clipper Portal</div>
                     <nav className="flex flex-col gap-2 text-sm font-medium mb-10 overflow-y-auto">
-                        <Link onClick={closeMenu} to="/clippers/dashboard" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/clippers/dashboard' ? 'bg-white/15 text-white border border-white/5' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link id="sidebar-dashboard" onClick={closeMenu} to="/clippers/dashboard" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/clippers/dashboard' ? 'bg-white/15 text-white border border-white/5' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
                             <LayoutGrid size={18} />
                             <span className="glassy-text">Dashboard</span>
                         </Link>
-                        <Link onClick={closeMenu} to="/clippers/campaigns/joined" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/clippers/campaigns/joined' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link id="sidebar-joined" onClick={closeMenu} to="/clippers/campaigns/joined" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/clippers/campaigns/joined' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <Target size={18} />
                             <span className="glassy-text">Joined Campaigns</span>
                         </Link>
-                        <Link onClick={closeMenu} to="/clippers/submissions" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/clippers/submissions') ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link id="sidebar-submissions" onClick={closeMenu} to="/clippers/submissions" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/clippers/submissions') ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <Upload size={18} />
                             <span className="glassy-text">My Submissions</span>
                         </Link>
-                        <Link onClick={closeMenu} to="/clippers/earnings" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/clippers/earnings' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link id="sidebar-earnings" onClick={closeMenu} to="/clippers/earnings" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/clippers/earnings' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <DollarSign size={18} />
                             <span className="glassy-text">Earnings</span>
                         </Link>
-                        <Link onClick={closeMenu} to="/clippers/profile" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/clippers/profile' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link id="sidebar-profile" onClick={closeMenu} to="/clippers/profile" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/clippers/profile' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <UserIcon size={18} />
                             <span className="glassy-text">Profile</span>
                         </Link>

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     User, 
     Globe, Upload, DollarSign, 
     TrendingUp, Star, CheckCircle2,
-    Plus, MessageSquare, ShieldCheck
+    Plus, MessageSquare, ShieldCheck,
+    ChevronRight, X
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Button } from './ui/Button';
@@ -14,6 +15,40 @@ interface OnboardingProps {
     onComplete: () => void;
 }
 
+interface TourStep {
+    target: string;
+    title: string;
+    content: string;
+    position: 'right' | 'left' | 'top' | 'bottom';
+}
+
+const TOUR_STEPS: TourStep[] = [
+    {
+        target: '#sidebar-active-campaigns',
+        title: 'Active Campaigns',
+        content: 'This is where you find new missions. Browse available brands, check CPM rates, and join to start earning.',
+        position: 'right'
+    },
+    {
+        target: '#sidebar-dashboard',
+        title: 'Your Dashboard',
+        content: 'Track your overall performance, active clips, and total views across all joined campaigns in real-time.',
+        position: 'right'
+    },
+    {
+        target: '#sidebar-earnings',
+        title: 'Earnings & Payouts',
+        content: 'Manage your rewards here. Once your clips are verified, you can claim your earnings directly to your wallet.',
+        position: 'right'
+    },
+    {
+        target: '#tour-search',
+        title: 'Smart Search',
+        content: 'Looking for a specific brand or platform? Use the search and filters to find the perfect campaign for your niche.',
+        position: 'bottom'
+    }
+];
+
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     const { user, updateUser } = useAuthStore();
     const [step, setStep] = useState(1);
@@ -21,11 +56,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     const [bio, setBio] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [agreed, setAgreed] = useState(false);
-
-    // Step 1: Profile Setup
-    // Step 2: Discord Connect (Skippable)
-    // Step 3: Social Connect
-    // Step 4-8: Demo
+    
+    // Tour State
+    const [tourActive, setTourActive] = useState(false);
+    const [tourStepIdx, setTourStepIdx] = useState(0);
+    const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
 
     const handleSaveProfile = async () => {
         if (!agreed) return;
@@ -86,6 +121,124 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
     const currentDemoStep = step - 4;
 
+    // Tour Logic
+    useEffect(() => {
+        if (!tourActive) return;
+
+        const updateSpotlight = () => {
+            const el = document.querySelector(TOUR_STEPS[tourStepIdx].target);
+            if (el) {
+                setSpotlightRect(el.getBoundingClientRect());
+            }
+        };
+
+        updateSpotlight();
+        window.addEventListener('resize', updateSpotlight);
+        return () => window.removeEventListener('resize', updateSpotlight);
+    }, [tourActive, tourStepIdx]);
+
+    const handleNextTour = () => {
+        if (tourStepIdx < TOUR_STEPS.length - 1) {
+            setTourStepIdx(tourStepIdx + 1);
+        } else {
+            onComplete();
+        }
+    };
+
+    if (tourActive) {
+        return (
+            <div className="fixed inset-0 z-[2000] pointer-events-none">
+                {/* SVG Overlay with Spotlight Hole */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-auto">
+                    <defs>
+                        <mask id="spotlight-mask">
+                            <rect width="100%" height="100%" fill="white" />
+                            {spotlightRect && (
+                                <motion.rect
+                                    initial={false}
+                                    animate={{
+                                        x: spotlightRect.x - 8,
+                                        y: spotlightRect.y - 8,
+                                        width: spotlightRect.width + 16,
+                                        height: spotlightRect.height + 16,
+                                        rx: 12
+                                    }}
+                                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                    fill="black"
+                                />
+                            )}
+                        </mask>
+                    </defs>
+                    <rect 
+                        width="100%" 
+                        height="100%" 
+                        fill="rgba(0,0,0,0.85)" 
+                        mask="url(#spotlight-mask)" 
+                        className="backdrop-blur-[2px]"
+                    />
+                </svg>
+
+                {/* Tooltip */}
+                <AnimatePresence mode="wait">
+                    {spotlightRect && (
+                        <motion.div
+                            key={tourStepIdx}
+                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                            animate={{ 
+                                opacity: 1, 
+                                scale: 1, 
+                                y: 0,
+                                x: TOUR_STEPS[tourStepIdx].position === 'right' 
+                                    ? spotlightRect.right + 24 
+                                    : spotlightRect.left + (spotlightRect.width / 2) - 160,
+                                top: TOUR_STEPS[tourStepIdx].position === 'right'
+                                    ? spotlightRect.top + (spotlightRect.height / 2) - 100
+                                    : spotlightRect.bottom + 24
+                            }}
+                            className="absolute z-[2001] w-80 bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto"
+                        >
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
+                                        Step {tourStepIdx + 1} of {TOUR_STEPS.length}
+                                    </div>
+                                    <button onClick={onComplete} className="text-white/20 hover:text-white transition-colors">
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                                <div className="space-y-2">
+                                    <h4 className="text-lg font-bold text-white tracking-tight">{TOUR_STEPS[tourStepIdx].title}</h4>
+                                    <p className="text-white/50 text-sm leading-relaxed">{TOUR_STEPS[tourStepIdx].content}</p>
+                                </div>
+                                <div className="pt-4 flex items-center justify-between">
+                                    <button 
+                                        onClick={onComplete}
+                                        className="text-xs font-bold text-white/20 uppercase tracking-widest hover:text-white transition-colors"
+                                    >
+                                        Skip Tour
+                                    </button>
+                                    <Button 
+                                        onClick={handleNextTour}
+                                        className="rounded-xl px-6 py-2.5 text-xs uppercase font-bold tracking-widest h-auto"
+                                    >
+                                        {tourStepIdx === TOUR_STEPS.length - 1 ? 'Get Started' : 'Next'}
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Arrow Indicator */}
+                            <div className={`absolute w-4 h-4 bg-[#0c0c0c] border-l border-t border-white/10 transform rotate-[-45deg] ${
+                                TOUR_STEPS[tourStepIdx].position === 'right' 
+                                ? '-left-2 top-1/2 -translate-y-1/2' 
+                                : 'left-1/2 -top-2 -translate-x-1/2 rotate-[45deg]'
+                            }`} />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+        );
+    }
+
     return (
         <AnimatePresence>
             <motion.div 
@@ -122,7 +275,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                                     initial={{ x: 20, opacity: 0 }}
                                     animate={{ x: 0, opacity: 1 }}
                                     exit={{ x: -20, opacity: 0 }}
-                                    className="space-y-8"
+                                    className="space-y-6 sm:space-y-8"
                                 >
                                     <div className="space-y-2">
                                         <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6">
@@ -348,14 +501,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                                         <Button 
                                             onClick={() => {
                                                 if (step === 8) {
-                                                    onComplete();
+                                                    setTourActive(true);
                                                 } else {
                                                     setStep(step + 1);
                                                 }
                                             }}
                                             className="w-full rounded-2xl py-4 sm:py-5 text-[11px] sm:text-sm uppercase font-bold tracking-[0.2em] shadow-[0_20px_40px_-12px_rgba(255,255,255,0.1)]"
                                         >
-                                            {step === 8 ? 'Start Earning' : 'Next'}
+                                            {step === 8 ? 'Start Interactive Tour' : 'Next'}
                                         </Button>
                                         <button 
                                             onClick={onComplete}

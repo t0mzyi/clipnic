@@ -264,7 +264,7 @@ export const CampaignsFeed = () => {
             {/* Discovery & Search Section */}
             <div className="space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="relative flex-1 max-w-xl group">
+                    <div id="tour-search" className="relative flex-1 max-w-xl group">
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-emerald-400 transition-colors" />
                         <input 
                             type="text" 
@@ -329,7 +329,7 @@ export const CampaignsFeed = () => {
 
             {/* Campaign Cards */}
             {!loading && sortedCampaigns.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div id="tour-campaign-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {sortedCampaigns.map((campaign, index) => {
                         const remaining = campaign.total_budget - campaign.budget_used;
                         const progress = campaign.total_budget > 0 ? (campaign.budget_used / campaign.total_budget) * 100 : 0;
