@@ -379,6 +379,18 @@ export const CampaignsFeed = () => {
                                     </div>
 
                                     <div className="space-y-2">
+                                        <div className="flex items-center justify-between text-[8px] font-bold uppercase tracking-widest px-1">
+                                            {(!campaign.start_date || new Date(campaign.start_date) <= new Date()) ? (
+                                                <span className="text-amber-500/60">
+                                                    Ends: {new Date(campaign.end_date).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            ) : (
+                                                <span className="text-blue-400/60">
+                                                    Starts: {new Date(campaign.start_date).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            )}
+                                            <span className="text-white/20 font-mono">{Math.round(progress)}% filled</span>
+                                        </div>
                                         <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
                                             <motion.div
                                                 initial={{ width: 0 }}
@@ -387,7 +399,6 @@ export const CampaignsFeed = () => {
                                                 className={`h-full rounded-full ${isFull ? 'bg-red-500' : 'bg-emerald-500/70'}`}
                                             />
                                         </div>
-                                        <p className="text-[10px] text-white/20 font-mono text-right">{Math.round(progress)}% filled</p>
                                     </div>
                                 </div>
                             </MotionLink>

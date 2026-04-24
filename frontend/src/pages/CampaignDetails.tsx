@@ -368,7 +368,13 @@ export const CampaignDetails = () => {
     const viewsPercent = campaign.target_views > 0
         ? Math.round((campaign.view_progress / campaign.target_views) * 100)
         : 0;
-    const daysLeft = Math.max(0, Math.ceil((new Date(campaign.end_date).getTime() - Date.now()) / 86400000));
+    
+    // Improved countdown logic
+    const msLeft = Math.max(0, new Date(campaign.end_date).getTime() - Date.now());
+    const daysLeft = Math.floor(msLeft / 86400000);
+    const hoursLeft = Math.floor((msLeft % 86400000) / 3600000);
+    const minsLeft = Math.floor((msLeft % 3600000) / 60000);
+    
     const banner = campaign.banner_url || FALLBACK_BANNERS[0];
 
     const handleNextFromRules = () => {
@@ -611,9 +617,9 @@ export const CampaignDetails = () => {
                     <p className="text-[10px] font-mono text-white/20">{campaign.view_progress.toLocaleString()} views fulfilled</p>
                 </div>
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
-                    <div className="flex items-center gap-2 text-amber-500/60"><Clock className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Deadline</span></div>
-                    <p className="text-2xl font-mono font-bold text-amber-400">{daysLeft}d</p>
-                    <p className="text-[10px] font-mono text-white/20">remaining</p>
+                    <div className="flex items-center gap-2 text-amber-500/60"><Clock className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Ends at</span></div>
+                    <p className="text-xl font-mono font-bold text-amber-400">{new Date(campaign.end_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                    <p className="text-[10px] font-mono text-white/20">{daysLeft}d {hoursLeft}h {minsLeft}m remaining</p>
                 </div>
             </div>
 

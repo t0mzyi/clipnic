@@ -199,8 +199,8 @@ export const AdminCampaigns = () => {
             discord_channel: campaign.discord_channel,
             cpm_rate: campaign.cpm_rate.toString(),
             total_budget: campaign.total_budget.toString(),
-            end_date: new Date(campaign.end_date).toISOString().split('T')[0],
-            start_date: campaign.start_date ? new Date(campaign.start_date).toISOString().split('T')[0] : '',
+            end_date: campaign.end_date ? new Date(new Date(campaign.end_date).getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : '',
+            start_date: campaign.start_date ? new Date(new Date(campaign.start_date).getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : '',
             auto_start: campaign.auto_start ?? true,
             banner_url: campaign.banner_url || '',
             min_views: campaign.min_views ? campaign.min_views.toString() : '',
@@ -553,8 +553,8 @@ export const AdminCampaigns = () => {
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
-                                                <InputField label="Start Date" type="date" value={form.start_date} onChange={set('start_date')} />
-                                                <InputField label="End Date" required type="date" value={form.end_date} onChange={set('end_date')} />
+                                                <InputField label="Start Date & Time" type="datetime-local" value={form.start_date} onChange={set('start_date')} />
+                                                <InputField label="End Date & Time" required type="datetime-local" value={form.end_date} onChange={set('end_date')} />
                                             </div>
                                             {!form.auto_start && (
                                                 <p className="text-[9px] text-amber-500/60 font-medium italic">* Manual start: Campaign will remain "Paused" until you activate it manually, regardless of start date.</p>
