@@ -20,6 +20,7 @@ interface User {
   bio?: string;
   created_at?: string;
   user_metadata?: any;
+  onboardingCompleted?: boolean;
 }
 
 interface AuthState {

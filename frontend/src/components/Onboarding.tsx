@@ -95,7 +95,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     const [agreed, setAgreed] = useState(false);
     
     // Tour State
-    const activeSteps = TOUR_STEPS.filter((s, idx) => {
+    const activeSteps = TOUR_STEPS.filter((_, idx) => {
         if (idx === 0 && user?.discordVerified) return false;
         return true;
     });

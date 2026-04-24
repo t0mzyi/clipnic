@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Zap } from 'lucide-react';
 import { SOCIAL_LINKS, LEGAL_LINKS, ECOSYSTEM_LINKS } from '../config/links';
 
@@ -44,15 +45,6 @@ export const Footer: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Legal Framework */}
-                    <div className="space-y-6">
-                        <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">Legal Framework</h4>
-                        <div className="flex flex-col gap-3">
-                            <a href={LEGAL_LINKS.privacy} className="text-sm text-white/40 hover:text-white transition-colors">Privacy Policy</a>
-                            <a href={LEGAL_LINKS.terms} className="text-sm text-white/40 hover:text-white transition-colors">Terms of Service</a>
-                            <a href={LEGAL_LINKS.clipperTerms} className="text-sm text-white/40 hover:text-white transition-colors">Clipper Terms</a>
-                        </div>
-                    </div>
                 </div>
 
                 <div className="pt-8 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-4">
@@ -65,6 +57,7 @@ export const Footer: React.FC = () => {
                     </div>
                 </div>
             </div>
+            <div className="h-20 md:h-32" /> {/* Extra spacing at the very bottom */}
         </footer>
     );
 };

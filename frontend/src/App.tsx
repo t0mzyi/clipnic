@@ -46,7 +46,7 @@ const Sidebar = ({ isOpen, closeMenu, onReportBug }: { isOpen: boolean, closeMen
     const isAdminPortal = location.pathname.startsWith('/admin');
 
     return (
-        <aside className={`fixed left-0 top-0 h-[100dvh] w-72 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-500 ease-[0.16,1,0.3,1] md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} ${isAdminPortal ? 'hidden md:hidden' : 'flex'}`}>
+        <aside className={`h-full w-72 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-500 ease-[0.16,1,0.3,1] ${isOpen ? 'fixed inset-y-0 left-0 translate-x-0' : 'fixed inset-y-0 left-0 -translate-x-full md:relative md:translate-x-0'} ${isAdminPortal ? 'hidden md:hidden' : 'flex'}`}>
             <div className="flex items-center justify-between mb-8">
                 <Link to="/clippers/campaigns" className="flex items-center gap-2 group">
                     <img src="/logo.webp" alt="Logo" className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
@@ -262,7 +262,8 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                             youtubeHandle: result.data.youtube_handle,
                             youtubeChannels: result.data.youtube_channels,
                             instagramVerified: result.data.instagram_verified,
-                            instagramHandle: result.data.instagram_handle
+                            instagramHandle: result.data.instagram_handle,
+                            onboardingCompleted: result.data.onboarding_completed
                         };
                         login(userData, session.access_token, result.settings);
                     }
@@ -303,18 +304,30 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
     useEffect(() => {
         // Check for onboarding
         if (user && !loading && !isSyncing) {
-            const demoSeen = localStorage.getItem('clipnic_tour_v2');
             const isAdmin = user.role === 'admin';
-            // Only show to non-admins who haven't completed bio or haven't seen demo
-            if (!isAdmin && (!user.bio || !demoSeen)) {
+            // Only show to non-admins who haven't completed onboarding in DB
+            if (!isAdmin && !user.onboardingCompleted) {
                 setShowOnboarding(true);
             }
         }
     }, [user, loading, isSyncing]);
 
-    const handleOnboardingComplete = () => {
-        localStorage.setItem('clipnic_tour_v2', 'true');
+    const handleOnboardingComplete = async () => {
         setShowOnboarding(false);
+        if (user) {
+            try {
+                // 1. Update store immediately for UI responsiveness
+                updateUser({ onboardingCompleted: true });
+                
+                // 2. Persist to database
+                await supabase
+                    .from('users')
+                    .update({ onboarding_completed: true })
+                    .eq('id', user.id);
+            } catch (err) {
+                console.error('Failed to save onboarding status:', err);
+            }
+        }
     };
 
     // Only show full-screen loader if we're genuinely waiting for the first session check
@@ -371,7 +384,8 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
     }
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans flex flex-col md:flex-row">
+    return (
+        <div className="h-screen bg-black text-white selection:bg-white selection:text-black font-sans flex flex-col overflow-hidden">
             {showOnboarding && (
                 <Onboarding 
                     onComplete={handleOnboardingComplete} 
@@ -382,7 +396,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
             
             {/* Mobile Header - Hidden for Admins as they use the Dock */}
             {!location.pathname.startsWith('/admin') && (
-                <div className="md:hidden sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-between px-6">
+                <div className="md:hidden flex-shrink-0 bg-black/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-between px-6 z-50">
                     <Link to="/clippers/campaigns" className="flex items-center gap-2">
                         <img src="/logo.webp" alt="Logo" className="h-7 w-auto object-contain" />
                         <span className="text-lg font-bold tracking-tight text-premium-white">
@@ -395,18 +409,24 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                 </div>
             )}
 
-            <Sidebar isOpen={mobileMenuOpen} closeMenu={() => setMobileMenuOpen(false)} onReportBug={onReportBug} />
-            {location.pathname.startsWith('/admin') && <AdminDock />}
+            <div className="flex flex-1 overflow-hidden relative">
+                <Sidebar isOpen={mobileMenuOpen} closeMenu={() => setMobileMenuOpen(false)} onReportBug={onReportBug} />
+                {location.pathname.startsWith('/admin') && <AdminDock />}
 
-            {/* Mobile overlay backdrop */}
-            {mobileMenuOpen && (
-                <div
-                    className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
-                    onClick={() => setMobileMenuOpen(false)}
-                />
-            )}
+                {/* Mobile overlay backdrop */}
+                <AnimatePresence>
+                    {mobileMenuOpen && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
+                            onClick={() => setMobileMenuOpen(false)}
+                        />
+                    )}
+                </AnimatePresence>
 
-            <main className={`flex-1 ${location.pathname.startsWith('/admin') ? 'md:ml-0' : 'md:ml-64'} min-h-screen overflow-x-hidden transition-all duration-300`}>
+                <main className="flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 custom-scrollbar">
                 <div className="px-4 sm:px-6 md:px-12 pt-6 md:pt-16 pb-24 max-w-7xl mx-auto">
                     <AnimatePresence mode="wait">
                         <Routes>
@@ -420,15 +440,6 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                             <Route path="/clippers/submissions" element={<MySubmissions />} />
                             <Route path="/clippers/earnings" element={<Earnings />} />
                             <Route path="/clippers/profile" element={<Profile />} />
-
-                            {/* Legacy Redirects */}
-                            <Route path="/dashboard" element={<Navigate to="/clippers/dashboard" replace />} />
-                            <Route path="/campaigns" element={<Navigate to="/clippers/campaigns" replace />} />
-                            <Route path="/campaigns/joined" element={<Navigate to="/clippers/campaigns/joined" replace />} />
-                            <Route path="/campaigns/:id" element={<Navigate to="/clippers/campaigns/:id" replace />} />
-                            <Route path="/submissions" element={<Navigate to="/clippers/submissions" replace />} />
-                            <Route path="/earnings" element={<Navigate to="/clippers/earnings" replace />} />
-                            <Route path="/profile" element={<Navigate to="/clippers/profile" replace />} />
 
                             {/* Admin Routes */}
                             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
