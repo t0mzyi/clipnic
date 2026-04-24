@@ -27,15 +27,15 @@ const TOUR_STEPS: TourStep[] = [
     {
         target: '#profile-discord-step',
         path: '/clippers/profile',
-        title: 'Step 1: Discord',
-        content: 'Join our Discord server to confirm your identity. This is required to unlock platform features. You can start now or skip to the next step.',
+        title: 'Verification: Discord',
+        content: 'Join our Discord server to confirm your identity. This is required to unlock platform features.',
         position: 'bottom'
     },
     {
         target: '#profile-socials-step',
         path: '/clippers/profile',
-        title: 'Step 2: Socials',
-        content: 'Link your TikTok, Instagram, or YouTube channel to track views. Feel free to skip this for now.',
+        title: 'Verification: Socials',
+        content: 'Link your TikTok, Instagram, or YouTube channel to track your video views automatically.',
         position: 'bottom'
     },
     {
@@ -139,6 +139,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
 
     const handleNextTour = useCallback(() => {
         setTourStepIdx(prev => {
+            // If on Discord and user skips, skip Socials too
+            if (prev === 0) return 2;
+
             const next = prev + 1;
             if (next < TOUR_STEPS.length) return next;
             onComplete();
