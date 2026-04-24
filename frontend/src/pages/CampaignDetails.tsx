@@ -558,7 +558,7 @@ export const CampaignDetails = () => {
                         {isComingSoon ? (
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 backdrop-blur-md border border-amber-500/20 text-amber-500 text-[10px] font-bold uppercase tracking-wider shadow-lg">
                                 <Clock className="w-3 h-3" />
-                                Starting {new Date(campaign.start_date!).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                Starting {new Date(campaign.start_date!).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </div>
                         ) : (
                             <Badge status={campaign.status} />
@@ -596,7 +596,7 @@ export const CampaignDetails = () => {
                                             <span className="text-xs sm:text-sm font-bold uppercase">Coming Soon</span>
                                         </div>
                                         <span className="text-[9px] sm:text-[10px] opacity-40 normal-case tracking-tight font-medium">
-                                            {new Date(campaign.start_date!).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                            {new Date(campaign.start_date!).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
                                 ) : (
@@ -630,9 +630,14 @@ export const CampaignDetails = () => {
                     <p className="text-[10px] font-mono text-white/20">{campaign.view_progress.toLocaleString()} views fulfilled</p>
                 </div>
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
+                    <div className="flex items-center gap-2 text-blue-400/60"><Clock className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Starts at</span></div>
+                    <p className="text-xl font-mono font-bold text-blue-400">{campaign.start_date ? new Date(campaign.start_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Immediate'}</p>
+                    <p className="text-[10px] font-mono text-white/20">{isComingSoon ? 'Not yet started' : 'Campaign active'}</p>
+                </div>
+                <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
                     <div className="flex items-center gap-2 text-amber-500/60"><Clock className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Ends at</span></div>
                     <p className="text-xl font-mono font-bold text-amber-400">{new Date(campaign.end_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
-                    <p className="text-[10px] font-mono text-white/20">{daysLeft}d {hoursLeft}h {minsLeft}m remaining</p>
+                    <p className="text-[10px] font-mono text-white/20">{isComingSoon ? 'Scheduled' : `${daysLeft}d ${hoursLeft}h ${minsLeft}m remaining`}</p>
                 </div>
             </div>
 
