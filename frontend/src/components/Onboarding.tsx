@@ -355,7 +355,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                                             }}
                                             className="w-full rounded-2xl py-4 sm:py-5 text-[11px] sm:text-sm uppercase font-bold tracking-[0.2em] shadow-[0_20px_40px_-12px_rgba(255,255,255,0.1)]"
                                         >
-                                            {step === 8 ? 'Start Earning' : 'Next Step'}
+                                            {step === 8 ? 'Start Earning' : 'Next'}
                                         </Button>
                                         <button 
                                             onClick={onComplete}
