@@ -19,7 +19,7 @@ const Toast = Swal.mixin({
         popup: 'rounded-2xl border border-white/10 shadow-2xl backdrop-blur-md bg-[#0D0D0D]/95',
         title: 'text-sm font-bold',
     },
-    didOpen: (toast) => {
+    didOpen: (toast: any) => {
         toast.onmouseenter = Swal.stopTimer;
         toast.onmouseleave = Swal.resumeTimer;
     }
@@ -142,7 +142,7 @@ export const MySubmissions = () => {
             cancelButtonText: 'Cancel'
         });
 
-        if (result.isConfirmed) {
+        if (result && (result as any).isConfirmed) {
             try {
                 const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/${subId}`, {
                     method: 'DELETE',

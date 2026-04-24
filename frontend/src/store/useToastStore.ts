@@ -3,12 +3,12 @@ import { create } from 'zustand';
 interface Toast {
     id: string;
     message: string;
-    type: 'success' | 'error' | 'info';
+    type: 'success' | 'error' | 'info' | 'warning' | 'question';
 }
 
 interface ToastState {
     toasts: Toast[];
-    addToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+    addToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning' | 'question') => void;
     removeToast: (id: string) => void;
 }
 

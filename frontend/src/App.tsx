@@ -78,7 +78,7 @@ const Sidebar = ({ isOpen, closeMenu, onReportBug }: { isOpen: boolean, closeMen
     const isAdminPortal = location.pathname.startsWith('/admin');
 
     return (
-        <aside className={`h-full w-72 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-500 ease-[0.16,1,0.3,1] ${isOpen ? 'fixed inset-y-0 left-0 translate-x-0' : 'fixed inset-y-0 left-0 -translate-x-full md:relative md:translate-x-0'} ${isAdminPortal ? 'hidden md:hidden' : 'flex'}`}>
+        <aside className={`w-72 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-500 ease-[0.16,1,0.3,1] ${isOpen ? 'fixed inset-y-0 left-0 translate-x-0 h-full' : 'fixed inset-y-0 left-0 -translate-x-full md:sticky md:top-0 md:h-screen md:translate-x-0'} ${isAdminPortal ? 'hidden md:hidden' : 'flex'}`}>
             <div className="flex items-center justify-between mb-8">
                 <Link to="/clippers/campaigns" className="flex items-center gap-2 group">
                     <img src="/logo.webp" alt="Logo" className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
@@ -421,7 +421,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
     }
 
     return (
-        <div className="h-screen bg-black text-white selection:bg-white selection:text-black font-sans flex flex-col overflow-hidden">
+        <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans flex flex-col">
             {showOnboarding && (
                 <Onboarding 
                     onComplete={handleOnboardingComplete} 
@@ -430,13 +430,13 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                 />
             )}
             
-            <div className="flex flex-1 overflow-hidden relative">
+            <div className="flex flex-1 relative">
                 <Sidebar isOpen={mobileMenuOpen} closeMenu={() => setMobileMenuOpen(false)} onReportBug={onReportBug} />
                 
-                <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-                    {/* Mobile Header - Now inside the flex-1 container to let sidebar go to top */}
+                <div className="flex-1 flex flex-col min-w-0 relative">
+                    {/* Mobile Header */}
                     {!location.pathname.startsWith('/admin') && (
-                        <div className="md:hidden flex-shrink-0 bg-black/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-between px-6 z-50">
+                        <div className="md:hidden flex-shrink-0 bg-black/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-between px-6 z-50 sticky top-0">
                             <Link to="/clippers/campaigns" className="flex items-center gap-2">
                                 <img src="/logo.webp" alt="Logo" className="h-7 w-auto object-contain" />
                                 <span className="text-lg font-bold tracking-tight text-premium-white">
@@ -464,7 +464,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                         )}
                     </AnimatePresence>
 
-                    <main className="flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 custom-scrollbar">
+                    <main className="flex-1 transition-all duration-300">
                         <div className="px-4 sm:px-6 md:px-12 pt-6 md:pt-16 pb-24 max-w-7xl mx-auto">
                             <AnimatePresence mode="wait">
                                 <Routes>

@@ -73,7 +73,7 @@ const Toast = Swal.mixin({
     timerProgressBar: true,
     background: '#0c0c0c',
     color: '#fff',
-    didOpen: (toast) => {
+    didOpen: (toast: any) => {
         toast.onmouseenter = Swal.stopTimer;
         toast.onmouseleave = Swal.resumeTimer;
     }
@@ -241,7 +241,7 @@ export const AdminCampaigns = () => {
             cancelButtonColor: '#27272a', confirmButtonText: 'Delete', background: '#0c0c0c', color: '#fff',
             customClass: { popup: 'rounded-3xl border border-white/10' }
         });
-        if (!result.isConfirmed) return;
+        if (!result || !(result as any).isConfirmed) return;
         const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${campaign.id}`, {
             method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
         });

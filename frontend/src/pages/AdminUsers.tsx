@@ -42,7 +42,7 @@ const Toast = Swal.mixin({
     timerProgressBar: true,
     background: '#0c0c0c',
     color: '#fff',
-    didOpen: (toast) => {
+    didOpen: (toast: any) => {
         toast.onmouseenter = Swal.stopTimer;
         toast.onmouseleave = Swal.resumeTimer;
     }
