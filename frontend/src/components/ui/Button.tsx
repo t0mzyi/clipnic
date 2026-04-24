@@ -29,10 +29,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <motion.button
         ref={ref}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        whileHover={!props.disabled ? { scale: 1.02 } : {}}
+        whileTap={!props.disabled ? { scale: 0.98 } : {}}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+        className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${props.disabled ? 'opacity-40 cursor-not-allowed pointer-events-none grayscale-[0.5]' : ''} ${className}`}
         {...props}
       >
         {children}

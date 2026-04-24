@@ -446,8 +446,13 @@ export const Profile = () => {
     const handleSaveSettings = async () => {
         setIsSaving(true);
         try {
-            // Mock API call - in a real app this would call updateProfile endpoint
-            await new Promise(r => setTimeout(r, 1000));
+            const { error } = await supabase
+                .from('users')
+                .update({ name: user?.name, bio: user?.bio })
+                .eq('id', user?.id);
+            
+            if (error) throw error;
+            
             Toast.fire({ title: 'Profile Updated', icon: 'success' });
             setIsSettingsOpen(false);
         } catch (err) {
