@@ -248,7 +248,7 @@ export const Profile = () => {
                              {/* Discord Status */}
                              <div 
                                 id="profile-discord-step" 
-                                onClick={(e) => {
+                                onClick={() => {
                                     if (user?.discordVerified) {
                                         setIsVerifyOpen(true);
                                     } else {
