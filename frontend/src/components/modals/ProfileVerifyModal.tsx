@@ -72,12 +72,14 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync }: Prof
                         <Button variant="primary" onClick={handleDiscordLink} disabled={isVerifying} className="w-full py-4 rounded-2xl bg-[#5865F2] text-white">
                             {isVerifying ? <Loader2 className="animate-spin w-4 h-4 mx-auto" /> : 'Link Discord'}
                         </Button>
-                        <button 
-                            onClick={() => setStep(2)} 
-                            className="w-full text-[10px] text-white/30 uppercase tracking-[0.2em] hover:text-white transition-colors"
-                        >
-                            Skip to Socials
-                        </button>
+                        {user?.discordVerified && (
+                            <button 
+                                onClick={() => setStep(2)} 
+                                className="w-full text-[10px] text-white/30 uppercase tracking-[0.2em] hover:text-white transition-colors"
+                            >
+                                Skip to Socials
+                            </button>
+                        )}
                     </div>
                 ) : (
                     <div className="space-y-6">
