@@ -248,7 +248,13 @@ export const Profile = () => {
                              {/* Discord Status */}
                              <div 
                                 id="profile-discord-step" 
-                                onClick={handleDiscordLink}
+                                onClick={(e) => {
+                                    if (user?.discordVerified) {
+                                        setIsVerifyOpen(true);
+                                    } else {
+                                        handleDiscordLink();
+                                    }
+                                }}
                                 className={`p-5 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${user?.discordVerified ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-indigo-500/30 hover:bg-indigo-500/5'}`}
                              >
                                 <div className="flex items-center justify-between mb-3 relative z-10">
@@ -294,7 +300,10 @@ export const Profile = () => {
                                                     </div>
                                                 </div>
                                                 <button 
-                                                    onClick={() => handleDeleteSocial('youtube', ch.id)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteSocial('youtube', ch.id);
+                                                    }}
                                                     className="p-2 text-white/20 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                                                 >
                                                     <Trash2 size={14} />
@@ -317,7 +326,10 @@ export const Profile = () => {
                                     <div className="flex items-center gap-2">
                                         {user?.instagramVerified && (
                                             <button 
-                                                onClick={() => handleDeleteSocial('instagram')}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteSocial('instagram');
+                                                }}
                                                 className="p-1.5 text-white/20 hover:text-red-500 transition-colors"
                                             >
                                                 <Trash2 size={14} />
@@ -340,7 +352,10 @@ export const Profile = () => {
                                     <div className="flex items-center gap-2">
                                         {user?.tiktokVerified && (
                                             <button 
-                                                onClick={() => handleDeleteSocial('tiktok')}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteSocial('tiktok');
+                                                }}
                                                 className="p-1.5 text-white/20 hover:text-red-500 transition-colors"
                                             >
                                                 <Trash2 size={14} />
