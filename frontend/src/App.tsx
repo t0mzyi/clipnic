@@ -509,6 +509,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                                     <Route path="/" element={<Navigate to="/clippers/campaigns" replace />} />
                                     <Route path="/profile" element={<Navigate to="/clippers/profile" replace />} />
                                     <Route path="/clipper" element={<Navigate to="/clippers/dashboard" replace />} />
+                                    <Route path="/clippers" element={<Navigate to="/clippers/campaigns" replace />} />
 
                                     {/* Clipper Routes */}
                                     <Route path="/clippers/dashboard" element={<ClipperDashboard />} />
