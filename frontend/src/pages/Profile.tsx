@@ -270,10 +270,13 @@ export const Profile = () => {
                             </div>
 
                             {/* YouTube Status */}
-                            <div className={`p-5 rounded-2xl border transition-all ${user?.youtubeVerified ? 'bg-red-500/5 border-red-500/20' : 'bg-white/[0.02] border-white/[0.05]'} sm:col-span-2`}>
+                            <div 
+                                onClick={() => setIsVerifyOpen(true)}
+                                className={`p-5 rounded-2xl border transition-all cursor-pointer group ${user?.youtubeVerified ? 'bg-red-500/5 border-red-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-red-500/30 hover:bg-red-500/5'} sm:col-span-2`}
+                            >
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-2">
-                                        <Play className={`w-5 h-5 ${user?.youtubeVerified ? 'text-red-500' : 'text-white/20'}`} />
+                                        <Play className={`w-5 h-5 ${user?.youtubeVerified ? 'text-red-500' : 'text-white/20 group-hover:text-red-500'}`} />
                                         <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">YouTube</h4>
                                     </div>
                                     {user?.youtubeVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
@@ -305,9 +308,12 @@ export const Profile = () => {
                             </div>
 
                             {/* Instagram Status */}
-                            <div className={`p-5 rounded-2xl border transition-all ${user?.instagramVerified ? 'bg-pink-500/5 border-pink-500/20' : 'bg-white/[0.02] border-white/[0.05]'}`}>
+                            <div 
+                                onClick={() => setIsVerifyOpen(true)}
+                                className={`p-5 rounded-2xl border transition-all cursor-pointer group ${user?.instagramVerified ? 'bg-pink-500/5 border-pink-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-pink-500/30 hover:bg-pink-500/5'}`}
+                            >
                                 <div className="flex items-center justify-between mb-3">
-                                    <Camera className={`w-5 h-5 ${user?.instagramVerified ? 'text-pink-500' : 'text-white/20'}`} />
+                                    <Camera className={`w-5 h-5 ${user?.instagramVerified ? 'text-pink-500' : 'text-white/20 group-hover:text-pink-500'}`} />
                                     <div className="flex items-center gap-2">
                                         {user?.instagramVerified && (
                                             <button 
@@ -325,7 +331,10 @@ export const Profile = () => {
                             </div>
 
                             {/* TikTok Status */}
-                            <div className={`p-5 rounded-2xl border transition-all ${user?.tiktokVerified ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-white/[0.02] border-white/[0.05]'}`}>
+                            <div 
+                                onClick={() => setIsVerifyOpen(true)}
+                                className={`p-5 rounded-2xl border transition-all cursor-pointer group ${user?.tiktokVerified ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-cyan-500/30 hover:bg-cyan-500/5'}`}
+                            >
                                 <div className="flex items-center justify-between mb-3">
                                     <TikTokIcon />
                                     <div className="flex items-center gap-2">
