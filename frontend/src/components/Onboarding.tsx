@@ -25,7 +25,7 @@ const TOUR_STEPS: TourStep[] = [
         target: '#profile-discord-step',
         path: '/clippers/profile',
         title: 'Verification: Discord',
-        content: 'Join our Discord server to confirm your identity. This is required to unlock platform features.',
+        content: 'Connect your Discord to get verified',
         position: 'bottom'
     },
     {
@@ -60,8 +60,8 @@ const TOUR_STEPS: TourStep[] = [
 
 const CustomTick = ({ checked }: { checked: boolean }) => (
     <div className={`w-6 h-6 rounded-lg border transition-all duration-300 flex items-center justify-center ${checked
-            ? 'bg-emerald-500 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]'
-            : 'bg-white/5 border-white/10 hover:border-white/20'
+        ? 'bg-emerald-500 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]'
+        : 'bg-white/5 border-white/10 hover:border-white/20'
         }`}>
         <AnimatePresence>
             {checked && (
@@ -91,7 +91,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     const location = useLocation();
     const [step] = useState(1);
     const [agreed, setAgreed] = useState(false);
-    
+
     // Tour State
     const activeSteps = TOUR_STEPS.filter((_, idx) => {
         if (idx === 0 && user?.discordVerified) return false;
@@ -152,7 +152,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     // Auto-advance logic
     useEffect(() => {
         if (!tourActive) return;
-        
+
         // Dynamic skipping removed in favor of activeSteps filter
 
         if (modalActive) {
@@ -165,7 +165,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
             }
             stepAtModalStart.current = null;
         }
-        
+
         prevModalActive.current = modalActive;
     }, [user, tourActive, tourStepIdx, modalActive, handleNextTour]);
 
@@ -174,7 +174,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         if (!tourActive) return;
 
         const currentStep = activeSteps[tourStepIdx];
-        
+
         // 1. Navigation handling
         if (!location.pathname.startsWith(currentStep.path)) {
             navigate(currentStep.path);
@@ -184,14 +184,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
             // ALWAYS use the Ref to avoid closure issues during high-frequency polling
             const currentIdx = tourStepIdxRef.current;
             const currentStep = activeSteps[currentIdx];
-            
+
             const modalEl = document.querySelector('#verification-modal') || document.querySelector('#withdraw-modal');
             let isReallyActive = false;
             if (modalEl) {
                 const style = window.getComputedStyle(modalEl);
                 if (parseFloat(style.opacity) > 0.1) isReallyActive = true;
             }
-            
+
             setModalActive(isReallyActive);
 
             const el = document.querySelector(currentStep.target);
@@ -229,13 +229,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         if (isTourBooting) {
             return (
                 <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6 text-center">
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="space-y-6"
                     >
                         <div className="relative w-16 h-16 mx-auto">
-                            <motion.div 
+                            <motion.div
                                 animate={{ rotate: 360 }}
                                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                                 className="absolute inset-0 border-t-2 border-emerald-500 rounded-full"
@@ -282,15 +282,15 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                     <motion.div
                         key={modalActive ? 'paused' : `step-${tourStepIdx}`}
                         initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                        animate={{ 
-                            opacity: 1, 
-                            scale: 1, 
+                        animate={{
+                            opacity: 1,
+                            scale: 1,
                             y: 0,
                             x: modalActive || !spotlightRect
                                 ? (isMobile ? (window.innerWidth / 2) - 160 : 24)
-                                : (isMobile 
-                                    ? (window.innerWidth / 2) - 160 
-                                    : (currentStep.position === 'right' 
+                                : (isMobile
+                                    ? (window.innerWidth / 2) - 160
+                                    : (currentStep.position === 'right'
                                         ? (spotlightRect ? spotlightRect.right + 24 : 24)
                                         : (spotlightRect ? spotlightRect.left + (spotlightRect.width / 2) - 160 : (window.innerWidth / 2) - 160))),
                             top: modalActive || !spotlightRect
@@ -319,42 +319,25 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                     {modalActive ? 'Complete Action' : (!spotlightRect ? 'Element Loading...' : currentStep.title)}
                                 </h4>
                                 <p className="text-white/50 text-sm leading-relaxed">
-                                    {modalActive 
-                                        ? 'Finish your action in the window to continue the tour.' 
-                                        : (!spotlightRect 
-                                            ? 'The target element isn\'t visible yet. Please wait or skip if you are finished.' 
+                                    {modalActive
+                                        ? 'Finish your action in the window to continue the tour.'
+                                        : (!spotlightRect
+                                            ? 'The target element isn\'t visible yet. Please wait or skip if you are finished.'
                                             : currentStep.content)
                                     }
                                 </p>
                             </div>
 
-                            {tourStepIdx === 0 && !modalActive && spotlightRect && (
-                                <div className="pt-2">
-                                    <button 
-                                        onClick={() => {
-                                            setDiscordClicked(true);
-                                            window.open('https://discord.gg/rzhvv9Rf42', '_blank');
-                                        }}
-                                        className={`w-full py-3 rounded-xl flex items-center justify-center gap-3 transition-all font-bold text-[10px] uppercase tracking-[0.2em] ${
-                                            discordClicked 
-                                            ? 'bg-white/5 text-white/40 border border-white/10' 
-                                            : 'bg-[#5865F2] text-white shadow-[0_0_20px_rgba(88,101,242,0.3)] hover:scale-[1.02]'
-                                        }`}
-                                    >
-                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01 10.174 10.174 0 0 0 .372.292.077.077 0 0 1-.008.128 12.651 12.651 0 0 1-1.872.892.076.076 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
-                                        {discordClicked ? 'Already Joined' : 'Join Discord Server'}
-                                    </button>
-                                </div>
-                            )}
+
 
                             <div className="pt-4 flex items-center justify-between">
-                                <button 
+                                <button
                                     onClick={onComplete}
                                     className="text-xs font-bold text-white/20 uppercase tracking-widest hover:text-white transition-colors"
                                 >
                                     Skip Tour
                                 </button>
-                                <Button 
+                                <Button
                                     onClick={handleNextTour}
                                     disabled={tourStepIdx === 0 && !discordClicked && !!spotlightRect && !modalActive}
                                     className="rounded-xl px-6 py-2.5 text-xs uppercase font-bold tracking-widest h-auto disabled:opacity-20"
@@ -365,11 +348,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                         </div>
 
                         {!isMobile && !modalActive && spotlightRect && (
-                            <div className={`absolute w-4 h-4 bg-[#0c0c0c] border-l border-t border-white/10 transform rotate-[-45deg] ${
-                                currentStep.position === 'right' 
-                                ? '-left-2 top-1/2 -translate-y-1/2' 
+                            <div className={`absolute w-4 h-4 bg-[#0c0c0c] border-l border-t border-white/10 transform rotate-[-45deg] ${currentStep.position === 'right'
+                                ? '-left-2 top-1/2 -translate-y-1/2'
                                 : 'left-1/2 -top-2 -translate-x-1/2 rotate-[45deg]'
-                            }`} />
+                                }`} />
                         )}
                     </motion.div>
                 </AnimatePresence>
@@ -379,7 +361,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
 
     return (
         <AnimatePresence>
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -391,14 +373,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                     <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
                 </div>
 
-                <motion.div 
+                <motion.div
                     initial={{ scale: 0.9, y: 20, opacity: 0 }}
                     animate={{ scale: 1, y: 0, opacity: 1 }}
                     className="w-full max-w-xl bg-[#0c0c0c] border border-white/10 rounded-[32px] sm:rounded-[40px] shadow-[0_32px_80px_-16px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col max-h-[95vh] sm:max-h-none"
                 >
                     {/* Top Progress Bar */}
                     <div className="absolute top-0 left-0 right-0 h-1 flex">
-                        <motion.div 
+                        <motion.div
                             className="h-full bg-emerald-500 shadow-[0_0_10px_#10b881]"
                             animate={{ width: `${(step / 2) * 100}%` }}
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -408,7 +390,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                     <div className="p-6 sm:p-12 overflow-y-auto custom-scrollbar">
                         <AnimatePresence mode="wait">
                             {step === 1 && (
-                                <motion.div 
+                                <motion.div
                                     key="step-welcome"
                                     initial={{ x: 20, opacity: 0 }}
                                     animate={{ x: 0, opacity: 1 }}
@@ -416,11 +398,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                     className="space-y-10 text-center"
                                 >
                                     <div className="relative inline-flex items-center justify-center scale-75 sm:scale-100">
-                                        <motion.div 
+                                        <motion.div
                                             className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-blue-500/20 blur-3xl opacity-50"
                                             layoutId="demo-glow"
                                         />
-                                        <motion.div 
+                                        <motion.div
                                             initial={{ scale: 0.5, rotate: -10 }}
                                             animate={{ scale: 1, rotate: 0 }}
                                             className="relative z-10"
@@ -443,11 +425,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                     <div className="space-y-6 pt-4">
                                         <label className="flex items-start gap-4 cursor-pointer group text-left px-4">
                                             <div className="relative mt-1">
-                                                <input 
-                                                    type="checkbox" 
+                                                <input
+                                                    type="checkbox"
                                                     checked={agreed}
                                                     onChange={(e) => setAgreed(e.target.checked)}
-                                                    className="peer sr-only" 
+                                                    className="peer sr-only"
                                                 />
                                                 <CustomTick checked={agreed} />
                                             </div>
@@ -457,14 +439,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                         </label>
 
                                         <div className="flex flex-col gap-3 sm:gap-4">
-                                            <Button 
+                                            <Button
                                                 disabled={!agreed}
                                                 onClick={() => setTourActive(true)}
                                                 className="w-full rounded-2xl py-4 sm:py-5 text-[11px] sm:text-sm uppercase font-bold tracking-[0.2em] shadow-[0_20px_40px_-12px_rgba(16,185,129,0.3)] disabled:opacity-50"
                                             >
-                                                Start Interactive Tour
+                                                Start Tour
                                             </Button>
-                                            <button 
+                                            <button
                                                 disabled={!agreed}
                                                 onClick={onComplete}
                                                 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] hover:text-white transition-colors py-1 disabled:opacity-30"
