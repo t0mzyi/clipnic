@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useState, useEffect } from 'react';
-import { Shield, Eye, Clock, Target, Upload, ChevronLeft, X, CheckCircle, Globe, Trophy, Award, Medal, Trash2, AlertCircle } from 'lucide-react';
+import { Shield, Eye, Clock, Target, Upload, ChevronLeft, X, CheckCircle, Globe, Trophy, Award, Medal, Trash2, AlertCircle, History as HistoryIcon } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from 'sweetalert2';
@@ -1293,7 +1293,7 @@ export const CampaignDetails = () => {
                             {campaign?.start_date && (
                                 <div className="mb-8 p-3 rounded-xl bg-amber-500/5 border border-amber-500/10 flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                                        <History className="w-4 h-4 text-amber-500" />
+                                        <HistoryIcon className="w-4 h-4 text-amber-500" />
                                     </div>
                                     <p className="text-[10px] text-amber-500/80 leading-relaxed font-medium">
                                         Only videos published AFTER <span className="text-white font-bold">{new Date(campaign.start_date).toLocaleDateString()}</span> are eligible for this mission.
