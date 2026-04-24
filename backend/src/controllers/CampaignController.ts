@@ -148,10 +148,10 @@ export class CampaignController {
 
       // Log action
       await AuditService.log({
-        actorId: (req as any).user?.id,
+        actorId: (req as any).user?.id || 'system',
         actorRole: 'admin',
         action: 'CAMPAIGN_DELETED',
-        targetId: id,
+        targetId: id as string,
         targetType: 'campaign',
         ip: req.ip
       });

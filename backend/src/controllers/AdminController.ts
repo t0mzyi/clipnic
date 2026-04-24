@@ -94,10 +94,10 @@ export class AdminController {
 
       // Log action
       await AuditService.log({
-        actorId: (req as any).user?.id,
+        actorId: (req as any).user?.id || 'system',
         actorRole: 'admin',
         action: block ? 'USER_BLOCKED' : 'USER_UNBLOCKED',
-        targetId: id,
+        targetId: id as string,
         targetType: 'user',
         metadata: { block },
         ip: req.ip
@@ -137,10 +137,10 @@ export class AdminController {
 
       // Log action
       await AuditService.log({
-        actorId: (req as any).user?.id,
+        actorId: (req as any).user?.id || 'system',
         actorRole: 'admin',
         action: 'USER_ROLE_UPDATED',
-        targetId: id,
+        targetId: id as string,
         targetType: 'user',
         metadata: { newRole: role },
         ip: req.ip
@@ -185,10 +185,10 @@ export class AdminController {
           
           // Log action
           await AuditService.log({
-            actorId: (req as any).user?.id,
+            actorId: (req as any).user?.id || 'system',
             actorRole: 'admin',
             action: 'SUBMISSION_STATUS_UPDATED',
-            targetId: id,
+            targetId: id as string,
             targetType: 'submission',
             metadata: { status, rejectionReason },
             ip: req.ip
