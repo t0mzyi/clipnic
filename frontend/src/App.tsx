@@ -361,7 +361,13 @@ const Layout = () => {
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans flex flex-col md:flex-row">
-            {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} openMenu={() => setMobileMenuOpen(true)} />}
+            {showOnboarding && (
+                <Onboarding 
+                    onComplete={handleOnboardingComplete} 
+                    openMenu={() => setMobileMenuOpen(true)} 
+                    closeMenu={() => setMobileMenuOpen(false)}
+                />
+            )}
             
             {/* Mobile Header - Hidden for Admins as they use the Dock */}
             {!location.pathname.startsWith('/admin') && (

@@ -12,6 +12,7 @@ import { supabase } from '../lib/supabase';
 interface OnboardingProps {
     onComplete: () => void;
     openMenu?: () => void;
+    closeMenu?: () => void;
 }
 
 interface TourStep {
@@ -87,7 +88,7 @@ const CustomTick = ({ checked }: { checked: boolean }) => (
     </div>
 );
 
-export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) => {
+export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, closeMenu }) => {
     const { user, updateUser } = useAuthStore();
     const navigate = useNavigate();
     const location = useLocation();
@@ -104,6 +105,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
     const [modalActive, setModalActive] = useState(false);
     const prevModalActive = useRef(false);
     const pollingRef = useRef<number | null>(null);
+    const stepAtModalStart = useRef<number | null>(null);
 
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
@@ -132,10 +134,12 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
     const handleNextTour = useCallback(() => {
         setTourStepIdx(prev => {
             if (prev < TOUR_STEPS.length - 1) return prev + 1;
+            // Completion
             onComplete();
+            navigate('/clippers/campaigns');
             return prev;
         });
-    }, [onComplete]);
+    }, [onComplete, navigate]);
 
     // Auto-advance logic
     useEffect(() => {
@@ -147,12 +151,17 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
         }
 
         // 2. Auto-advance if modal closed
-        // We use a small timeout to let the DOM actually clear (AnimatePresence)
+        if (modalActive) {
+            if (stepAtModalStart.current === null) {
+                stepAtModalStart.current = tourStepIdx;
+            }
+        }
+
         if (prevModalActive.current === true && modalActive === false) {
-            if (tourStepIdx === 0 || tourStepIdx === 1) {
-                // Check if we are still on that step
+            if (stepAtModalStart.current === tourStepIdx && (tourStepIdx === 0 || tourStepIdx === 1)) {
                 handleNextTour();
             }
+            stepAtModalStart.current = null;
         }
         prevModalActive.current = modalActive;
     }, [user?.discordVerified, tourActive, tourStepIdx, modalActive, handleNextTour]);
@@ -164,21 +173,18 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
         const currentStep = TOUR_STEPS[tourStepIdx];
         
         // 1. Navigation handling
-        if (location.pathname !== currentStep.path) {
+        if (!location.pathname.startsWith(currentStep.path)) {
             navigate(currentStep.path);
         }
 
         // 2. Spotlight Calculation Logic
         const updateSpotlight = () => {
-            // Check for modals blocking the view
-            // We also check for data-exiting attribute if possible, or just trust the state
             const modalEl = document.querySelector('#verification-modal') || document.querySelector('#withdraw-modal');
             
-            // Heuristic: If the modal is fading out (opacity < 0.5), we consider it closed
             let isReallyActive = false;
             if (modalEl) {
                 const style = window.getComputedStyle(modalEl);
-                if (parseFloat(style.opacity) > 0.5) {
+                if (parseFloat(style.opacity) > 0.1) {
                     isReallyActive = true;
                 }
             }
@@ -187,18 +193,20 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
 
             const el = document.querySelector(currentStep.target);
             if (el && !isReallyActive) {
-                // For sidebar items on mobile, we might need to open menu
-                if (isMobile && currentStep.target.startsWith('#sidebar-') && openMenu) {
-                    openMenu();
+                // Mobile Menu Synchronization
+                if (isMobile) {
+                    if (currentStep.target.startsWith('#sidebar-') && openMenu) {
+                        openMenu();
+                    } else if (closeMenu) {
+                        closeMenu(); // Ensure menu is closed for page-content highlights
+                    }
                 }
 
                 const rect = el.getBoundingClientRect();
                 
-                // Only update if rect actually has size (visible)
                 if (rect.width > 0 && rect.height > 0) {
                     setSpotlightRect(rect);
                     
-                    // If it's a main content item (not sidebar), scroll into view if needed
                     if (!currentStep.target.startsWith('#sidebar-')) {
                         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
@@ -214,104 +222,103 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
         return () => {
             if (pollingRef.current) cancelAnimationFrame(pollingRef.current);
         };
-    }, [tourActive, tourStepIdx, location.pathname, isMobile, openMenu, navigate]);
+    }, [tourActive, tourStepIdx, location.pathname, isMobile, openMenu, closeMenu, navigate]);
 
     if (tourActive) {
-        // Build the "hole-punch" path
         const holePath = spotlightRect ? `M 0 0 h ${window.innerWidth} v ${window.innerHeight} h -${window.innerWidth} Z M ${spotlightRect.x - 8} ${spotlightRect.y - 8} h ${spotlightRect.width + 16} v ${spotlightRect.height + 16} h -${spotlightRect.width + 16} Z` : '';
 
         return (
             <div className="fixed inset-0 z-[2000] pointer-events-none">
-                {/* SVG Overlay with Clickable Hole */}
-                <svg className="absolute inset-0 w-full h-full">
-                    {spotlightRect && !modalActive && (
-                        <path
-                            d={holePath}
-                            fill="rgba(0,0,0,0.75)"
-                            fillRule="evenodd"
-                            className="pointer-events-auto backdrop-blur-[1px]"
-                        />
-                    )}
-                    {(modalActive || !spotlightRect) && (
-                        <rect width="100%" height="100%" fill="rgba(0,0,0,0.4)" className="pointer-events-none backdrop-blur-[1px]" />
-                    )}
+                {/* SVG Overlay */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                    <AnimatePresence>
+                        {spotlightRect && !modalActive && (
+                            <motion.path
+                                key="spotlight-path"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                d={holePath}
+                                fill="rgba(0,0,0,0.75)"
+                                fillRule="evenodd"
+                                className="pointer-events-auto backdrop-blur-[1px]"
+                            />
+                        )}
+                    </AnimatePresence>
                 </svg>
 
                 {/* Tooltip */}
                 <AnimatePresence mode="wait">
-                    {(spotlightRect || modalActive) && (
-                        <motion.div
-                            key={modalActive ? 'paused' : tourStepIdx}
-                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                            animate={{ 
-                                opacity: 1, 
-                                scale: 1, 
-                                y: 0,
-                                x: modalActive 
-                                    ? 24 // Move to side
-                                    : (isMobile 
-                                        ? (window.innerWidth / 2) - 160 
-                                        : (TOUR_STEPS[tourStepIdx].position === 'right' 
-                                            ? spotlightRect!.right + 24 
-                                            : spotlightRect!.left + (spotlightRect!.width / 2) - 160)),
-                                top: modalActive
-                                    ? window.innerHeight - 250 // Move to bottom-left
-                                    : (isMobile
-                                        ? (window.innerHeight - 300)
-                                        : (TOUR_STEPS[tourStepIdx].position === 'right'
-                                            ? Math.max(20, spotlightRect!.top + (spotlightRect!.height / 2) - 100)
-                                            : Math.min(window.innerHeight - 250, spotlightRect!.bottom + 24)))
-                            }}
-                            className="absolute z-[2001] w-[320px] sm:w-80 bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto"
-                        >
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
-                                        {modalActive ? 'Tour Paused' : `Step ${tourStepIdx + 1} of ${TOUR_STEPS.length}`}
-                                    </div>
-                                    <button onClick={onComplete} className="text-white/20 hover:text-white transition-colors">
-                                        <X size={16} />
-                                    </button>
+                    <motion.div
+                        key={modalActive ? 'paused' : tourStepIdx}
+                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                        animate={{ 
+                            opacity: 1, 
+                            scale: 1, 
+                            y: 0,
+                            x: modalActive || !spotlightRect
+                                ? (isMobile ? (window.innerWidth / 2) - 160 : 24)
+                                : (isMobile 
+                                    ? (window.innerWidth / 2) - 160 
+                                    : (TOUR_STEPS[tourStepIdx].position === 'right' 
+                                        ? (spotlightRect ? spotlightRect.right + 24 : 24)
+                                        : (spotlightRect ? spotlightRect.left + (spotlightRect.width / 2) - 160 : (window.innerWidth / 2) - 160))),
+                            top: modalActive || !spotlightRect
+                                ? (isMobile ? window.innerHeight - 320 : window.innerHeight - 250)
+                                : (isMobile
+                                    ? (window.innerHeight - 320)
+                                    : (TOUR_STEPS[tourStepIdx].position === 'right'
+                                        ? Math.max(20, (spotlightRect ? spotlightRect.top + (spotlightRect.height / 2) - 100 : window.innerHeight / 2 - 100))
+                                        : Math.min(window.innerHeight - 250, (spotlightRect ? spotlightRect.bottom + 24 : window.innerHeight / 2 + 100))))
+                        }}
+                        className="absolute z-[2001] w-[320px] sm:w-80 bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto"
+                    >
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-[10px] font-bold text-emerald-400 uppercase tracking-widest text-center min-w-[80px]">
+                                    {modalActive ? 'Tour Paused' : (!spotlightRect ? 'Please Wait' : `Step ${tourStepIdx + 1} of ${TOUR_STEPS.length}`)}
                                 </div>
-                                <div className="space-y-2">
-                                    <h4 className="text-lg font-bold text-white tracking-tight">
-                                        {modalActive ? 'Complete Action' : TOUR_STEPS[tourStepIdx].title}
-                                    </h4>
-                                    <p className="text-white/50 text-sm leading-relaxed">
-                                        {modalActive 
-                                            ? 'Finish your action in the window to continue the tour.' 
-                                            : TOUR_STEPS[tourStepIdx].content
-                                        }
-                                    </p>
-                                </div>
-                                {!modalActive && (
-                                    <div className="pt-4 flex items-center justify-between">
-                                        <button 
-                                            onClick={onComplete}
-                                            className="text-xs font-bold text-white/20 uppercase tracking-widest hover:text-white transition-colors"
-                                        >
-                                            Skip Tour
-                                        </button>
-                                        <Button 
-                                            onClick={handleNextTour}
-                                            className="rounded-xl px-6 py-2.5 text-xs uppercase font-bold tracking-widest h-auto"
-                                        >
-                                            {tourStepIdx < 2 ? 'Skip' : (tourStepIdx === TOUR_STEPS.length - 1 ? 'Get Started' : 'Next')}
-                                        </Button>
-                                    </div>
-                                )}
+                                <button onClick={onComplete} className="text-white/20 hover:text-white transition-colors">
+                                    <X size={16} />
+                                </button>
                             </div>
+                            <div className="space-y-2">
+                                <h4 className="text-lg font-bold text-white tracking-tight">
+                                    {modalActive ? 'Complete Action' : (!spotlightRect ? 'Element Loading...' : TOUR_STEPS[tourStepIdx].title)}
+                                </h4>
+                                <p className="text-white/50 text-sm leading-relaxed">
+                                    {modalActive 
+                                        ? 'Finish your action in the window to continue the tour.' 
+                                        : (!spotlightRect 
+                                            ? 'The target element isn\'t visible yet. Please wait or skip if you are finished.' 
+                                            : TOUR_STEPS[tourStepIdx].content)
+                                    }
+                                </p>
+                            </div>
+                            <div className="pt-4 flex items-center justify-between">
+                                <button 
+                                    onClick={onComplete}
+                                    className="text-xs font-bold text-white/20 uppercase tracking-widest hover:text-white transition-colors"
+                                >
+                                    Skip Tour
+                                </button>
+                                <Button 
+                                    onClick={handleNextTour}
+                                    className="rounded-xl px-6 py-2.5 text-xs uppercase font-bold tracking-widest h-auto"
+                                >
+                                    {tourStepIdx < 2 ? 'Skip' : (tourStepIdx === TOUR_STEPS.length - 1 ? 'Get Started' : 'Next')}
+                                </Button>
+                            </div>
+                        </div>
 
-                            {/* Arrow Indicator - Hidden on Mobile or Modal */}
-                            {!isMobile && !modalActive && (
-                                <div className={`absolute w-4 h-4 bg-[#0c0c0c] border-l border-t border-white/10 transform rotate-[-45deg] ${
-                                    TOUR_STEPS[tourStepIdx].position === 'right' 
-                                    ? '-left-2 top-1/2 -translate-y-1/2' 
-                                    : 'left-1/2 -top-2 -translate-x-1/2 rotate-[45deg]'
-                                }`} />
-                            )}
-                        </motion.div>
-                    )}
+                        {!isMobile && !modalActive && spotlightRect && (
+                            <div className={`absolute w-4 h-4 bg-[#0c0c0c] border-l border-t border-white/10 transform rotate-[-45deg] ${
+                                TOUR_STEPS[tourStepIdx].position === 'right' 
+                                ? '-left-2 top-1/2 -translate-y-1/2' 
+                                : 'left-1/2 -top-2 -translate-x-1/2 rotate-[45deg]'
+                            }`} />
+                        )}
+                    </motion.div>
                 </AnimatePresence>
             </div>
         );
@@ -431,7 +438,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
                                             className="relative z-10"
                                         >
                                             <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center border border-white/10 shadow-2xl">
-                                                <img src="/logo.webp" alt="Logo" className="w-12 h-12 object-contain" />
+                                                <img src="/logo.webp" alt="Logo" className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
                                             </div>
                                         </motion.div>
                                     </div>
@@ -464,7 +471,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
                         </AnimatePresence>
                     </div>
                 </motion.div>
-            </motion.div>
+            </div>
         </AnimatePresence>
     );
 };
