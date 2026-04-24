@@ -67,7 +67,7 @@ export class VerificationController {
       }
 
       if (!code || !state) {
-        return res.redirect(`${frontendUrl}/profile?discord_error=missing_params`);
+        return res.redirect(`${frontendUrl}/clippers/profile?discord_error=missing_params`);
       }
 
       let userId: string;
@@ -76,14 +76,14 @@ export class VerificationController {
       const parsedState = verifyState(state as string);
       if (!parsedState) {
           console.error('[DiscordCallback] Invalid or tampered state');
-          return res.redirect(`${frontendUrl}/profile?discord_error=invalid_state`);
+          return res.redirect(`${frontendUrl}/clippers/profile?discord_error=invalid_state`);
       }
       
       userId = parsedState.userId;
       redirectTo = parsedState.redirectTo;
       
-      const successBaseRedirect = redirectTo || `${frontendUrl}/profile`;
-      const errorBaseRedirect = redirectTo || `${frontendUrl}/profile`;
+      const successBaseRedirect = redirectTo || `${frontendUrl}/clippers/profile`;
+      const errorBaseRedirect = redirectTo || `${frontendUrl}/clippers/profile`;
       const clientId = process.env.DISCORD_CLIENT_ID;
       const clientSecret = process.env.DISCORD_CLIENT_SECRET;
       const redirectUri = process.env.DISCORD_REDIRECT_URI;
@@ -158,6 +158,7 @@ export class VerificationController {
 
       const userData = await userRes.json();
       const discordId = userData.id;
+      const discordDisplayName = userData.global_name || userData.username;
 
       // 3. Check Server Membership using the USER's access token
       const guildId = process.env.DISCORD_GUILD_ID || '1298616616459702282';
@@ -183,7 +184,11 @@ export class VerificationController {
       // 4. Update Database
       const { error } = await supabase
         .from('users')
-        .update({ discord_verified: true, discord_id: discordId })
+        .update({ 
+          discord_verified: true, 
+          discord_id: discordId,
+          name: discordDisplayName // Force name to Discord display name
+        })
         .eq('id', userId);
 
       if (error) {
@@ -201,7 +206,7 @@ export class VerificationController {
             return res.status(500).json({ success: false, error: 'Frontend URL not configured' });
         }
         const msg = error.message ? encodeURIComponent(error.message) : 'server_error';
-        return res.redirect(`${frontendUrl}/profile?discord_error=${msg}`);
+        return res.redirect(`${frontendUrl}/clippers/profile?discord_error=${msg}`);
      }
   }
 
@@ -259,13 +264,13 @@ export class VerificationController {
       const parsedState = verifyState(state as string);
       if (!parsedState) {
           console.error('[YouTubeCallback] Invalid or tampered state');
-          return res.redirect(`${frontendUrl}/profile?youtube_error=invalid_state`);
+          return res.redirect(`${frontendUrl}/clippers/profile?youtube_error=invalid_state`);
       }
       userId = parsedState.userId;
       redirectTo = parsedState.redirectTo;
 
-      const successBaseRedirect = redirectTo || `${frontendUrl}/profile`;
-      const errorBaseRedirect = redirectTo || `${frontendUrl}/profile`;
+      const successBaseRedirect = redirectTo || `${frontendUrl}/clippers/profile`;
+      const errorBaseRedirect = redirectTo || `${frontendUrl}/clippers/profile`;
 
       if (error) {
         return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}youtube_error=${encodeURIComponent('Authentication cancelled or failed.')}`);
@@ -365,7 +370,7 @@ export class VerificationController {
     } catch (error: any) {
       console.error('youtubeGoogleCallback error:', error);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      return res.redirect(`${frontendUrl}/profile?youtube_error=${encodeURIComponent(error.message || 'Server error')}`);
+      return res.redirect(`${frontendUrl}/clippers/profile?youtube_error=${encodeURIComponent(error.message || 'Server error')}`);
     }
   }
 

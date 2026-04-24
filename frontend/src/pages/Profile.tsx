@@ -237,7 +237,7 @@ export const Profile = () => {
                             </div>
 
                             {/* YouTube Status */}
-                            <div className={`p-5 rounded-2xl border transition-all ${user?.youtubeVerified ? 'bg-red-500/5 border-red-500/20' : 'bg-white/[0.02] border-white/[0.05] opacity-40'}`}>
+                            <div className={`p-5 rounded-2xl border transition-all ${user?.youtubeVerified ? 'bg-red-500/5 border-red-500/20' : 'bg-white/[0.02] border-white/[0.05]'}`}>
                                 <div className="flex items-center justify-between mb-3">
                                     <Play className={`w-5 h-5 ${user?.youtubeVerified ? 'text-red-500' : 'text-white/20'}`} />
                                     {user?.youtubeVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
@@ -247,7 +247,7 @@ export const Profile = () => {
                             </div>
 
                             {/* Instagram Status */}
-                            <div className={`p-5 rounded-2xl border transition-all ${user?.instagramVerified ? 'bg-pink-500/5 border-pink-500/20' : 'bg-white/[0.02] border-white/[0.05] opacity-40'}`}>
+                            <div className={`p-5 rounded-2xl border transition-all ${user?.instagramVerified ? 'bg-pink-500/5 border-pink-500/20' : 'bg-white/[0.02] border-white/[0.05]'}`}>
                                 <div className="flex items-center justify-between mb-3">
                                     <Camera className={`w-5 h-5 ${user?.instagramVerified ? 'text-pink-500' : 'text-white/20'}`} />
                                     {user?.instagramVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
@@ -257,7 +257,7 @@ export const Profile = () => {
                             </div>
 
                             {/* TikTok Status */}
-                            <div className={`p-5 rounded-2xl border transition-all ${user?.tiktokVerified ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-white/[0.02] border-white/[0.05] opacity-40'}`}>
+                            <div className={`p-5 rounded-2xl border transition-all ${user?.tiktokVerified ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-white/[0.02] border-white/[0.05]'}`}>
                                 <div className="flex items-center justify-between mb-3">
                                     <TikTokIcon />
                                     {user?.tiktokVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
