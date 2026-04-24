@@ -1,7 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Zap } from 'lucide-react';
-import { SOCIAL_LINKS, LEGAL_LINKS, ECOSYSTEM_LINKS } from '../config/links';
+import { SOCIAL_LINKS, ECOSYSTEM_LINKS } from '../config/links';
 
 export const Footer: React.FC = () => {
     return (

@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, X, CheckCircle, Globe, Loader2, Play, Camera, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { X, Loader2, Play, Camera } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -24,7 +24,7 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
     const [linkedHandle, setLinkedHandle] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
     const [error, setError] = useState('');
-    const [showYtCode, setShowYtCode] = useState(false);
+    const [showYtCode] = useState(false);
     const [showIgCode, setShowIgCode] = useState(false);
     const [showTtCode, setShowTtCode] = useState(false);
 

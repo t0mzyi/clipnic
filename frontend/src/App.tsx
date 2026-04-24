@@ -200,7 +200,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
     const [loading, setLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
     const [showOnboarding, setShowOnboarding] = useState(false);
-    const { login, logout, user } = useAuthStore();
+    const { login, logout, user, updateUser } = useAuthStore();
     const location = useLocation();
 
     useEffect(() => {
