@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
     User, 
     X
@@ -15,6 +16,7 @@ interface OnboardingProps {
 
 interface TourStep {
     target: string;
+    path: string;
     title: string;
     content: string;
     position: 'right' | 'left' | 'top' | 'bottom' | 'center';
@@ -23,24 +25,28 @@ interface TourStep {
 const TOUR_STEPS: TourStep[] = [
     {
         target: '#sidebar-profile',
+        path: '/clippers/profile',
         title: 'Your Profile',
         content: 'This is where you link your socials and Discord. Completing your profile is the first step to becoming a verified clipper.',
         position: 'right'
     },
     {
         target: '#sidebar-active-campaigns',
+        path: '/clippers/campaigns',
         title: 'Active Campaigns',
         content: 'Find new missions here. Browse available brands and check current CPM rates to start earning.',
         position: 'right'
     },
     {
         target: '#sidebar-submissions',
+        path: '/clippers/submissions',
         title: 'My Submissions',
         content: 'Track all your submitted clips here. You can see their verification status and view counts in real-time.',
         position: 'right'
     },
     {
         target: '#sidebar-earnings',
+        path: '/clippers/earnings',
         title: 'Earnings & Payouts',
         content: 'Manage your capital here. Track your total revenue and claim your payouts once clips are verified.',
         position: 'right'
@@ -77,6 +83,7 @@ const CustomTick = ({ checked }: { checked: boolean }) => (
 
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) => {
     const { user, updateUser } = useAuthStore();
+    const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [name, setName] = useState(user?.name || '');
     const [bio, setBio] = useState('');
@@ -119,6 +126,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
         const updateSpotlight = () => {
             const currentStep = TOUR_STEPS[tourStepIdx];
             
+            // Navigate to the correct page for this step
+            if (window.location.pathname !== currentStep.path) {
+                navigate(currentStep.path);
+            }
+
             // If it's a sidebar step and we're on mobile, try to open the menu
             if (isMobile && currentStep.target.startsWith('#sidebar-') && openMenu) {
                 openMenu();
@@ -140,7 +152,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
             window.removeEventListener('resize', updateSpotlight);
             clearInterval(interval);
         };
-    }, [tourActive, tourStepIdx, isMobile, openMenu]);
+    }, [tourActive, tourStepIdx, isMobile, openMenu, navigate]);
 
     const handleNextTour = () => {
         if (tourStepIdx < TOUR_STEPS.length - 1) {
@@ -177,9 +189,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
                     <rect 
                         width="100%" 
                         height="100%" 
-                        fill="rgba(0,0,0,0.85)" 
+                        fill="rgba(0,0,0,0.7)" 
                         mask="url(#spotlight-mask)" 
-                        className="backdrop-blur-[2px]"
+                        className="backdrop-blur-[1px]"
                     />
                 </svg>
 
