@@ -108,7 +108,7 @@ export const Profile = () => {
                 {/* Profile Header */}
                 <div className="lg:col-span-1 space-y-6">
                     <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col items-center">
-                        <div id="profile-discord-step" className="relative group">
+                        <div className="relative group">
                             <img 
                                 src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${user?.name}&background=random`} 
                                 className="w-24 h-24 rounded-2xl object-cover border border-white/10" 
@@ -188,7 +188,7 @@ export const Profile = () => {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                              {/* Discord Status */}
-                             <div className={`p-5 rounded-2xl border transition-all ${user?.discordVerified ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-white/[0.02] border-white/[0.05] opacity-40'}`}>
+                             <div id="profile-discord-step" className={`p-5 rounded-2xl border transition-all ${user?.discordVerified ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-white/[0.02] border-white/[0.05] opacity-40'}`}>
                                 <div className="flex items-center justify-between mb-3">
                                     <CheckCircle2 className={`w-5 h-5 ${user?.discordVerified ? 'text-indigo-400' : 'text-white/20'}`} />
                                     {user?.discordVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}

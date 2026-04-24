@@ -506,6 +506,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                             <AnimatePresence mode="wait">
                                 <Routes>
                                     <Route path="/" element={<Navigate to="/clippers/campaigns" replace />} />
+                                    <Route path="/clipper" element={<Navigate to="/clippers/dashboard" replace />} />
                                     
                                     {/* Clipper Routes */}
                                     <Route path="/clippers/dashboard" element={<ClipperDashboard />} />
