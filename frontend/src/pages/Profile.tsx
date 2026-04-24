@@ -17,6 +17,7 @@ export const Profile = () => {
     const [isVerifyOpen, setIsVerifyOpen] = useState(false);
     const [withdrawLoading, setWithdrawLoading] = useState(false);
     const [discordLoading, setDiscordLoading] = useState(false);
+    const [selectedPlatform, setSelectedPlatform] = useState('');
 
     const fetchStats = useCallback(async () => {
         if (!token) return;
@@ -237,7 +238,10 @@ export const Profile = () => {
                             <h3 className="text-lg font-bold text-white uppercase tracking-tight">Social Verification</h3>
                             <Button 
                                 variant="secondary" 
-                                onClick={() => setIsVerifyOpen(true)} 
+                                onClick={() => {
+                                    setSelectedPlatform('');
+                                    setIsVerifyOpen(true);
+                                }} 
                                 className="rounded-xl px-5 py-2 text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10"
                             >
                                 Manage Links
@@ -277,7 +281,10 @@ export const Profile = () => {
 
                             {/* YouTube Status */}
                             <div 
-                                onClick={() => setIsVerifyOpen(true)}
+                                onClick={() => {
+                                    setSelectedPlatform('youtube');
+                                    setIsVerifyOpen(true);
+                                }}
                                 className={`p-5 rounded-2xl border transition-all cursor-pointer group ${user?.youtubeVerified ? 'bg-red-500/5 border-red-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-red-500/30 hover:bg-red-500/5'} sm:col-span-2`}
                             >
                                 <div className="flex items-center justify-between mb-4">
@@ -318,7 +325,10 @@ export const Profile = () => {
 
                             {/* Instagram Status */}
                             <div 
-                                onClick={() => setIsVerifyOpen(true)}
+                                onClick={() => {
+                                    setSelectedPlatform('instagram');
+                                    setIsVerifyOpen(true);
+                                }}
                                 className={`p-5 rounded-2xl border transition-all cursor-pointer group ${user?.instagramVerified ? 'bg-pink-500/5 border-pink-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-pink-500/30 hover:bg-pink-500/5'}`}
                             >
                                 <div className="flex items-center justify-between mb-3">
@@ -344,7 +354,10 @@ export const Profile = () => {
 
                             {/* TikTok Status */}
                             <div 
-                                onClick={() => setIsVerifyOpen(true)}
+                                onClick={() => {
+                                    setSelectedPlatform('tiktok');
+                                    setIsVerifyOpen(true);
+                                }}
                                 className={`p-5 rounded-2xl border transition-all cursor-pointer group ${user?.tiktokVerified ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-cyan-500/30 hover:bg-cyan-500/5'}`}
                             >
                                 <div className="flex items-center justify-between mb-3">
@@ -377,6 +390,7 @@ export const Profile = () => {
                 onClose={() => setIsVerifyOpen(false)} 
                 verifyCode="CLPNIC-VERIFY" 
                 onSync={handleSync} 
+                initialSocial={selectedPlatform}
             />
         </motion.div>
     );
