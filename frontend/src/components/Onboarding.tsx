@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     User, 
     Globe, Upload, DollarSign, 
     TrendingUp, Star, CheckCircle2,
     Plus, MessageSquare, ShieldCheck,
-    ChevronRight, X
+    X
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Button } from './ui/Button';

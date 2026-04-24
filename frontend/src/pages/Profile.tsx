@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { ShieldCheck, Mail, Scissors, Eye, Wallet, Trash2, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import { supabase } from '../lib/supabase';
 import { useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { Dropdown } from '../components/Dropdown';
