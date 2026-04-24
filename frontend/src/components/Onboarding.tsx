@@ -105,7 +105,17 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     const tourStepIdxRef = useRef(0);
     const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
     const [modalActive, setModalActive] = useState(false);
+    const [isTourBooting, setIsTourBooting] = useState(false);
     const prevModalActive = useRef(false);
+
+    // Initial tour boot delay to prevent glitches
+    useEffect(() => {
+        if (tourActive && !spotlightRect && !isTourBooting) {
+            setIsTourBooting(true);
+            const timer = setTimeout(() => setIsTourBooting(false), 1200);
+            return () => clearTimeout(timer);
+        }
+    }, [tourActive]);
     const pollingRef = useRef<number | null>(null);
     const stepAtModalStart = useRef<number | null>(null);
 
@@ -217,6 +227,33 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     }, [tourActive, isMobile, openMenu, closeMenu, navigate, tourStepIdx, location.pathname]);
 
     if (tourActive) {
+        if (isTourBooting) {
+            return (
+                <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6 text-center">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-6"
+                    >
+                        <div className="relative w-16 h-16 mx-auto">
+                            <motion.div 
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                className="absolute inset-0 border-t-2 border-emerald-500 rounded-full"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Zap className="w-6 h-6 text-emerald-500 fill-emerald-500" />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <h3 className="text-xl font-display uppercase tracking-widest text-white">Calibrating</h3>
+                            <p className="text-white/30 text-xs font-mono uppercase tracking-[0.2em]">Synchronizing Tour Protocol</p>
+                        </div>
+                    </motion.div>
+                </div>
+            );
+        }
+
         const currentStep = activeSteps[tourStepIdx];
         const holePath = spotlightRect ? `M 0 0 h ${window.innerWidth} v ${window.innerHeight} h -${window.innerWidth} Z M ${spotlightRect.x - 8} ${spotlightRect.y - 8} h ${spotlightRect.width + 16} v ${spotlightRect.height + 16} h -${spotlightRect.width + 16} Z` : '';
 
