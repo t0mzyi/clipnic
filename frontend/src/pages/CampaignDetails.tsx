@@ -361,7 +361,7 @@ export const CampaignDetails = () => {
     if (!campaign) return (
         <div className="text-center py-24">
             <p className="text-white/30 text-sm mb-6">Campaign not found.</p>
-            <Link to="/campaigns" className="text-white/50 hover:text-white text-sm underline">Back to Campaigns</Link>
+            <Link to="/clippers/campaigns" className="text-white/50 hover:text-white text-sm underline">Back to Campaigns</Link>
         </div>
     );
 
@@ -543,7 +543,7 @@ export const CampaignDetails = () => {
             className="max-w-6xl mx-auto space-y-8"
         >
             {/* Back Nav */}
-            <Link to="/campaigns" className="inline-flex items-center gap-2 text-white/30 hover:text-white/60 transition-colors text-sm group">
+            <Link to="/clippers/campaigns" className="inline-flex items-center gap-2 text-white/30 hover:text-white/60 transition-colors text-sm group">
                 <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
                 Back to Campaigns
             </Link>

@@ -44,7 +44,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
     return (
         <aside className={`fixed left-0 top-0 h-[100dvh] w-72 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-500 ease-[0.16,1,0.3,1] md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} ${isAdminPortal ? 'hidden md:hidden' : 'flex'}`}>
             <div className="flex items-center justify-between mb-8">
-                <Link to="/campaigns" className="flex items-center gap-2 group">
+                <Link to="/clippers/campaigns" className="flex items-center gap-2 group">
                     <img src="/logo.webp" alt="Logo" className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
                     <span className="text-xl font-bold tracking-tight text-premium-white">
                         CLIPNIC.COM
@@ -59,31 +59,31 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
             {!isAdminPortal ? (
                 <>
                     <nav className="flex flex-col gap-2 text-sm font-medium mb-8 mt-14">
-                        <Link onClick={closeMenu} to="/campaigns" className={`transition-all py-3 px-4 rounded-xl flex items-center gap-3 ${location.pathname === '/campaigns' ? 'bg-white/15 text-white font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
-                            <Globe size={18} className={location.pathname === '/campaigns' ? 'text-emerald-400' : ''} />
+                        <Link onClick={closeMenu} to="/clippers/campaigns" className={`transition-all py-3 px-4 rounded-xl flex items-center gap-3 ${location.pathname === '/clippers/campaigns' ? 'bg-white/15 text-white font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
+                            <Globe size={18} className={location.pathname === '/clippers/campaigns' ? 'text-emerald-400' : ''} />
                             <span className="glassy-text">Active Campaigns</span>
                         </Link>
                     </nav>
 
                     <div className="mb-4 text-xs font-bold text-white/20 uppercase tracking-[0.2em] px-4 py-2 rounded-xl glassy-glow-premium">Clipper Portal</div>
                     <nav className="flex flex-col gap-2 text-sm font-medium mb-10 overflow-y-auto">
-                        <Link onClick={closeMenu} to="/dashboard" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/dashboard' ? 'bg-white/15 text-white border border-white/5' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link onClick={closeMenu} to="/clippers/dashboard" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/clippers/dashboard' ? 'bg-white/15 text-white border border-white/5' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
                             <LayoutGrid size={18} />
                             <span className="glassy-text">Dashboard</span>
                         </Link>
-                        <Link onClick={closeMenu} to="/campaigns/joined" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/campaigns/joined' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link onClick={closeMenu} to="/clippers/campaigns/joined" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/clippers/campaigns/joined' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <Target size={18} />
                             <span className="glassy-text">Joined Campaigns</span>
                         </Link>
-                        <Link onClick={closeMenu} to="/submissions" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/submissions') ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link onClick={closeMenu} to="/clippers/submissions" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname.startsWith('/clippers/submissions') ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <Upload size={18} />
                             <span className="glassy-text">My Submissions</span>
                         </Link>
-                        <Link onClick={closeMenu} to="/earnings" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/earnings' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link onClick={closeMenu} to="/clippers/earnings" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/clippers/earnings' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <DollarSign size={18} />
                             <span className="glassy-text">Earnings</span>
                         </Link>
-                        <Link onClick={closeMenu} to="/profile" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/profile' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
+                        <Link onClick={closeMenu} to="/clippers/profile" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/clippers/profile' ? 'bg-white/15 text-white border border-white/5' : 'text-white/50 hover:text-white/90 hover:bg-white/5'}`}>
                             <UserIcon size={18} />
                             <span className="glassy-text">Profile</span>
                         </Link>
@@ -94,7 +94,7 @@ const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void
             <div className="mt-auto pt-6 border-t border-white/5 space-y-2">
                 {isAdmin && (
                     <Link
-                        to={isAdminPortal ? "/dashboard" : "/admin"}
+                        to={isAdminPortal ? "/clippers/dashboard" : "/admin"}
                         onClick={closeMenu}
                         className="w-full transition-all py-3 px-4 rounded-xl flex items-center gap-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 font-bold text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.1)] group"
                     >
@@ -131,7 +131,7 @@ const AdminDock = () => {
         { to: '/admin/payouts', icon: DollarSign, label: 'Payouts' },
         { to: '/admin/users', icon: Users, label: 'Users' },
         { to: '/admin/settings', icon: Settings, label: 'Setup' },
-        { to: '/dashboard', icon: UserIcon, label: 'Exit Admin', color: 'text-emerald-400' }
+        { to: '/clippers/dashboard', icon: UserIcon, label: 'Exit Admin', color: 'text-emerald-400' }
     ];
 
     return (
@@ -175,7 +175,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     const location = useLocation();
 
     if (!user || user.role !== 'admin') {
-        return <Navigate to="/dashboard" replace state={{ from: location }} />;
+        return <Navigate to="/clippers/dashboard" replace state={{ from: location }} />;
     }
 
     return <>{children}</>;
@@ -326,7 +326,7 @@ const Layout = () => {
 
     // If logged in and on login page, redirect to dashboard
     if (session && location.pathname === '/login') {
-        return <Navigate to="/dashboard" replace />;
+        return <Navigate to="/clippers/dashboard" replace />;
     }
 
     // Show login page without sidebar layout
@@ -346,7 +346,7 @@ const Layout = () => {
             {/* Mobile Header - Hidden for Admins as they use the Dock */}
             {!location.pathname.startsWith('/admin') && (
                 <div className="md:hidden sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-between px-6">
-                    <Link to="/campaigns" className="flex items-center gap-2">
+                    <Link to="/clippers/campaigns" className="flex items-center gap-2">
                         <img src="/logo.webp" alt="Logo" className="h-7 w-auto object-contain" />
                         <span className="text-lg font-bold tracking-tight text-premium-white">
                             clipnic.com
@@ -373,14 +373,27 @@ const Layout = () => {
                 <div className="px-4 sm:px-6 md:px-12 pt-6 md:pt-16 pb-24 max-w-7xl mx-auto">
                     <AnimatePresence mode="wait">
                         <Routes>
-                            <Route path="/" element={<Navigate to="/campaigns" replace />} />
-                            <Route path="/dashboard" element={<ClipperDashboard />} />
-                            <Route path="/campaigns" element={<CampaignsFeed />} />
-                            <Route path="/campaigns/joined" element={<JoinedCampaigns />} />
-                            <Route path="/campaigns/:id" element={<CampaignDetails />} />
-                            <Route path="/submissions" element={<MySubmissions />} />
-                            <Route path="/earnings" element={<Earnings />} />
-                            <Route path="/profile" element={<Profile />} />
+                            <Route path="/" element={<Navigate to="/clippers/campaigns" replace />} />
+                            
+                            {/* Clipper Routes */}
+                            <Route path="/clippers/dashboard" element={<ClipperDashboard />} />
+                            <Route path="/clippers/campaigns" element={<CampaignsFeed />} />
+                            <Route path="/clippers/campaigns/joined" element={<JoinedCampaigns />} />
+                            <Route path="/clippers/campaigns/:id" element={<CampaignDetails />} />
+                            <Route path="/clippers/submissions" element={<MySubmissions />} />
+                            <Route path="/clippers/earnings" element={<Earnings />} />
+                            <Route path="/clippers/profile" element={<Profile />} />
+
+                            {/* Legacy Redirects */}
+                            <Route path="/dashboard" element={<Navigate to="/clippers/dashboard" replace />} />
+                            <Route path="/campaigns" element={<Navigate to="/clippers/campaigns" replace />} />
+                            <Route path="/campaigns/joined" element={<Navigate to="/clippers/campaigns/joined" replace />} />
+                            <Route path="/campaigns/:id" element={<Navigate to="/clippers/campaigns/:id" replace />} />
+                            <Route path="/submissions" element={<Navigate to="/clippers/submissions" replace />} />
+                            <Route path="/earnings" element={<Navigate to="/clippers/earnings" replace />} />
+                            <Route path="/profile" element={<Navigate to="/clippers/profile" replace />} />
+
+                            {/* Admin Routes */}
                             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
                             <Route path="/admin/campaigns" element={<AdminRoute><AdminCampaigns /></AdminRoute>} />
                             <Route path="/admin/campaigns/:id" element={<AdminRoute><AdminCampaignDetails /></AdminRoute>} />

@@ -314,7 +314,7 @@ export const CampaignsFeed = () => {
 
                         return (
                             <MotionLink
-                                to={`/campaigns/${campaign.id}`}
+                                to={`/clippers/campaigns/${campaign.id}`}
                                 key={campaign.id}
                                 layoutId={`card-${campaign.id}`}
                                 whileHover={{ y: -4 }}

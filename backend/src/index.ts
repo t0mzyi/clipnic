@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import campaignRoutes from './routes/campaignRoutes';
 import authRoutes from './routes/authRoutes';
 import adminRoutes from './routes/adminRoutes';
@@ -13,15 +15,34 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Security: Helmet for various HTTP headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https:", "http:"],
+      connectSrc: ["'self'", "https:", "http:", "wss:", "ws:"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'", "https:", "http:"],
+      frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com"]
+    }
+  },
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
 // CORS configuration
 const allowedOrigins = [
   process.env.FRONTEND_URL,
-  'http://localhost:5173'
+  'http://localhost:5173',
+  'https://clipnic.com',
+  'https://www.clipnic.com'
 ].filter(Boolean) as string[];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
       callback(null, true);
@@ -29,12 +50,35 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
-app.use(express.json());
+
+app.use(express.json({ limit: '100kb' })); // Limit body size
+
+// Rate Limiting
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300, // Limit each IP to 300 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many requests, please try again later.' }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20, // Limit each IP to 20 auth requests per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many authentication attempts, please try again in an hour.' }
+});
+
+// Apply global limiter to all routes
+app.use(globalLimiter);
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/submissions', submissionRoutes);
@@ -42,11 +86,16 @@ app.use('/api/monitor', monitorRoutes);
 
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
+  // Don't leak stack traces in production
+  if (process.env.NODE_ENV !== 'development') {
+      delete err.stack;
+  } else {
+      console.error(err.stack);
+  }
   
-  // Log critical server errors to Discord
+  // Log critical server errors
   if (!err.status || err.status >= 500) {
-    LoggerService.error('Backend Server Error', `**Route**: ${req.method} ${req.path}\n**Error**: ${err.message}\n\`\`\`${err.stack?.slice(0, 500)}...\`\`\``);
+    LoggerService.error('Backend Server Error', `**Route**: ${req.method} ${req.path}\n**Error**: ${err.message}`);
   }
 
   res.status(err.status || 500).json({

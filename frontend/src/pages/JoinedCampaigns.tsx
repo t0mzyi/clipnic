@@ -65,7 +65,7 @@ export const JoinedCampaigns = () => {
                         <h3 className="text-xl font-bold text-white/60">No Active Campaigns</h3>
                         <p className="text-white/25 text-sm max-w-xs">You haven't joined any campaigns yet. Browse the feed to find a campaign.</p>
                     </div>
-                    <Link to="/campaigns" className="px-8 py-3 rounded-2xl bg-white text-zinc-950 font-bold text-sm hover:scale-105 transition-all">
+                    <Link to="/clippers/campaigns" className="px-8 py-3 rounded-2xl bg-white text-zinc-950 font-bold text-sm hover:scale-105 transition-all">
                         Browse Campaigns
                     </Link>
                 </div>
@@ -115,7 +115,7 @@ export const JoinedCampaigns = () => {
                                 </div>
 
                                 <Link 
-                                    to={`/campaigns/${camp.id}`}
+                                    to={`/clippers/campaigns/${camp.id}`}
                                     className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-all group/btn"
                                 >
                                     Campaign Control
