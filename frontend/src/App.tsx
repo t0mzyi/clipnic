@@ -320,21 +320,26 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                             'Authorization': `Bearer ${session.access_token}`
                         }
                     });
-                    const result = await response.json();
-                    if (result.success) {
-                        const userData = {
-                            ...result.data,
-                            avatarUrl: result.data.avatar_url,
-                            discordVerified: result.data.discord_verified,
-                            discordId: result.data.discord_id,
-                            youtubeVerified: result.data.youtube_verified,
-                            youtubeHandle: result.data.youtube_handle,
-                            youtubeChannels: result.data.youtube_channels,
-                            instagramVerified: result.data.instagram_verified,
-                            instagramHandle: result.data.instagram_handle,
-                            onboardingCompleted: result.data.onboarding_completed
-                        };
-                        login(userData, session.access_token, result.settings);
+                    if (response.ok) {
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            const result = await response.json();
+                            if (result.success) {
+                                const userData = {
+                                    ...result.data,
+                                    avatarUrl: result.data.avatar_url,
+                                    discordVerified: result.data.discord_verified,
+                                    discordId: result.data.discord_id,
+                                    youtubeVerified: result.data.youtube_verified,
+                                    youtubeHandle: result.data.youtube_handle,
+                                    youtubeChannels: result.data.youtube_channels,
+                                    instagramVerified: result.data.instagram_verified,
+                                    instagramHandle: result.data.instagram_handle,
+                                    onboardingCompleted: result.data.onboarding_completed
+                                };
+                                login(userData, session.access_token, result.settings);
+                            }
+                        }
                     }
                 } catch (err) {
                     console.error('Failed to sync with backend:', err);

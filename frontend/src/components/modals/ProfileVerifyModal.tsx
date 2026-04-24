@@ -25,8 +25,6 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync, initia
     const [isVerifying, setIsVerifying] = useState(false);
     const [showCode, setShowCode] = useState(false);
 
-    if (!isOpen) return null;
-
     // Sync step and social when modal opens or user verification changes
     useEffect(() => {
         if (isOpen) {
@@ -38,6 +36,8 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync, initia
             }
         }
     }, [isOpen, user?.discordVerified, initialSocial]);
+
+    if (!isOpen) return null;
 
     const handleDiscordLink = async () => {
         setIsVerifying(true);

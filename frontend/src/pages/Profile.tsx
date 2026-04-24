@@ -25,8 +25,13 @@ export const Profile = () => {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/stats/my`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const json = await res.json();
-            if (json.success) setStats(json.data);
+            if (res.ok) {
+                const contentType = res.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const json = await res.json();
+                    if (json.success) setStats(json.data);
+                }
+            }
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
     }, [token]);
@@ -37,20 +42,25 @@ export const Profile = () => {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/sync`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const result = await res.json();
-            if (result.success) {
-                updateUser({
-                    ...result.data,
-                    avatarUrl: result.data.avatar_url,
-                    discordVerified: result.data.discord_verified,
-                    youtubeVerified: result.data.youtube_verified,
-                    youtubeHandle: result.data.youtube_handle,
-                    instagramVerified: result.data.instagram_verified,
-                    instagramHandle: result.data.instagram_handle,
-                    tiktokVerified: result.data.tiktok_verified,
-                    tiktokHandle: result.data.tiktok_handle,
-                    youtubeChannels: result.data.youtube_channels || []
-                });
+            if (res.ok) {
+                const contentType = res.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const result = await res.json();
+                    if (result.success) {
+                        updateUser({
+                            ...result.data,
+                            avatarUrl: result.data.avatar_url,
+                            discordVerified: result.data.discord_verified,
+                            youtubeVerified: result.data.youtube_verified,
+                            youtubeHandle: result.data.youtube_handle,
+                            instagramVerified: result.data.instagram_verified,
+                            instagramHandle: result.data.instagram_handle,
+                            tiktokVerified: result.data.tiktok_verified,
+                            tiktokHandle: result.data.tiktok_handle,
+                            youtubeChannels: result.data.youtube_channels || []
+                        });
+                    }
+                }
             }
         } catch (err) { console.error(err); }
     };
