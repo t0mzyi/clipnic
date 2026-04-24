@@ -52,7 +52,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     const demoSteps = [
         {
             title: "Welcome to Clipnic",
-            description: "Your journey to becoming a top-tier brand ambassador starts here. We help clippers connect with brands and earn for their creativity.",
+            description: "Clipnic is the primary infrastructure for turning engagement into capital. We pay clippers for high velocity shortform content.",
             icon: <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center border border-white/10 shadow-2xl">
                     <img src="/logo.webp" alt="Logo" className="w-12 h-12 object-contain" />
                   </div>,
