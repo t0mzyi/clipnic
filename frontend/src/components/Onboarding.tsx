@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-    X
-} from 'lucide-react';
+import { X, Zap } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Button } from './ui/Button';
 import { supabase } from '../lib/supabase';
@@ -339,7 +337,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                     onClick={handleNextTour}
                                     className="rounded-xl px-6 py-2.5 text-xs uppercase font-bold tracking-widest h-auto"
                                 >
-                                    {tourStepIdx < 2 ? 'Skip' : (tourStepIdx === TOUR_STEPS.length - 1 ? 'Get Started' : 'Next')}
+                                    {tourStepIdx < 2 ? 'Skip' : (tourStepIdx === activeSteps.length - 1 ? 'Get Started' : 'Next')}
                                 </Button>
                             </div>
                         </div>
