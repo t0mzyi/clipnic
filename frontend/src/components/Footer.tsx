@@ -1,7 +1,6 @@
 import React from 'react';
-import { Instagram, Twitter, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { SOCIAL_LINKS, LEGAL_LINKS, ECOSYSTEM_LINKS } from '../config/links';
-import { motion } from 'framer-motion';
 
 export const Footer: React.FC = () => {
     return (
@@ -36,11 +35,11 @@ export const Footer: React.FC = () => {
                         <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">Transmissions</h4>
                         <div className="flex flex-col gap-3">
                             <a href={SOCIAL_LINKS.twitter} className="text-sm text-white/40 hover:text-white transition-colors flex items-center gap-2">
-                                <Twitter className="w-4 h-4" /> Twitter / X
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Twitter / X
                             </a>
                             <a href={SOCIAL_LINKS.discord} className="text-sm text-white/40 hover:text-white transition-colors">Discord Guild</a>
                             <a href={SOCIAL_LINKS.instagram} className="text-sm text-white/40 hover:text-white transition-colors flex items-center gap-2">
-                                <Instagram className="w-4 h-4" /> Instagram
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg> Instagram
                             </a>
                         </div>
                     </div>

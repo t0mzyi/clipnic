@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-    User, 
     X
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
@@ -89,13 +88,11 @@ const CustomTick = ({ checked }: { checked: boolean }) => (
 );
 
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, closeMenu }) => {
-    const { user, updateUser } = useAuthStore();
+    const { user } = useAuthStore();
     const navigate = useNavigate();
     const location = useLocation();
     const [step, setStep] = useState(1);
     const [name, setName] = useState(user?.name || '');
-    const [bio, setBio] = useState('');
-    const [isSaving, setIsSaving] = useState(false);
     const [agreed, setAgreed] = useState(false);
     
     // Tour State
@@ -127,17 +124,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         }
     }, [user]);
 
-    const handleSaveProfile = async () => {
+    const handleSaveProfile = () => {
         if (!agreed) return;
-        setIsSaving(true);
-        try {
-            // Just update agreement timestamp if needed, or just move to welcome
-            setStep(2);
-        } catch (err) {
-            console.error('Failed to proceed:', err);
-        } finally {
-            setIsSaving(false);
-        }
+        setStep(2);
     };
 
     const handleNextTour = useCallback(() => {

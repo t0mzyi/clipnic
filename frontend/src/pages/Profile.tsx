@@ -446,25 +446,6 @@ export const Profile = () => {
         }
     };
 
-    const handleSaveSettings = async () => {
-        setIsSaving(true);
-        try {
-            const { error } = await supabase
-                .from('users')
-                .update({ name: user?.name, bio: user?.bio })
-                .eq('id', user?.id);
-            
-            if (error) throw error;
-            
-            Toast.fire({ title: 'Profile Updated', icon: 'success' });
-            setIsSettingsOpen(false);
-        } catch (err) {
-            Toast.fire({ title: 'Error', text: 'Failed to update profile', icon: 'error' });
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
     return (
         <>
             <motion.div

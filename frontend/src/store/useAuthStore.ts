@@ -19,6 +19,7 @@ interface User {
   tiktokHandle?: string;
   bio?: string;
   created_at?: string;
+  user_metadata?: any;
 }
 
 interface AuthState {
