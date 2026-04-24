@@ -73,17 +73,10 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync }: Prof
                             {isVerifying ? <Loader2 className="animate-spin w-4 h-4 mx-auto" /> : 'Link Discord'}
                         </Button>
                         <button 
-                            onClick={() => {
-                                if (user?.discordVerified) {
-                                    setStep(2);
-                                } else {
-                                    Toast.fire({ title: 'Discord Required', text: 'Please link your Discord first to unlock other platforms.', icon: 'warning' });
-                                }
-                            }} 
-                            className="w-full text-[10px] text-white/30 uppercase tracking-[0.2em] hover:text-white transition-colors flex items-center justify-center gap-2"
+                            onClick={() => setStep(2)} 
+                            className="w-full text-[10px] text-white/30 uppercase tracking-[0.2em] hover:text-white transition-colors"
                         >
                             Skip to Socials
-                            {!user?.discordVerified && <ShieldCheck size={10} className="text-white/20" />}
                         </button>
                     </div>
                 ) : (
