@@ -50,6 +50,34 @@ const TOUR_STEPS: TourStep[] = [
     }
 ];
 
+const CustomTick = ({ checked }: { checked: boolean }) => (
+    <div className={`w-6 h-6 rounded-lg border transition-all duration-300 flex items-center justify-center ${
+        checked 
+            ? 'bg-emerald-500 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]' 
+            : 'bg-white/5 border-white/10 hover:border-white/20'
+    }`}>
+        <AnimatePresence>
+            {checked && (
+                <motion.svg
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    exit={{ pathLength: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="w-4 h-4 text-black"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                >
+                    <motion.polyline points="20 6 9 17 4 12" />
+                </motion.svg>
+            )}
+        </AnimatePresence>
+    </div>
+);
+
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) => {
     const { user, updateUser } = useAuthStore();
     const [step, setStep] = useState(1);
@@ -339,9 +367,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
                                                     onChange={(e) => setAgreed(e.target.checked)}
                                                     className="peer sr-only" 
                                                 />
-                                                <div className="w-5 h-5 flex items-center justify-center transition-all">
-                                                    <CheckCircle2 className={`w-5 h-5 transition-all ${agreed ? 'text-emerald-400 scale-110' : 'text-white/10'}`} />
-                                                </div>
+                                                <CustomTick checked={agreed} />
                                             </div>
                                             <p className="text-xs text-white/30 leading-relaxed group-hover:text-white/50 transition-colors">
                                                 By continuing, you agree to our <span className="text-emerald-400 font-medium hover:underline cursor-pointer">Clipper Terms & Conditions</span>, <span className="text-white/60">Terms of Service</span>, and <span className="text-white/60">Privacy Policy</span>.
