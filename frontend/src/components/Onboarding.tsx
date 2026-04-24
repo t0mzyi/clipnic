@@ -356,7 +356,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                 </button>
                                 <Button 
                                     onClick={handleNextTour}
-                                    disabled={tourStepIdx === 0 && !discordClicked && spotlightRect && !modalActive}
+                                    disabled={tourStepIdx === 0 && !discordClicked && !!spotlightRect && !modalActive}
                                     className="rounded-xl px-6 py-2.5 text-xs uppercase font-bold tracking-widest h-auto disabled:opacity-20"
                                 >
                                     {tourStepIdx === 0 ? 'Proceed' : (tourStepIdx === activeSteps.length - 1 ? 'Get Started' : 'Next')}
