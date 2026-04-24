@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { X, Loader2, Play, Camera } from 'lucide-react';
+import { X, Loader2, Play, Camera, ShieldCheck } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -72,14 +72,19 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync }: Prof
                         <Button variant="primary" onClick={handleDiscordLink} disabled={isVerifying} className="w-full py-4 rounded-2xl bg-[#5865F2] text-white">
                             {isVerifying ? <Loader2 className="animate-spin w-4 h-4 mx-auto" /> : 'Link Discord'}
                         </Button>
-                        {user?.discordVerified && (
-                            <button 
-                                onClick={() => setStep(2)} 
-                                className="w-full text-[10px] text-white/30 uppercase tracking-[0.2em] hover:text-white transition-colors"
-                            >
-                                Skip to Socials
-                            </button>
-                        )}
+                        <button 
+                            onClick={() => {
+                                if (user?.discordVerified) {
+                                    setStep(2);
+                                } else {
+                                    Toast.fire({ title: 'Discord Required', text: 'Please link your Discord first to unlock other platforms.', icon: 'warning' });
+                                }
+                            }} 
+                            className="w-full text-[10px] text-white/30 uppercase tracking-[0.2em] hover:text-white transition-colors flex items-center justify-center gap-2"
+                        >
+                            Skip to Socials
+                            {!user?.discordVerified && <ShieldCheck size={10} className="text-white/20" />}
+                        </button>
                     </div>
                 ) : (
                     <div className="space-y-6">
