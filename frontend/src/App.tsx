@@ -57,12 +57,12 @@ const BrandUnderConstruction = () => (
             </motion.div>
             <div className="space-y-4">
                 <h1 className="text-5xl font-bold tracking-tighter uppercase glassy-text">Under Development</h1>
-                <p className="text-white/40 text-lg font-light">The brands webpage is currently under development. For inquiries or to get started, please contact us via Discord.</p>
+                <p className="text-white/40 text-lg font-light">This webpage is currently under development. For inquiries or to get started, please contact us via Discord.</p>
             </div>
             <div className="pt-8 flex flex-col sm:flex-row justify-center gap-4">
-                <a 
-                    href="https://discord.gg/8KXdFCxZsR" 
-                    target="_blank" 
+                <a
+                    href="https://discord.gg/8KXdFCxZsR"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="px-8 py-3 rounded-full bg-[#5865F2] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#4752C4] transition-all flex items-center justify-center gap-2"
                 >
@@ -85,7 +85,7 @@ const NotFound = () => (
                 <div className="w-32 h-32 bg-white/5 rounded-[40px] flex items-center justify-center border border-white/10 shadow-2xl relative z-10">
                     <LayoutGrid size={48} className="text-white/10" />
                 </div>
-                <motion.div 
+                <motion.div
                     animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
                     transition={{ duration: 4, repeat: Infinity }}
                     className="absolute inset-0 bg-white/10 blur-3xl -z-10 rounded-full"
@@ -388,7 +388,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
             try {
                 // 1. Update store immediately for UI responsiveness
                 updateUser({ onboardingCompleted: true });
-                
+
                 // 2. Persist to database
                 await supabase
                     .from('users')
@@ -408,14 +408,14 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
             <div className="min-h-screen bg-[#050505] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-8">
                     <motion.div
-                        animate={{ 
+                        animate={{
                             scale: [0.98, 1.05, 0.98],
                             opacity: [0.4, 0.8, 0.4]
                         }}
-                        transition={{ 
-                            duration: 2.5, 
+                        transition={{
+                            duration: 2.5,
                             repeat: Infinity,
-                            ease: "easeInOut" 
+                            ease: "easeInOut"
                         }}
                         className="relative"
                     >
@@ -461,16 +461,16 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans flex flex-col">
             {showOnboarding && (
-                <Onboarding 
-                    onComplete={handleOnboardingComplete} 
-                    openMenu={() => setMobileMenuOpen(true)} 
+                <Onboarding
+                    onComplete={handleOnboardingComplete}
+                    openMenu={() => setMobileMenuOpen(true)}
                     closeMenu={() => setMobileMenuOpen(false)}
                 />
             )}
-            
+
             <div className="flex flex-1 relative">
                 <Sidebar isOpen={mobileMenuOpen} closeMenu={() => setMobileMenuOpen(false)} onReportBug={onReportBug} />
-                
+
                 <div className="flex-1 flex flex-col min-w-0 relative">
                     {/* Mobile Header */}
                     {!location.pathname.startsWith('/admin') && (
@@ -508,7 +508,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                                 <Routes>
                                     <Route path="/" element={<Navigate to="/clippers/campaigns" replace />} />
                                     <Route path="/clipper" element={<Navigate to="/clippers/dashboard" replace />} />
-                                    
+
                                     {/* Clipper Routes */}
                                     <Route path="/clippers/dashboard" element={<ClipperDashboard />} />
                                     <Route path="/clippers/campaigns" element={<CampaignsFeed />} />
