@@ -6,7 +6,7 @@ import {
     Video, AlertCircle, Clock, Smartphone, Shield, Mail, Activity
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-import Swal from 'sweetalert2';
+import Swal from '../lib/swal';
 import { Dropdown } from '../components/Dropdown';
 import { motion, AnimatePresence } from 'framer-motion';
 

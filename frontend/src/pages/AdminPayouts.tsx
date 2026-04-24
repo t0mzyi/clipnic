@@ -7,7 +7,7 @@ import {
     Search,
     AlertCircle, Wallet, Calendar, DollarSign, Users
 } from 'lucide-react';
-import Swal from 'sweetalert2';
+import Swal from '../lib/swal';
 
 export const AdminPayouts = () => {
     const { token } = useAuthStore();

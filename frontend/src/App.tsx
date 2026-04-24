@@ -38,6 +38,9 @@ import { useAuthStore } from './store/useAuthStore';
 import { Onboarding } from './components/Onboarding';
 import { Footer } from './components/Footer';
 import { BugReportModal } from './components/BugReportModal';
+import { AlertModal } from './components/ui/AlertModal';
+import { ToastContainer } from './components/ui/ToastContainer';
+
 
 const BrandUnderConstruction = () => (
     <div className="min-h-screen bg-black flex items-center justify-center p-6 text-center">
@@ -501,10 +504,13 @@ function App() {
 
     return (
         <BrowserRouter>
+            <AlertModal />
+            <ToastContainer />
             <BugReportModal isOpen={isBugReportOpen} onClose={() => setIsBugReportOpen(false)} />
             <Layout onReportBug={() => setIsBugReportOpen(true)} />
         </BrowserRouter>
     )
+
 }
 
 export default App;

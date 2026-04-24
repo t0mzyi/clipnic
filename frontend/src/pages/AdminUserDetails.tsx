@@ -10,7 +10,7 @@ import {
     AlertTriangle,
     Wallet, TrendingUp, History, Landmark, DollarSign
 } from 'lucide-react';
-import Swal from 'sweetalert2';
+import Swal from '../lib/swal';
 
 const YoutubeIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-red-400">

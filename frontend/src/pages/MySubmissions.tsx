@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Calendar, Layers, CheckCircle2, Eye, Wallet, RotateCw, ExternalLink, X, Upload, Trash2, Target, Coins, AlertCircle, Clock, Pencil, Video, Smartphone } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-import Swal from 'sweetalert2';
+import Swal from '../lib/swal';
 import { Dropdown } from '../components/Dropdown';
 import { AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/Button';

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bug, X, Send, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-import Swal from 'sweetalert2';
+import Swal from '../lib/swal';
 
 interface BugReportModalProps {
     isOpen: boolean;

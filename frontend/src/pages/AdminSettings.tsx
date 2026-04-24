@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/useAuthStore';
 import { Settings, Shield } from 'lucide-react';
-import Swal from 'sweetalert2';
+import Swal from '../lib/swal';
 
 export const AdminSettings = () => {
     const { token, settings, setSettings } = useAuthStore();

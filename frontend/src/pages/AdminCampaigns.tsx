@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useAuthStore } from '../store/useAuthStore';
-import Swal from 'sweetalert2';
+import Swal from '../lib/swal';
 import { Link } from 'react-router-dom';
 import { Plus, Trash2, ToggleLeft, ToggleRight, Pencil, Search, Eye, Globe, Filter, CheckCircle2, Star, BarChart, Layers } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';

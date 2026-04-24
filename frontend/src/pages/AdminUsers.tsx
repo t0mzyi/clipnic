@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Search, ShieldCheck, ShieldAlert, MessageSquare, ExternalLink, Users, Calendar } from 'lucide-react';
-import Swal from 'sweetalert2';
+import Swal from '../lib/swal';
 import { Dropdown } from '../components/Dropdown';
 
 const YoutubeIcon = () => (

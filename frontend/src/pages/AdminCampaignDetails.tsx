@@ -10,7 +10,7 @@ import {
     Pencil, ToggleRight, ToggleLeft,
     BarChart, LayoutGrid, Upload
 } from 'lucide-react';
-import Swal from 'sweetalert2';
+import Swal from '../lib/swal';
 
 interface Campaign {
     id: string;

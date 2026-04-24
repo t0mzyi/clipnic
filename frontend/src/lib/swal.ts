@@ -1,33 +1,55 @@
-import Swal from 'sweetalert2';
+import { useAlertStore } from '../store/useAlertStore';
+import { useToastStore } from '../store/useToastStore';
 
-export const Toast = Swal.mixin({
-    toast: true,
-    position: 'bottom-end',
-    showConfirmButton: false,
-    timer: 3000,
-    timerProgressBar: true,
-    background: '#0D0D0D',
-    color: '#fff',
-    customClass: {
-        popup: 'rounded-2xl border border-white/10 shadow-2xl backdrop-blur-md bg-[#0D0D0D]/95',
-        title: 'text-sm font-bold',
-    },
-    didOpen: (toast) => {
-        toast.onmouseenter = Swal.stopTimer;
-        toast.onmouseleave = Swal.resumeTimer;
+export const Toast = {
+    fire: (options: { title: string, icon?: 'success' | 'error' | 'info' }) => {
+        const { addToast } = useToastStore.getState();
+        addToast(options.title, options.icon);
+        return Promise.resolve();
     }
-});
+};
 
-export const GlobalSwal = Swal.mixin({
-    background: '#0D0D0D',
-    color: '#fff',
-    customClass: {
-        popup: 'rounded-[32px] border border-white/10 shadow-2xl bg-[#0D0D0D]',
-        title: 'text-2xl font-bold tracking-tight pt-4',
-        htmlContainer: 'text-sm text-white/40 leading-relaxed px-6',
-        confirmButton: 'bg-white text-black px-10 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/90 transition-all mx-2',
-        cancelButton: 'bg-transparent border border-white/10 text-white/50 px-10 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all mx-2',
-        actions: 'pb-6'
+export const GlobalSwal = {
+    fire: (options: any) => {
+        const { showAlert } = useAlertStore.getState();
+        // Map swal options to our AlertOptions
+        return showAlert({
+            title: options.title || '',
+            text: options.text || options.html || '',
+            icon: options.icon,
+            showCancelButton: options.showCancelButton,
+            confirmButtonText: options.confirmButtonText,
+            cancelButtonText: options.cancelButtonText,
+            input: options.input,
+            inputPlaceholder: options.inputPlaceholder,
+            inputAttributes: options.inputAttributes,
+            inputValue: options.inputValue
+        });
+    }
+};
+
+
+// Also export a default object for standard Swal usage
+const Swal = {
+    fire: (options: any) => {
+        if (typeof options === 'string') {
+            return GlobalSwal.fire({ title: options });
+        }
+        if (options.toast) {
+            return Toast.fire({ title: options.title, icon: options.icon });
+        }
+        return GlobalSwal.fire(options);
     },
-    buttonsStyling: false
-});
+    mixin: (baseOptions: any) => {
+        return {
+            fire: (options: any) => Swal.fire({ ...baseOptions, ...options }),
+            stopTimer: () => {},
+            resumeTimer: () => {}
+        };
+    },
+    stopTimer: () => {},
+    resumeTimer: () => {}
+};
+
+export default Swal;
+
