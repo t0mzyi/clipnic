@@ -39,6 +39,35 @@ import { Onboarding } from './components/Onboarding';
 import { Footer } from './components/Footer';
 import { BugReportModal } from './components/BugReportModal';
 
+const BrandUnderConstruction = () => (
+    <div className="min-h-screen bg-black flex items-center justify-center p-6 text-center">
+        <div className="max-w-2xl space-y-8">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto border border-white/10"
+            >
+                <Box size={48} className="text-white/20" />
+            </motion.div>
+            <div className="space-y-4">
+                <h1 className="text-5xl font-bold tracking-tighter uppercase glassy-text">Under Development</h1>
+                <p className="text-white/40 text-lg font-light">The brands webpage is currently under development. For inquiries or to get started, please contact us via Discord.</p>
+            </div>
+            <div className="pt-8 flex flex-col sm:flex-row justify-center gap-4">
+                <a 
+                    href="https://discord.gg/8KXdFCxZsR" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="px-8 py-3 rounded-full bg-[#5865F2] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#4752C4] transition-all flex items-center justify-center gap-2"
+                >
+                    Join Our Discord
+                </a>
+                <Link to="/" className="px-8 py-3 rounded-full border border-white/10 text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">Return to Core</Link>
+            </div>
+        </div>
+    </div>
+);
+
 const Sidebar = ({ isOpen, closeMenu, onReportBug }: { isOpen: boolean, closeMenu: () => void, onReportBug: () => void }) => {
     const location = useLocation();
     const { user } = useAuthStore();
@@ -362,14 +391,19 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
         );
     }
 
-    // If not logged in and not on login page, redirect to login
-    if (!session && location.pathname !== '/login') {
-        return <Navigate to="/login" replace />;
-    }
-
     // If logged in and on login page, redirect to dashboard
     if (session && location.pathname === '/login') {
         return <Navigate to="/clippers/dashboard" replace />;
+    }
+
+    // Public Brand Page
+    if (location.pathname === '/brand' || location.pathname === '/brands') {
+        return <BrandUnderConstruction />;
+    }
+
+    // If not logged in and not on login page, redirect to login
+    if (!session && location.pathname !== '/login') {
+        return <Navigate to="/login" replace />;
     }
 
     // Show login page without sidebar layout
@@ -393,68 +427,71 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                 />
             )}
             
-            {/* Mobile Header - Hidden for Admins as they use the Dock */}
-            {!location.pathname.startsWith('/admin') && (
-                <div className="md:hidden flex-shrink-0 bg-black/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-between px-6 z-50">
-                    <Link to="/clippers/campaigns" className="flex items-center gap-2">
-                        <img src="/logo.webp" alt="Logo" className="h-7 w-auto object-contain" />
-                        <span className="text-lg font-bold tracking-tight text-premium-white">
-                            clipnic.com
-                        </span>
-                    </Link>
-                    <button onClick={() => setMobileMenuOpen(true)} className="text-white/70 hover:text-white">
-                        <Menu size={24} />
-                    </button>
-                </div>
-            )}
-
             <div className="flex flex-1 overflow-hidden relative">
                 <Sidebar isOpen={mobileMenuOpen} closeMenu={() => setMobileMenuOpen(false)} onReportBug={onReportBug} />
-                {location.pathname.startsWith('/admin') && <AdminDock />}
-
-                {/* Mobile overlay backdrop */}
-                <AnimatePresence>
-                    {mobileMenuOpen && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
-                            onClick={() => setMobileMenuOpen(false)}
-                        />
+                
+                <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+                    {/* Mobile Header - Now inside the flex-1 container to let sidebar go to top */}
+                    {!location.pathname.startsWith('/admin') && (
+                        <div className="md:hidden flex-shrink-0 bg-black/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-between px-6 z-50">
+                            <Link to="/clippers/campaigns" className="flex items-center gap-2">
+                                <img src="/logo.webp" alt="Logo" className="h-7 w-auto object-contain" />
+                                <span className="text-lg font-bold tracking-tight text-premium-white">
+                                    clipnic.com
+                                </span>
+                            </Link>
+                            <button onClick={() => setMobileMenuOpen(true)} className="text-white/70 hover:text-white">
+                                <Menu size={24} />
+                            </button>
+                        </div>
                     )}
-                </AnimatePresence>
 
-                <main className="flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 custom-scrollbar">
-                <div className="px-4 sm:px-6 md:px-12 pt-6 md:pt-16 pb-24 max-w-7xl mx-auto">
-                    <AnimatePresence mode="wait">
-                        <Routes>
-                            <Route path="/" element={<Navigate to="/clippers/campaigns" replace />} />
-                            
-                            {/* Clipper Routes */}
-                            <Route path="/clippers/dashboard" element={<ClipperDashboard />} />
-                            <Route path="/clippers/campaigns" element={<CampaignsFeed />} />
-                            <Route path="/clippers/campaigns/joined" element={<JoinedCampaigns />} />
-                            <Route path="/clippers/campaigns/:id" element={<CampaignDetails />} />
-                            <Route path="/clippers/submissions" element={<MySubmissions />} />
-                            <Route path="/clippers/earnings" element={<Earnings />} />
-                            <Route path="/clippers/profile" element={<Profile />} />
+                    {location.pathname.startsWith('/admin') && <AdminDock />}
 
-                            {/* Admin Routes */}
-                            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-                            <Route path="/admin/campaigns" element={<AdminRoute><AdminCampaigns /></AdminRoute>} />
-                            <Route path="/admin/campaigns/:id" element={<AdminRoute><AdminCampaignDetails /></AdminRoute>} />
-                            <Route path="/admin/submissions" element={<AdminRoute><AdminSubmissions /></AdminRoute>} />
-                            <Route path="/admin/payouts" element={<AdminRoute><AdminPayouts /></AdminRoute>} />
-                            <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-                            <Route path="/admin/users/:id" element={<AdminRoute><AdminUserDetails /></AdminRoute>} />
-                            <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
-                        </Routes>
+                    {/* Mobile overlay backdrop */}
+                    <AnimatePresence>
+                        {mobileMenuOpen && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
+                                onClick={() => setMobileMenuOpen(false)}
+                            />
+                        )}
                     </AnimatePresence>
+
+                    <main className="flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 custom-scrollbar">
+                        <div className="px-4 sm:px-6 md:px-12 pt-6 md:pt-16 pb-24 max-w-7xl mx-auto">
+                            <AnimatePresence mode="wait">
+                                <Routes>
+                                    <Route path="/" element={<Navigate to="/clippers/campaigns" replace />} />
+                                    
+                                    {/* Clipper Routes */}
+                                    <Route path="/clippers/dashboard" element={<ClipperDashboard />} />
+                                    <Route path="/clippers/campaigns" element={<CampaignsFeed />} />
+                                    <Route path="/clippers/campaigns/joined" element={<JoinedCampaigns />} />
+                                    <Route path="/clippers/campaigns/:id" element={<CampaignDetails />} />
+                                    <Route path="/clippers/submissions" element={<MySubmissions />} />
+                                    <Route path="/clippers/earnings" element={<Earnings />} />
+                                    <Route path="/clippers/profile" element={<Profile />} />
+
+                                    {/* Admin Routes */}
+                                    <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                                    <Route path="/admin/campaigns" element={<AdminRoute><AdminCampaigns /></AdminRoute>} />
+                                    <Route path="/admin/campaigns/:id" element={<AdminRoute><AdminCampaignDetails /></AdminRoute>} />
+                                    <Route path="/admin/submissions" element={<AdminRoute><AdminSubmissions /></AdminRoute>} />
+                                    <Route path="/admin/payouts" element={<AdminRoute><AdminPayouts /></AdminRoute>} />
+                                    <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+                                    <Route path="/admin/users/:id" element={<AdminRoute><AdminUserDetails /></AdminRoute>} />
+                                    <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+                                </Routes>
+                            </AnimatePresence>
+                        </div>
+                    </main>
                 </div>
-                {!location.pathname.startsWith('/admin') && <Footer />}
-            </main>
-          </div>
+            </div>
+            {!location.pathname.startsWith('/admin') && <Footer />}
         </div>
     );
 };

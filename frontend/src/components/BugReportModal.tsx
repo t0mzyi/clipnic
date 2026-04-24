@@ -21,21 +21,32 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose 
 
         setIsSubmitting(true);
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/monitor/report`, {
+            const webhookUrl = 'https://discord.com/api/webhooks/1497320375590060093/LPii1yWf4NF_k1qhQUsUwhfPfzMsmVYX_waW06j4ZEhh0S-0IFpbafThYRVwixkxJY_1';
+            
+            const payload = {
+                embeds: [{
+                    title: '🚨 New Bug Report Received',
+                    color: 15548997, // Red
+                    fields: [
+                        { name: 'Reporter', value: user?.name || 'Anonymous', inline: true },
+                        { name: 'Topic', value: title, inline: true },
+                        { name: 'Timestamp', value: new Date().toLocaleString(), inline: true },
+                        { name: 'Detailed Description', value: description }
+                    ],
+                    footer: { text: `User Email: ${user?.email || 'N/A'}` }
+                }]
+            };
+
+            const res = await fetch(webhookUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title,
-                    description,
-                    userEmail: user?.email,
-                    userName: user?.name
-                })
+                body: JSON.stringify(payload)
             });
 
             if (res.ok) {
                 Swal.fire({
                     title: 'Report Sent!',
-                    text: 'Our administrators have been notified. Thank you for helping us improve Clipnic.',
+                    text: 'Transmission complete. Our team has been notified via secure channel.',
                     icon: 'success',
                     background: '#0D0D0D',
                     color: '#fff',
@@ -45,12 +56,12 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose 
                 setTitle('');
                 setDescription('');
             } else {
-                throw new Error('Failed to send report');
+                throw new Error('Failed to transmit report');
             }
         } catch (err) {
             Swal.fire({
-                title: 'Submission Failed',
-                text: 'Could not send the report. Please try again later.',
+                title: 'Transmission Failed',
+                text: 'Could not reach the secure channel. Please try again later.',
                 icon: 'error',
                 background: '#0D0D0D',
                 color: '#fff'

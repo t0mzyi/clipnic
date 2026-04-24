@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ShieldCheck, Mail, Wallet, Trophy, Loader2, CheckCircle2, TrendingUp, Zap, Camera, Play } from 'lucide-react';
+import { ShieldCheck, Mail, Wallet, Trophy, Loader2, CheckCircle2, TrendingUp, Zap, Play, Camera } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '../components/ui/Button';
@@ -100,41 +100,35 @@ export const Profile = () => {
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-6xl mx-auto space-y-8 pb-20">
             {/* Header / Profile Card */}
-            <div className="relative p-10 rounded-[40px] bg-[#0c0c0c] border border-white/10 overflow-hidden shadow-2xl">
-                <div className="absolute top-0 right-0 p-8 opacity-10">
-                    <Zap size={160} className="text-white" />
-                </div>
-                
+            <div className="relative p-8 rounded-[32px] bg-[#0c0c0c] border border-white/10 overflow-hidden shadow-2xl">
                 <div className="relative flex flex-col md:flex-row items-center gap-8">
-                    <div className="relative group">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500 to-cyan-500 rounded-[32px] blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
+                    <div id="profile-discord-step" className="relative">
                         <img 
                             src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${user?.name}&background=random`} 
-                            className="relative w-32 h-32 rounded-[32px] object-cover border-2 border-white/10 shadow-2xl" 
+                            className="w-24 h-24 rounded-2xl object-cover border border-white/10" 
                             alt={user?.name} 
                         />
                         {user?.discordVerified && (
-                             <div className="absolute -bottom-2 -right-2 p-2 bg-[#5865F2] rounded-xl border-4 border-[#0c0c0c] shadow-xl">
-                                <CheckCircle2 size={16} className="text-white" />
+                             <div className="absolute -bottom-2 -right-2 p-1.5 bg-[#5865F2] rounded-lg border-2 border-[#0c0c0c]">
+                                <CheckCircle2 size={12} className="text-white" />
                              </div>
                         )}
                     </div>
 
                     <div className="text-center md:text-left space-y-4">
-                        <div className="space-y-1">
-                            <h1 className="text-4xl font-bold tracking-tight text-white flex items-center gap-3 justify-center md:justify-start">
+                        <div>
+                            <h1 className="text-3xl font-bold text-white">
                                 {user?.name}
-                                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-white/40">Clipper</span>
                             </h1>
-                            <div className="flex items-center gap-3 text-white/30 text-sm justify-center md:justify-start">
-                                <Mail size={14} />
+                            <div className="flex items-center gap-2 text-white/30 text-xs">
+                                <Mail size={12} />
                                 {user?.email}
                             </div>
                         </div>
 
                         <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                             <Button variant="secondary" onClick={() => setIsVerifyOpen(true)} className="rounded-2xl px-6 py-2.5 text-xs font-bold uppercase tracking-widest bg-white/5 border border-white/10 hover:bg-white/10">Manage Socials</Button>
-                             <Button variant="secondary" onClick={logout} className="rounded-2xl px-6 py-2.5 text-xs font-bold uppercase tracking-widest bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20">Logout</Button>
+                             <Button id="profile-socials-step" variant="secondary" onClick={() => setIsVerifyOpen(true)} className="rounded-xl px-5 py-2 text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10">Manage Socials</Button>
+                             <Button variant="secondary" onClick={logout} className="rounded-xl px-5 py-2 text-[10px] font-bold uppercase tracking-widest bg-red-500/10 border border-red-500/20 text-red-500">Logout</Button>
                         </div>
                     </div>
                 </div>
