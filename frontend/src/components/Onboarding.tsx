@@ -104,7 +104,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
     const [modalActive, setModalActive] = useState(false);
     const [isTourBooting, setIsTourBooting] = useState(false);
-    const [discordClicked, setDiscordClicked] = useState(false);
     const prevModalActive = useRef(false);
 
     // Initial tour boot delay to prevent glitches
@@ -339,7 +338,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                 </button>
                                 <Button
                                     onClick={handleNextTour}
-                                    disabled={tourStepIdx === 0 && !discordClicked && !!spotlightRect && !modalActive}
+                                    disabled={!spotlightRect && !modalActive}
                                     className="rounded-xl px-6 py-2.5 text-xs uppercase font-bold tracking-widest h-auto disabled:opacity-20"
                                 >
                                     {tourStepIdx === 0 ? 'Proceed' : (tourStepIdx === activeSteps.length - 1 ? 'Get Started' : 'Next')}
