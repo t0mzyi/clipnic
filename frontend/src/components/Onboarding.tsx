@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
     User, 
     X
@@ -61,11 +61,10 @@ const TOUR_STEPS: TourStep[] = [
 ];
 
 const CustomTick = ({ checked }: { checked: boolean }) => (
-    <div className={`w-6 h-6 rounded-lg border transition-all duration-300 flex items-center justify-center ${
-        checked 
-            ? 'bg-emerald-500 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]' 
+    <div className={`w-6 h-6 rounded-lg border transition-all duration-300 flex items-center justify-center ${checked
+            ? 'bg-emerald-500 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]'
             : 'bg-white/5 border-white/10 hover:border-white/20'
-    }`}>
+        }`}>
         <AnimatePresence>
             {checked && (
                 <motion.svg
@@ -91,6 +90,7 @@ const CustomTick = ({ checked }: { checked: boolean }) => (
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) => {
     const { user, updateUser } = useAuthStore();
     const navigate = useNavigate();
+    const location = useLocation();
     const [step, setStep] = useState(1);
     const [name, setName] = useState(user?.name || '');
     const [bio, setBio] = useState('');
@@ -101,6 +101,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
     const [tourActive, setTourActive] = useState(false);
     const [tourStepIdx, setTourStepIdx] = useState(0);
     const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
+    const pollingRef = useRef<number | null>(null);
 
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
@@ -130,36 +131,45 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
     useEffect(() => {
         if (!tourActive) return;
 
+        const currentStep = TOUR_STEPS[tourStepIdx];
+        
+        // 1. Navigation handling
+        if (location.pathname !== currentStep.path) {
+            navigate(currentStep.path);
+        }
+
+        // 2. Spotlight Calculation Logic
         const updateSpotlight = () => {
-            const currentStep = TOUR_STEPS[tourStepIdx];
-            
-            // Navigate to the correct page for this step
-            if (window.location.pathname !== currentStep.path) {
-                navigate(currentStep.path);
-            }
+            const el = document.querySelector(currentStep.target);
+            if (el) {
+                // For sidebar items on mobile, we might need to open menu
+                if (isMobile && currentStep.target.startsWith('#sidebar-') && openMenu) {
+                    openMenu();
+                }
 
-            // If it's a sidebar step and we're on mobile, try to open the menu
-            if (isMobile && currentStep.target.startsWith('#sidebar-') && openMenu) {
-                openMenu();
-                // We need to wait for the menu animation to finish to get the correct rect
-                setTimeout(() => {
-                    const el = document.querySelector(currentStep.target);
-                    if (el) setSpotlightRect(el.getBoundingClientRect());
-                }, 500);
+                const rect = el.getBoundingClientRect();
+                
+                // Only update if rect actually has size (visible)
+                if (rect.width > 0 && rect.height > 0) {
+                    setSpotlightRect(rect);
+                    
+                    // If it's a main content item (not sidebar), scroll into view if needed
+                    if (!currentStep.target.startsWith('#sidebar-')) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
             } else {
-                const el = document.querySelector(currentStep.target);
-                if (el) setSpotlightRect(el.getBoundingClientRect());
+                setSpotlightRect(null);
             }
+            pollingRef.current = requestAnimationFrame(updateSpotlight);
         };
 
-        updateSpotlight();
-        const interval = setInterval(updateSpotlight, 1000); // Polling for any layout changes
-        window.addEventListener('resize', updateSpotlight);
+        pollingRef.current = requestAnimationFrame(updateSpotlight);
+
         return () => {
-            window.removeEventListener('resize', updateSpotlight);
-            clearInterval(interval);
+            if (pollingRef.current) cancelAnimationFrame(pollingRef.current);
         };
-    }, [tourActive, tourStepIdx, isMobile, openMenu, navigate]);
+    }, [tourActive, tourStepIdx, location.pathname, isMobile, openMenu, navigate]);
 
     const handleNextTour = () => {
         if (tourStepIdx < TOUR_STEPS.length - 1) {
@@ -196,7 +206,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
                     <rect 
                         width="100%" 
                         height="100%" 
-                        fill="rgba(0,0,0,0.7)" 
+                        fill="rgba(0,0,0,0.75)" 
                         mask="url(#spotlight-mask)" 
                         className="backdrop-blur-[1px]"
                     />
@@ -221,7 +231,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
                                     ? (window.innerHeight - 300)
                                     : (TOUR_STEPS[tourStepIdx].position === 'right'
                                         ? Math.max(20, spotlightRect.top + (spotlightRect.height / 2) - 100)
-                                        : spotlightRect.bottom + 24)
+                                        : Math.min(window.innerHeight - 250, spotlightRect.bottom + 24))
                             }}
                             className="absolute z-[2001] w-[320px] sm:w-80 bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto"
                         >
@@ -402,7 +412,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
                                             onClick={() => setTourActive(true)}
                                             className="w-full rounded-2xl py-4 sm:py-5 text-[11px] sm:text-sm uppercase font-bold tracking-[0.2em] shadow-[0_20px_40px_-12px_rgba(255,255,255,0.1)]"
                                         >
-                                            Start Interactive Tour
+                                            Interactive Tour
                                         </Button>
                                         <button 
                                             onClick={onComplete}
