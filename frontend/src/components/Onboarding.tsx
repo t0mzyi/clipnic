@@ -133,7 +133,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
 
     const handleNextTour = useCallback(() => {
         setTourStepIdx(prev => {
-            if (prev < TOUR_STEPS.length - 1) return prev + 1;
+            const next = prev + 1;
+            if (next < TOUR_STEPS.length) return next;
             // Completion
             onComplete();
             navigate('/clippers/campaigns');
@@ -145,31 +146,32 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     useEffect(() => {
         if (!tourActive) return;
         
-        // 1. Auto-advance if verified
+        // 1. Verification success handling
         if (tourStepIdx === 0 && user?.discordVerified) {
             setTourStepIdx(1);
         }
-        
-        // Auto-advance Step 2 if any social linked
         if (tourStepIdx === 1 && (user?.tiktokVerified || user?.instagramVerified || user?.youtubeVerified)) {
             setTourStepIdx(2);
         }
 
-        // 2. Auto-advance if modal closed
+        // 2. Modal lifecycle handling
         if (modalActive) {
             if (stepAtModalStart.current === null) {
                 stepAtModalStart.current = tourStepIdx;
             }
-        }
-
-        if (prevModalActive.current === true && modalActive === false) {
-            if (stepAtModalStart.current === tourStepIdx && (tourStepIdx === 0 || tourStepIdx === 1)) {
-                handleNextTour();
+        } else if (prevModalActive.current === true) {
+            // Modal just closed
+            // We advance ONLY if the step hasn't already moved forward due to verification
+            if (stepAtModalStart.current === tourStepIdx) {
+                if (tourStepIdx === 0 || tourStepIdx === 1) {
+                    handleNextTour();
+                }
             }
             stepAtModalStart.current = null;
         }
+        
         prevModalActive.current = modalActive;
-    }, [user?.discordVerified, user?.tiktokVerified, user?.instagramVerified, user?.youtubeVerified, tourActive, tourStepIdx, modalActive, handleNextTour]);
+    }, [user, tourActive, tourStepIdx, modalActive, handleNextTour]);
 
     // Tour Logic
     useEffect(() => {
@@ -196,14 +198,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
             
             setModalActive(isReallyActive);
 
-            const el = document.querySelector(currentStep.target);
+            // Re-target based on the CURRENT tourStepIdx to ensure synchronization
+            const el = document.querySelector(TOUR_STEPS[tourStepIdx].target);
             if (el && !isReallyActive) {
-                // Mobile Menu Synchronization
                 if (isMobile) {
-                    if (currentStep.target.startsWith('#sidebar-') && openMenu) {
+                    if (TOUR_STEPS[tourStepIdx].target.startsWith('#sidebar-') && openMenu) {
                         openMenu();
                     } else if (closeMenu) {
-                        closeMenu(); // Ensure menu is closed for page-content highlights
+                        closeMenu();
                     }
                 }
 
@@ -211,8 +213,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                 
                 if (rect.width > 0 && rect.height > 0) {
                     setSpotlightRect(rect);
-                    
-                    if (!currentStep.target.startsWith('#sidebar-')) {
+                    if (!TOUR_STEPS[tourStepIdx].target.startsWith('#sidebar-')) {
                         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 }
@@ -230,6 +231,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     }, [tourActive, tourStepIdx, location.pathname, isMobile, openMenu, closeMenu, navigate]);
 
     if (tourActive) {
+        const currentStep = TOUR_STEPS[tourStepIdx];
         const holePath = spotlightRect ? `M 0 0 h ${window.innerWidth} v ${window.innerHeight} h -${window.innerWidth} Z M ${spotlightRect.x - 8} ${spotlightRect.y - 8} h ${spotlightRect.width + 16} v ${spotlightRect.height + 16} h -${spotlightRect.width + 16} Z` : '';
 
         return (
@@ -239,7 +241,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                     <AnimatePresence>
                         {spotlightRect && !modalActive && (
                             <motion.path
-                                key="spotlight-path"
+                                key={`spotlight-${tourStepIdx}`} // Unique key per step
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -255,7 +257,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                 {/* Tooltip */}
                 <AnimatePresence mode="wait">
                     <motion.div
-                        key={modalActive ? 'paused' : tourStepIdx}
+                        key={modalActive ? 'paused' : `step-${tourStepIdx}`} // Ensure new key on step change
                         initial={{ opacity: 0, scale: 0.9, y: 10 }}
                         animate={{ 
                             opacity: 1, 
@@ -265,14 +267,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                 ? (isMobile ? (window.innerWidth / 2) - 160 : 24)
                                 : (isMobile 
                                     ? (window.innerWidth / 2) - 160 
-                                    : (TOUR_STEPS[tourStepIdx].position === 'right' 
+                                    : (currentStep.position === 'right' 
                                         ? (spotlightRect ? spotlightRect.right + 24 : 24)
                                         : (spotlightRect ? spotlightRect.left + (spotlightRect.width / 2) - 160 : (window.innerWidth / 2) - 160))),
                             top: modalActive || !spotlightRect
                                 ? (isMobile ? window.innerHeight - 320 : window.innerHeight - 250)
                                 : (isMobile
                                     ? (window.innerHeight - 320)
-                                    : (TOUR_STEPS[tourStepIdx].position === 'right'
+                                    : (currentStep.position === 'right'
                                         ? Math.max(20, (spotlightRect ? spotlightRect.top + (spotlightRect.height / 2) - 100 : window.innerHeight / 2 - 100))
                                         : Math.min(window.innerHeight - 250, (spotlightRect ? spotlightRect.bottom + 24 : window.innerHeight / 2 + 100))))
                         }}
@@ -289,14 +291,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                             </div>
                             <div className="space-y-2">
                                 <h4 className="text-lg font-bold text-white tracking-tight">
-                                    {modalActive ? 'Complete Action' : (!spotlightRect ? 'Element Loading...' : TOUR_STEPS[tourStepIdx].title)}
+                                    {modalActive ? 'Complete Action' : (!spotlightRect ? 'Element Loading...' : currentStep.title)}
                                 </h4>
                                 <p className="text-white/50 text-sm leading-relaxed">
                                     {modalActive 
                                         ? 'Finish your action in the window to continue the tour.' 
                                         : (!spotlightRect 
                                             ? 'The target element isn\'t visible yet. Please wait or skip if you are finished.' 
-                                            : TOUR_STEPS[tourStepIdx].content)
+                                            : currentStep.content)
                                     }
                                 </p>
                             </div>
@@ -318,7 +320,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
 
                         {!isMobile && !modalActive && spotlightRect && (
                             <div className={`absolute w-4 h-4 bg-[#0c0c0c] border-l border-t border-white/10 transform rotate-[-45deg] ${
-                                TOUR_STEPS[tourStepIdx].position === 'right' 
+                                currentStep.position === 'right' 
                                 ? '-left-2 top-1/2 -translate-y-1/2' 
                                 : 'left-1/2 -top-2 -translate-x-1/2 rotate-[45deg]'
                             }`} />
@@ -476,7 +478,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                         </AnimatePresence>
                     </div>
                 </motion.div>
-            </motion.div>
+            </div>
         </AnimatePresence>
     );
 };
