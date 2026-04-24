@@ -95,6 +95,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     const [agreed, setAgreed] = useState(false);
     
     // Tour State
+    const activeSteps = TOUR_STEPS.filter((s, idx) => {
+        if (idx === 0 && user?.discordVerified) return false;
+        return true;
+    });
+
     const [tourActive, setTourActive] = useState(false);
     const [tourStepIdx, setTourStepIdx] = useState(0);
     const tourStepIdxRef = useRef(0);
@@ -128,7 +133,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
             if (prev === 0) return 2;
 
             const next = prev + 1;
-            if (next < TOUR_STEPS.length) return next;
+            if (next < activeSteps.length) return next;
             onComplete();
             navigate('/clippers/campaigns');
             return prev;
@@ -139,12 +144,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     useEffect(() => {
         if (!tourActive) return;
         
-        if (tourStepIdx === 0 && user?.discordVerified) {
-            setTourStepIdx(1);
-        }
-        if (tourStepIdx === 1 && (user?.tiktokVerified || user?.instagramVerified || user?.youtubeVerified)) {
-            setTourStepIdx(2);
-        }
+        // Dynamic skipping removed in favor of activeSteps filter
 
         if (modalActive) {
             if (stepAtModalStart.current === null) {
@@ -164,7 +164,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     useEffect(() => {
         if (!tourActive) return;
 
-        const currentStep = TOUR_STEPS[tourStepIdx];
+        const currentStep = activeSteps[tourStepIdx];
         
         // 1. Navigation handling
         if (!location.pathname.startsWith(currentStep.path)) {
@@ -174,7 +174,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         const updateSpotlight = () => {
             // ALWAYS use the Ref to avoid closure issues during high-frequency polling
             const currentIdx = tourStepIdxRef.current;
-            const currentStep = TOUR_STEPS[currentIdx];
+            const currentStep = activeSteps[currentIdx];
             
             const modalEl = document.querySelector('#verification-modal') || document.querySelector('#withdraw-modal');
             let isReallyActive = false;
@@ -217,7 +217,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     }, [tourActive, isMobile, openMenu, closeMenu, navigate, tourStepIdx, location.pathname]);
 
     if (tourActive) {
-        const currentStep = TOUR_STEPS[tourStepIdx];
+        const currentStep = activeSteps[tourStepIdx];
         const holePath = spotlightRect ? `M 0 0 h ${window.innerWidth} v ${window.innerHeight} h -${window.innerWidth} Z M ${spotlightRect.x - 8} ${spotlightRect.y - 8} h ${spotlightRect.width + 16} v ${spotlightRect.height + 16} h -${spotlightRect.width + 16} Z` : '';
 
         return (
@@ -272,7 +272,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <div className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-[10px] font-bold text-emerald-400 uppercase tracking-widest text-center min-w-[80px]">
-                                    {modalActive ? 'Tour Paused' : (!spotlightRect ? 'Please Wait' : `Step ${tourStepIdx + 1} of ${TOUR_STEPS.length}`)}
+                                    {modalActive ? 'Tour Paused' : (!spotlightRect ? 'Please Wait' : `Step ${tourStepIdx + 1} of ${activeSteps.length}`)}
                                 </div>
                                 <button onClick={onComplete} className="text-white/20 hover:text-white transition-colors">
                                     <X size={16} />
