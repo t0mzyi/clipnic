@@ -92,7 +92,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     const navigate = useNavigate();
     const location = useLocation();
     const [step, setStep] = useState(1);
-    const [name, setName] = useState(user?.name || '');
     const [agreed, setAgreed] = useState(false);
     
     // Tour State
@@ -112,22 +111,16 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         tourStepIdxRef.current = tourStepIdx;
     }, [tourStepIdx]);
 
-    // Auto-sync Google name if available and not set
+    // Auto-sync Google name to database if not set
     useEffect(() => {
         if (user && !user.name) {
             const googleName = user.user_metadata?.full_name;
             if (googleName) {
-                setName(googleName);
-                // Optionally auto-save it immediately
+                // Auto-save to database immediately
                 supabase.from('users').update({ name: googleName }).eq('id', user.id).then();
             }
         }
     }, [user]);
-
-    const handleSaveProfile = () => {
-        if (!agreed) return;
-        setStep(2);
-    };
 
     const handleNextTour = useCallback(() => {
         setTourStepIdx(prev => {
