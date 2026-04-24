@@ -24,31 +24,38 @@ interface TourStep {
 
 const TOUR_STEPS: TourStep[] = [
     {
-        target: '#sidebar-profile',
+        target: '#profile-discord-step',
         path: '/clippers/profile',
-        title: 'Your Profile',
-        content: 'This is where you link your socials and Discord. Completing your profile is the first step to becoming a verified clipper.',
-        position: 'right'
+        title: 'Step 1: Discord',
+        content: 'Join our Discord server to confirm your identity. This is required before you can link your socials.',
+        position: 'bottom'
+    },
+    {
+        target: '#profile-socials-step',
+        path: '/clippers/profile',
+        title: 'Step 2: Socials',
+        content: 'Link your TikTok, Instagram, or YouTube channel here. We need this to track your views and calculate your earnings.',
+        position: 'bottom'
     },
     {
         target: '#sidebar-active-campaigns',
         path: '/clippers/campaigns',
         title: 'Active Campaigns',
-        content: 'Find new missions here. Browse available brands and check current CPM rates to start earning.',
+        content: 'Browse available missions from top brands. Check CPM rates and joining rules to start earning.',
         position: 'right'
     },
     {
         target: '#sidebar-submissions',
         path: '/clippers/submissions',
         title: 'My Submissions',
-        content: 'Track all your submitted clips here. You can see their verification status and view counts in real-time.',
+        content: 'Track all your submitted clips here. Watch your views grow and see your verification status in real-time.',
         position: 'right'
     },
     {
         target: '#sidebar-earnings',
         path: '/clippers/earnings',
         title: 'Earnings & Payouts',
-        content: 'Manage your capital here. Track your total revenue and claim your payouts once clips are verified.',
+        content: 'Manage your capital. Track your total revenue and claim your payouts once clips are verified.',
         position: 'right'
     }
 ];

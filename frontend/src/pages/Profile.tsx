@@ -576,7 +576,7 @@ export const Profile = () => {
 
                         <div className="grid grid-cols-1 gap-6 pt-2">
                             {/* Step 1: Discord */}
-                            <div className="p-6 rounded-2xl bg-black/40 border border-white/5 relative overflow-hidden group flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div id="profile-discord-step" className="p-6 rounded-2xl bg-black/40 border border-white/5 relative overflow-hidden group flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
                                     <h4 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
                                         <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px]">1</span>
@@ -595,7 +595,7 @@ export const Profile = () => {
                             </div>
 
                             {/* Step 2: Link Socials */}
-                            <div className={`p-6 rounded-2xl bg-black/40 border border-white/5 relative overflow-hidden transition-opacity ${!user?.discordVerified ? 'opacity-50 pointer-events-none' : ''}`}>
+                            <div id="profile-socials-step" className={`p-6 rounded-2xl bg-black/40 border border-white/5 relative overflow-hidden transition-opacity ${!user?.discordVerified ? 'opacity-50 pointer-events-none' : ''}`}>
                                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                                     <div>
                                         <h4 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
