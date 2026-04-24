@@ -27,14 +27,14 @@ const TOUR_STEPS: TourStep[] = [
         target: '#profile-discord-step',
         path: '/clippers/profile',
         title: 'Step 1: Discord',
-        content: 'Join our Discord server to confirm your identity. This is required before you can link your socials. Click the button to start!',
+        content: 'Join our Discord server to confirm your identity. This is required to unlock platform features. You can start now or click Next to skip.',
         position: 'bottom'
     },
     {
         target: '#profile-socials-step',
         path: '/clippers/profile',
         title: 'Step 2: Socials',
-        content: 'Link your TikTok, Instagram, or YouTube channel here. We need this to track your views and calculate your earnings.',
+        content: 'Link your TikTok, Instagram, or YouTube channel to track views. Feel free to skip this for now by clicking Next.',
         position: 'bottom'
     },
     {
