@@ -71,6 +71,41 @@ const BrandUnderConstruction = () => (
     </div>
 );
 
+const NotFound = () => (
+    <div className="min-h-[70vh] flex items-center justify-center p-6 text-center">
+        <div className="max-w-md space-y-10">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                className="relative inline-block"
+            >
+                <div className="w-32 h-32 bg-white/5 rounded-[40px] flex items-center justify-center border border-white/10 shadow-2xl relative z-10">
+                    <LayoutGrid size={48} className="text-white/10" />
+                </div>
+                <motion.div 
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 4, repeat: Infinity }}
+                    className="absolute inset-0 bg-white/10 blur-3xl -z-10 rounded-full"
+                />
+                <div className="absolute -top-4 -right-4 bg-red-500 text-white font-mono font-bold text-lg w-12 h-12 rounded-2xl flex items-center justify-center border-4 border-black rotate-12 shadow-xl">
+                    404
+                </div>
+            </motion.div>
+
+            <div className="space-y-4">
+                <h1 className="text-4xl font-bold tracking-tighter uppercase glassy-text">Transmission Lost</h1>
+                <p className="text-white/40 text-sm leading-relaxed max-w-xs mx-auto">The resource you are looking for has been purged or moved to a restricted sector.</p>
+            </div>
+
+            <Link to="/clippers/campaigns">
+                <Button className="rounded-2xl px-12 py-5 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-white/90 shadow-[0_20px_40px_rgba(255,255,255,0.1)]">
+                    Return to Feed
+                </Button>
+            </Link>
+        </div>
+    </div>
+);
+
 const Sidebar = ({ isOpen, closeMenu, onReportBug }: { isOpen: boolean, closeMenu: () => void, onReportBug: () => void }) => {
     const location = useLocation();
     const { user } = useAuthStore();
@@ -488,6 +523,9 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                                     <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
                                     <Route path="/admin/users/:id" element={<AdminRoute><AdminUserDetails /></AdminRoute>} />
                                     <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+
+                                    {/* Fallback */}
+                                    <Route path="*" element={<NotFound />} />
                                 </Routes>
                             </AnimatePresence>
                         </div>
