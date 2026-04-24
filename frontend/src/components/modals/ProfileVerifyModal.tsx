@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
-import { X, Loader2, Play, Camera, ShieldCheck } from 'lucide-react';
+import { X, Loader2, Play, Camera } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Toast } from '../../lib/swal';
 
@@ -18,13 +18,20 @@ const TikTokIcon = () => (
 
 export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync }: ProfileVerifyModalProps) => {
     const { user, token } = useAuthStore();
-    const [step, setStep] = useState<1 | 2>(1);
+    const [step, setStep] = useState<1 | 2>(user?.discordVerified ? 2 : 1);
     const [selectedSocial, setSelectedSocial] = useState('');
     const [handle, setHandle] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
     const [showCode, setShowCode] = useState(false);
 
     if (!isOpen) return null;
+
+    // Sync step when modal opens or user verification changes
+    useEffect(() => {
+        if (isOpen && user?.discordVerified) {
+            setStep(2);
+        }
+    }, [isOpen, user?.discordVerified]);
 
     const handleDiscordLink = async () => {
         setIsVerifying(true);
