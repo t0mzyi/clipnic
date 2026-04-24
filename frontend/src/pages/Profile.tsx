@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ShieldCheck, Mail, Wallet, Trophy, Loader2, CheckCircle2, TrendingUp, Zap, Play, Camera } from 'lucide-react';
+import { ShieldCheck, Wallet, Trophy, Loader2, CheckCircle2, TrendingUp, Play, Camera } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '../components/ui/Button';
@@ -98,126 +98,137 @@ export const Profile = () => {
     );
 
     return (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-6xl mx-auto space-y-8 pb-20">
-            {/* Header / Profile Card */}
-            <div className="relative p-8 rounded-[32px] bg-[#0c0c0c] border border-white/10 overflow-hidden shadow-2xl">
-                <div className="relative flex flex-col md:flex-row items-center gap-8">
-                    <div id="profile-discord-step" className="relative">
-                        <img 
-                            src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${user?.name}&background=random`} 
-                            className="w-24 h-24 rounded-2xl object-cover border border-white/10" 
-                            alt={user?.name} 
-                        />
-                        {user?.discordVerified && (
-                             <div className="absolute -bottom-2 -right-2 p-1.5 bg-[#5865F2] rounded-lg border-2 border-[#0c0c0c]">
-                                <CheckCircle2 size={12} className="text-white" />
-                             </div>
-                        )}
-                    </div>
-
-                    <div className="text-center md:text-left space-y-4">
-                        <div>
-                            <h1 className="text-3xl font-bold text-white">
-                                {user?.name}
-                            </h1>
-                            <div className="flex items-center gap-2 text-white/30 text-xs">
-                                <Mail size={12} />
-                                {user?.email}
-                            </div>
-                        </div>
-
-                        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                             <Button id="profile-socials-step" variant="secondary" onClick={() => setIsVerifyOpen(true)} className="rounded-xl px-5 py-2 text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10">Manage Socials</Button>
-                             <Button variant="secondary" onClick={logout} className="rounded-xl px-5 py-2 text-[10px] font-bold uppercase tracking-widest bg-red-500/10 border border-red-500/20 text-red-500">Logout</Button>
-                        </div>
-                    </div>
-                </div>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-12">
+            <div className="pb-6 border-b border-white/[0.08]">
+                <h1 className="text-4xl font-bold tracking-tight text-white mb-2">My Profile</h1>
+                <p className="text-white/40 text-lg">Manage your account and earnings.</p>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                    { label: 'Total Earned', value: `$${stats.totalEarned.toFixed(2)}`, icon: Wallet, color: 'text-emerald-400' },
-                    { label: 'Qualified Views', value: stats.totalViews.toLocaleString(), icon: TrendingUp, color: 'text-cyan-400' },
-                    { label: 'Missions Joined', value: stats.missionsJoined, icon: Trophy, color: 'text-amber-400' },
-                    { label: 'Pending Payout', value: `$${stats.pendingPayout.toFixed(2)}`, icon: Zap, color: 'text-white' }
-                ].map((stat, i) => (
-                    <div key={i} className="p-6 rounded-3xl bg-[#0c0c0c] border border-white/5 space-y-3 group hover:border-white/20 transition-all shadow-lg">
-                        <div className="flex items-center gap-2 text-white/20">
-                            <stat.icon size={16} />
-                            <span className="text-[9px] font-bold uppercase tracking-widest">{stat.label}</span>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Profile Header */}
+                <div className="lg:col-span-1 space-y-6">
+                    <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col items-center">
+                        <div id="profile-discord-step" className="relative group">
+                            <img 
+                                src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${user?.name}&background=random`} 
+                                className="w-24 h-24 rounded-2xl object-cover border border-white/10" 
+                                alt={user?.name} 
+                            />
+                            {user?.discordVerified && (
+                                 <div className="absolute -bottom-2 -right-2 p-1.5 bg-[#5865F2] rounded-lg border-2 border-[#0c0c0c]">
+                                    <CheckCircle2 size={12} className="text-white" />
+                                 </div>
+                            )}
                         </div>
-                        <p className={`text-2xl font-mono font-bold ${stat.color}`}>{stat.value}</p>
-                    </div>
-                ))}
-            </div>
 
-            {/* Action Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <div className="p-10 rounded-[40px] bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20 space-y-6">
-                    <div className="space-y-2">
-                        <h3 className="text-2xl font-bold text-white">Withdraw Funds</h3>
-                        <p className="text-sm text-white/40 leading-relaxed">Cash out your earnings directly to your linked payment method. Minimum withdrawal is $5.00.</p>
+                        <div className="mt-6 text-center space-y-1">
+                            <h2 className="text-xl font-bold text-white uppercase tracking-tight">{user?.name || 'Anonymous'}</h2>
+                            <p className="text-[11px] text-white/30 font-mono truncate max-w-[200px]">{user?.email}</p>
+                        </div>
+
+                        <div className="w-full mt-8 pt-8 border-t border-white/[0.05] space-y-4">
+                            <Button 
+                                variant="secondary" 
+                                onClick={logout} 
+                                className="w-full rounded-xl py-3.5 text-[10px] font-bold uppercase tracking-widest bg-red-500/5 border border-red-500/10 text-red-500 hover:bg-red-500/10"
+                            >
+                                Logout
+                            </Button>
+                        </div>
                     </div>
-                    <div className="flex items-end justify-between gap-4">
+
+                    <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-4">
+                        <div className="flex items-center gap-3 text-white/40">
+                            <Wallet className="w-5 h-5 opacity-80" />
+                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em]">Withdraw Funds</h3>
+                        </div>
                         <div className="space-y-1">
-                            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Available Balance</p>
-                            <p className="text-4xl font-mono font-bold text-white">${stats.pendingPayout.toFixed(2)}</p>
+                            <p className="text-[9px] text-white/20 uppercase font-bold tracking-widest">Available Balance</p>
+                            <p className="text-3xl font-mono font-bold text-white">${stats.pendingPayout.toFixed(2)}</p>
                         </div>
                         <Button 
                             disabled={stats.pendingPayout < 5 || withdrawLoading} 
                             onClick={handleWithdraw}
-                            className="rounded-2xl px-10 py-5 bg-emerald-500 text-white font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 shadow-2xl disabled:opacity-30"
+                            className="w-full rounded-xl py-4 bg-emerald-500 text-white font-bold uppercase tracking-widest text-[10px] hover:bg-emerald-400 shadow-2xl disabled:opacity-30"
                         >
-                            {withdrawLoading ? <Loader2 className="animate-spin" size={18} /> : 'Withdraw Now'}
+                            {withdrawLoading ? <Loader2 className="animate-spin mx-auto" size={16} /> : 'Request Payout'}
                         </Button>
+                        <p className="text-[9px] text-white/20 text-center uppercase tracking-widest font-medium italic">Min. Withdrawal $5.00</p>
                     </div>
-                 </div>
+                </div>
 
-                 <div className="p-10 rounded-[40px] bg-[#0c0c0c] border border-white/10 space-y-6">
-                    <div className="space-y-2">
-                        <h3 className="text-2xl font-bold text-white">Linked Socials</h3>
-                        <p className="text-sm text-white/40">Status of your content distribution channels.</p>
+                {/* Main Content */}
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Stats Summary */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {[
+                            { label: 'Total Earned', value: `$${stats.totalEarned.toFixed(2)}`, icon: Wallet, color: 'text-emerald-400' },
+                            { label: 'Total Views', value: stats.totalViews.toLocaleString(), icon: TrendingUp, color: 'text-cyan-400' },
+                            { label: 'Missions', value: stats.missionsJoined, icon: Trophy, color: 'text-amber-400' }
+                        ].map((stat, i) => (
+                            <div key={i} className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-2">
+                                <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{stat.label}</p>
+                                <p className={`text-2xl font-mono font-bold ${stat.color}`}>{stat.value}</p>
+                            </div>
+                        ))}
                     </div>
-                    <div className="space-y-3">
-                         {user?.discordVerified && (
-                             <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-[#5865F2]/20 text-[#5865F2] rounded-lg"><CheckCircle2 size={16} /></div>
-                                    <span className="text-sm font-bold text-white/60">Discord Linked</span>
+
+                    {/* Social Verification */}
+                    <div id="profile-socials-step" className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-8">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-white uppercase tracking-tight">Social Verification</h3>
+                            <Button 
+                                variant="secondary" 
+                                onClick={() => setIsVerifyOpen(true)} 
+                                className="rounded-xl px-5 py-2 text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10"
+                            >
+                                Manage Links
+                            </Button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                             {/* Discord Status */}
+                             <div className={`p-5 rounded-2xl border transition-all ${user?.discordVerified ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-white/[0.02] border-white/[0.05] opacity-40'}`}>
+                                <div className="flex items-center justify-between mb-3">
+                                    <CheckCircle2 className={`w-5 h-5 ${user?.discordVerified ? 'text-indigo-400' : 'text-white/20'}`} />
+                                    {user?.discordVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
                                 </div>
-                                <ShieldCheck size={16} className="text-emerald-500" />
-                             </div>
-                         )}
-                         {user?.youtubeVerified && (
-                             <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-red-500/20 text-red-500 rounded-lg"><Play size={16} /></div>
-                                    <span className="text-sm font-bold text-white/60">{user.youtubeHandle}</span>
+                                <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Discord</h4>
+                                <p className="text-xs text-white/30 font-mono truncate">{user?.discordVerified ? 'Verified Account' : 'Not Connected'}</p>
+                            </div>
+
+                            {/* YouTube Status */}
+                            <div className={`p-5 rounded-2xl border transition-all ${user?.youtubeVerified ? 'bg-red-500/5 border-red-500/20' : 'bg-white/[0.02] border-white/[0.05] opacity-40'}`}>
+                                <div className="flex items-center justify-between mb-3">
+                                    <Play className={`w-5 h-5 ${user?.youtubeVerified ? 'text-red-500' : 'text-white/20'}`} />
+                                    {user?.youtubeVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
                                 </div>
-                                <ShieldCheck size={16} className="text-emerald-500" />
-                             </div>
-                         )}
-                         {user?.instagramVerified && (
-                             <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-pink-500/20 text-pink-500 rounded-lg"><Camera size={16} /></div>
-                                    <span className="text-sm font-bold text-white/60">{user.instagramHandle}</span>
+                                <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">YouTube</h4>
+                                <p className="text-xs text-white/30 font-mono truncate">{user?.youtubeHandle || 'No Link Found'}</p>
+                            </div>
+
+                            {/* Instagram Status */}
+                            <div className={`p-5 rounded-2xl border transition-all ${user?.instagramVerified ? 'bg-pink-500/5 border-pink-500/20' : 'bg-white/[0.02] border-white/[0.05] opacity-40'}`}>
+                                <div className="flex items-center justify-between mb-3">
+                                    <Camera className={`w-5 h-5 ${user?.instagramVerified ? 'text-pink-500' : 'text-white/20'}`} />
+                                    {user?.instagramVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
                                 </div>
-                                <ShieldCheck size={16} className="text-emerald-500" />
-                             </div>
-                         )}
-                         {user?.tiktokVerified && (
-                             <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-cyan-500/20 text-cyan-500 rounded-lg"><TikTokIcon /></div>
-                                    <span className="text-sm font-bold text-white/60">{user.tiktokHandle}</span>
+                                <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Instagram</h4>
+                                <p className="text-xs text-white/30 font-mono truncate">{user?.instagramHandle || 'No Link Found'}</p>
+                            </div>
+
+                            {/* TikTok Status */}
+                            <div className={`p-5 rounded-2xl border transition-all ${user?.tiktokVerified ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-white/[0.02] border-white/[0.05] opacity-40'}`}>
+                                <div className="flex items-center justify-between mb-3">
+                                    <TikTokIcon />
+                                    {user?.tiktokVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
                                 </div>
-                                <ShieldCheck size={16} className="text-emerald-500" />
-                             </div>
-                         )}
+                                <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">TikTok</h4>
+                                <p className="text-xs text-white/30 font-mono truncate">{user?.tiktokHandle || 'No Link Found'}</p>
+                            </div>
+                        </div>
                     </div>
-                 </div>
+                </div>
             </div>
 
             <ProfileVerifyModal 
