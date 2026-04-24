@@ -80,7 +80,13 @@ export const AdminSubmissions = () => {
             });
             const json = await res.json();
             if (json.success) {
-                setSubmissions(submissions.map(s => s.id === id ? { ...s, status, rejection_reason: rejectionReason } : s));
+                setSubmissions(prev => prev.map(s => s.id === id ? { ...s, status, rejection_reason: rejectionReason } : s));
+                
+                // Also update selectedSubmission if it's the one being modified
+                if (selectedSubmission?.id === id) {
+                    setSelectedSubmission((prev: any) => ({ ...prev, status, rejection_reason: rejectionReason }));
+                }
+
                 Swal.fire({
                     title: `Marked as ${status}`,
                     icon: 'success',
@@ -98,9 +104,16 @@ export const AdminSubmissions = () => {
     };
 
     const fetchUserDetails = async (userId: string, sub: any) => {
+        if (!userId) {
+            Swal.fire({ title: 'Error', text: 'Missing User ID', icon: 'error' });
+            return;
+        }
+        
+        setSelectedUser(null);
         setFetchingUser(true);
         setSelectedSubmission(sub);
         setIsUserModalOpen(true);
+        
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${userId}?campaignId=${sub.campaign_id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -108,9 +121,13 @@ export const AdminSubmissions = () => {
             const json = await res.json();
             if (json.success) {
                 setSelectedUser(json.data);
+            } else {
+                throw new Error(json.error || 'Failed to fetch user');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
+            Swal.fire({ title: 'Error', text: err.message, icon: 'error' });
+            setIsUserModalOpen(false);
         } finally {
             setFetchingUser(false);
         }
@@ -451,14 +468,41 @@ export const AdminSubmissions = () => {
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col gap-2">
-                                                    <a 
-                                                        href={selectedSubmission.url} 
-                                                        target="_blank" 
-                                                        rel="noopener noreferrer"
-                                                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-white/90 transition-all"
-                                                    >
-                                                        Review Video <ExternalLink className="w-3 h-3" />
-                                                    </a>
+                                                    <div className="flex gap-2">
+                                                        <a 
+                                                            href={selectedSubmission.url} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-white/90 transition-all"
+                                                        >
+                                                            Review Video <ExternalLink className="w-3 h-3" />
+                                                        </a>
+                                                        {selectedSubmission.status === 'Pending' && (
+                                                            <>
+                                                                <button 
+                                                                    onClick={() => handleUpdateStatus(selectedSubmission.id, 'Verified')}
+                                                                    className="px-4 py-3 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-lg active:scale-95"
+                                                                    title="Approve"
+                                                                >
+                                                                    <CheckCircle2 className="w-4 h-4" />
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleUpdateStatus(selectedSubmission.id, 'Rejected')}
+                                                                    className="px-4 py-3 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-all shadow-lg active:scale-95"
+                                                                    title="Reject"
+                                                                >
+                                                                    <XCircle className="w-4 h-4" />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    {selectedSubmission.status !== 'Pending' && (
+                                                        <div className={`mt-2 py-2 px-4 rounded-xl border text-[9px] font-bold uppercase tracking-widest text-center ${
+                                                            selectedSubmission.status === 'Verified' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-red-500/10 border-red-500/20 text-red-500'
+                                                        }`}>
+                                                            Status: {selectedSubmission.status}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         )}

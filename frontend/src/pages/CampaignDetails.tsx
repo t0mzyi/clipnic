@@ -617,13 +617,15 @@ export const CampaignDetails = () => {
                     <div className="flex items-center gap-2 text-white/30"><Target className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Budget Views</span></div>
                     <p className="text-2xl font-mono font-bold text-white">{(campaign.target_views || 0).toLocaleString()}</p>
                 </div>
-                <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
-                    <div className="flex items-center gap-2 text-white/30"><Eye className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Views Remaining</span></div>
-                    <p className="text-2xl font-mono font-bold text-emerald-400">
-                        {Math.max(0, (campaign.target_views || 0) - campaign.view_progress).toLocaleString()}
-                    </p>
-                    <p className="text-[10px] font-mono text-white/20">{Math.min(100, (campaign.view_progress / (campaign.target_views || 1)) * 100).toFixed(1)}% full</p>
-                </div>
+                {!isComingSoon && (
+                    <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
+                        <div className="flex items-center gap-2 text-white/30"><Eye className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Views Remaining</span></div>
+                        <p className="text-2xl font-mono font-bold text-emerald-400">
+                            {Math.max(0, (campaign.target_views || 0) - campaign.view_progress).toLocaleString()}
+                        </p>
+                        <p className="text-[10px] font-mono text-white/20">{Math.min(100, (campaign.view_progress / (campaign.target_views || 1)) * 100).toFixed(1)}% full</p>
+                    </div>
+                )}
                 <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06] space-y-2">
                     <div className="flex items-center gap-2 text-white/30"><CheckCircle className="w-4 h-4" /><span className="text-[9px] font-bold uppercase tracking-widest">Min Views Requirement</span></div>
                     <p className="text-2xl font-mono font-bold text-white">{(campaign.min_views || 0).toLocaleString()}</p>
@@ -642,24 +644,26 @@ export const CampaignDetails = () => {
             </div>
 
             {/* Campaign Progress (Views) */}
-            <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06]">
-                <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Campaign Progress</span>
-                    <span className="text-xs font-mono font-bold text-emerald-400">{viewsPercent}%</span>
+            {!isComingSoon && (
+                <div className="p-5 rounded-2xl bg-[#0c0c0c] border border-white/[0.06]">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Campaign Progress</span>
+                        <span className="text-xs font-mono font-bold text-emerald-400">{viewsPercent}%</span>
+                    </div>
+                    <div className="w-full bg-white/[0.04] h-2 rounded-full overflow-hidden">
+                        <motion.div 
+                            initial={{ width: 0 }} 
+                            animate={{ width: `${Math.min(viewsPercent, 100)}%` }} 
+                            transition={{ duration: 1.5, ease: 'easeOut' }}
+                            className="bg-emerald-500 h-full rounded-full"
+                        />
+                    </div>
+                    <div className="mt-2 flex justify-between text-[9px] font-mono text-white/20 uppercase tracking-tighter">
+                        <span>{campaign.view_progress.toLocaleString()} Qualified Views</span>
+                        <span>Goal: {campaign.target_views.toLocaleString()}</span>
+                    </div>
                 </div>
-                <div className="w-full bg-white/[0.04] h-2 rounded-full overflow-hidden">
-                    <motion.div 
-                        initial={{ width: 0 }} 
-                        animate={{ width: `${Math.min(viewsPercent, 100)}%` }} 
-                        transition={{ duration: 1.5, ease: 'easeOut' }}
-                        className="bg-emerald-500 h-full rounded-full"
-                    />
-                </div>
-                <div className="mt-2 flex justify-between text-[9px] font-mono text-white/20 uppercase tracking-tighter">
-                    <span>{campaign.view_progress.toLocaleString()} Qualified Views</span>
-                    <span>Goal: {campaign.target_views.toLocaleString()}</span>
-                </div>
-            </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Submissions & Leaderboard */}
