@@ -555,7 +555,14 @@ export const CampaignDetails = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-black/10" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 md:p-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="space-y-3 text-left">
-                        <Badge status={campaign.status} />
+                        {isComingSoon ? (
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 backdrop-blur-md border border-amber-500/20 text-amber-500 text-[10px] font-bold uppercase tracking-wider shadow-lg">
+                                <Clock className="w-3 h-3" />
+                                Starting {new Date(campaign.start_date!).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                        ) : (
+                            <Badge status={campaign.status} />
+                        )}
                         <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight text-white drop-shadow-2xl glassy-text">{campaign.title}</h1>
                     </div>
 
@@ -583,10 +590,15 @@ export const CampaignDetails = () => {
                                 }`}
                             >
                                 {isComingSoon ? (
-                                    <>
-                                        <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
-                                        Coming Soon
-                                    </>
+                                    <div className="flex flex-col items-center gap-0.5">
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500/60" />
+                                            <span className="text-xs sm:text-sm font-bold uppercase">Coming Soon</span>
+                                        </div>
+                                        <span className="text-[9px] sm:text-[10px] opacity-40 normal-case tracking-tight font-medium">
+                                            {new Date(campaign.start_date!).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                    </div>
                                 ) : (
                                     <>
                                         <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
