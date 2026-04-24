@@ -20,6 +20,8 @@ interface Campaign {
     banner_url?: string;
     status: string;
     is_featured: boolean;
+    start_date?: string;
+    auto_start?: boolean;
 }
 
 const FALLBACK_BANNERS = [
@@ -45,7 +47,11 @@ export const CampaignsFeed = () => {
     const [direction, setDirection] = useState(0);
     const autoplayTimerRef = useRef<any>(null);
 
-    const featured = campaigns.filter(c => c.is_featured && c.status === 'Active');
+    const featured = campaigns.filter(c => {
+        const now = new Date();
+        const isStarted = !c.start_date || new Date(c.start_date) <= now;
+        return c.is_featured && (c.status === 'Active' || (!isStarted && c.auto_start));
+    });
 
     useEffect(() => {
         const fetchCampaigns = async () => {
@@ -93,7 +99,12 @@ export const CampaignsFeed = () => {
         setActiveIdx((prev) => (prev - 1 + featured.length) % featured.length);
     };
 
-    const activeCampaigns = campaigns.filter(c => c.status === 'Active');
+    const now = new Date();
+    const activeCampaigns = campaigns.filter(c => {
+        const isStarted = !c.start_date || new Date(c.start_date) <= now;
+        // Show if Active, OR if it's Scheduled (Paused but auto_start is true and has future start_date)
+        return c.status === 'Active' || (!isStarted && c.auto_start);
+    });
     
     // Discovery Logic
     const filteredCampaigns = activeCampaigns.filter(c => {
@@ -324,7 +335,13 @@ export const CampaignsFeed = () => {
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c]/60 to-transparent" />
                                     <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-                                        <Badge status={campaign.status} />
+                                        {(!campaign.start_date || new Date(campaign.start_date) <= new Date()) ? (
+                                            <Badge status={campaign.status} />
+                                        ) : (
+                                            <div className="px-2 py-1 rounded-lg bg-amber-500/20 backdrop-blur-md border border-amber-500/30 text-[9px] font-bold text-amber-400 flex items-center gap-1 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                                                COMING SOON
+                                            </div>
+                                        )}
                                         {campaign.is_featured && (
                                             <div className="px-2 py-1 rounded-lg bg-purple-500/20 backdrop-blur-md border border-purple-500/30 text-[9px] font-bold text-purple-400 flex items-center gap-1 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
                                                 <Star size={10} fill="currentColor" /> FEATURED

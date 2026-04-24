@@ -137,24 +137,24 @@ export const AdminPayouts = () => {
             </header>
 
             {activeTab === 'pending' && (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-                    <div className="glass-panel p-6 rounded-3xl space-y-2">
-                        <div className="flex items-center gap-2 text-white/30 text-[10px] uppercase font-bold tracking-widest">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="glass-panel p-5 sm:p-6 rounded-3xl space-y-2">
+                        <div className="flex items-center gap-2 text-white/30 text-[9px] sm:text-[10px] uppercase font-bold tracking-widest">
                             <Wallet className="w-3.5 h-3.5 text-emerald-500" /> Total Pending
                         </div>
-                        <p className="text-3xl font-mono font-bold text-white">${totalPending.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                        <p className="text-xl sm:text-3xl font-mono font-bold text-white">${totalPending.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                     </div>
-                    <div className="glass-panel p-6 rounded-3xl space-y-2">
-                        <div className="flex items-center gap-2 text-white/30 text-[10px] uppercase font-bold tracking-widest">
-                            <Users className="w-3.5 h-3.5 text-blue-400" /> Eligible Clippers
+                    <div className="glass-panel p-5 sm:p-6 rounded-3xl space-y-2">
+                        <div className="flex items-center gap-2 text-white/30 text-[9px] sm:text-[10px] uppercase font-bold tracking-widest">
+                            <Users className="w-3.5 h-3.5 text-blue-400" /> Clippers
                         </div>
-                        <p className="text-3xl font-mono font-bold text-white">{eligible.length}</p>
+                        <p className="text-xl sm:text-3xl font-mono font-bold text-white">{eligible.length}</p>
                     </div>
-                    <div className="glass-panel p-6 rounded-3xl space-y-2 col-span-2 md:col-span-1">
-                        <div className="flex items-center gap-2 text-white/30 text-[10px] uppercase font-bold tracking-widest">
+                    <div className="glass-panel p-5 sm:p-6 rounded-3xl space-y-2 col-span-2 md:col-span-1">
+                        <div className="flex items-center gap-2 text-white/30 text-[9px] sm:text-[10px] uppercase font-bold tracking-widest">
                             <AlertCircle className="w-3.5 h-3.5 text-amber-500" /> Avg. Payout
                         </div>
-                        <p className="text-3xl font-mono font-bold text-white">${eligible.length > 0 ? (totalPending / eligible.length).toFixed(2) : '0.00'}</p>
+                        <p className="text-xl sm:text-3xl font-mono font-bold text-white">${eligible.length > 0 ? (totalPending / eligible.length).toFixed(2) : '0.00'}</p>
                     </div>
                 </div>
             )}

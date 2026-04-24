@@ -179,12 +179,15 @@ export const Earnings = () => {
                             <table className="w-full text-left border-separate border-spacing-y-3">
                                 <thead>
                                     <tr className="text-[9px] sm:text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">
-                                        <th className="pb-3 pl-6">Campaign</th>
-                                        <th className="pb-3 whitespace-nowrap min-w-[80px]">Views</th>
-                                        <th className="pb-3 whitespace-nowrap min-w-[100px]">Min Views</th>
-                                        <th className="pb-3 whitespace-nowrap min-w-[100px]">Earnings</th>
-                                        <th className="pb-3">Status</th>
-                                        <th className="pb-3 pr-6">Category</th>
+                                        <th className="pb-3 pl-6 text-left">Campaign</th>
+                                        <th className="pb-3 text-left min-w-[70px] sm:min-w-[80px]">Views</th>
+                                        <th className="pb-3 text-left min-w-[80px] sm:min-w-[100px]">
+                                            <span className="hidden sm:inline">Min Views</span>
+                                            <span className="sm:hidden">Min</span>
+                                        </th>
+                                        <th className="pb-3 text-left min-w-[90px] sm:min-w-[100px]">Earnings</th>
+                                        <th className="pb-3 text-left">Status</th>
+                                        <th className="pb-3 pr-6 text-left">Category</th>
                                     </tr>
                                 </thead>
                                 <tbody>

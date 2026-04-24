@@ -27,6 +27,8 @@ interface Campaign {
     status: string;
     view_progress: number;
     target_views: number;
+    start_date: string;
+    auto_start: boolean;
     created_at: string;
 }
 
@@ -47,6 +49,8 @@ const defaultForm = {
     requires_dedicated_social: false,
     requires_discord: true,
     rules: ['Follow brand guidelines', 'No artificial engagement'],
+    start_date: '',
+    auto_start: true,
 };
 
 const InputField = ({ label, required = false, ...props }: any) => (
@@ -196,6 +200,8 @@ export const AdminCampaigns = () => {
             cpm_rate: campaign.cpm_rate.toString(),
             total_budget: campaign.total_budget.toString(),
             end_date: new Date(campaign.end_date).toISOString().split('T')[0],
+            start_date: campaign.start_date ? new Date(campaign.start_date).toISOString().split('T')[0] : '',
+            auto_start: campaign.auto_start ?? true,
             banner_url: campaign.banner_url || '',
             min_views: campaign.min_views ? campaign.min_views.toString() : '',
             per_clipper_cap: campaign.per_clipper_cap ? campaign.per_clipper_cap.toString() : '',
@@ -535,7 +541,25 @@ export const AdminCampaigns = () => {
                                             <InputField label="CPM Rate ($)" required type="number" step="0.01" value={form.cpm_rate} onChange={set('cpm_rate')} />
                                             <InputField label="Total Budget ($)" required type="number" value={form.total_budget} onChange={set('total_budget')} />
                                         </div>
-                                        <InputField label="End Date" required type="date" value={form.end_date} onChange={set('end_date')} />
+
+                                        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-4">
+                                            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                                                <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Timing & Launch</p>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[9px] font-bold text-white/30 uppercase">Auto Start</span>
+                                                    <button onClick={() => setForm(p => ({ ...p, auto_start: !p.auto_start }))}>
+                                                        {form.auto_start ? <ToggleRight className="text-emerald-400 w-6 h-6" /> : <ToggleLeft className="text-white/10 w-6 h-6" />}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <InputField label="Start Date" type="date" value={form.start_date} onChange={set('start_date')} />
+                                                <InputField label="End Date" required type="date" value={form.end_date} onChange={set('end_date')} />
+                                            </div>
+                                            {!form.auto_start && (
+                                                <p className="text-[9px] text-amber-500/60 font-medium italic">* Manual start: Campaign will remain "Paused" until you activate it manually, regardless of start date.</p>
+                                            )}
+                                        </div>
                                         
                                         <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-4">
                                             <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest border-b border-white/5 pb-2">Earnings Caps</p>

@@ -28,6 +28,8 @@ interface Campaign {
     status: string;
     view_progress: number;
     target_views: number;
+    start_date?: string;
+    auto_start?: boolean;
 }
 
 const FALLBACK_BANNERS = [
@@ -94,10 +96,12 @@ export const CampaignDetails = () => {
     const [showIgCode, setShowIgCode] = useState(false);
     const [showTtCode, setShowTtCode] = useState(false);
 
-    // URL Validation states
     const [isCheckingUrl, setIsCheckingUrl] = useState(false);
     const [isUrlValid, setIsUrlValid] = useState(true);
     const [urlError, setUrlError] = useState('');
+
+    const now = new Date();
+    const isComingSoon = campaign?.start_date && new Date(campaign.start_date) > now;
 
     const handleYouTubeVerify = async () => {
         if (!linkedHandle) return;
@@ -563,12 +567,25 @@ export const CampaignDetails = () => {
                         ) : (
                             <Button
                                 variant="primary"
-                                disabled={campaign.status !== 'Active'}
+                                disabled={campaign?.status !== 'Active' || isComingSoon}
                                 onClick={() => { setJoinStep(1); setIsJoinModalOpen(true); }}
-                                className="flex items-center gap-2 bg-emerald-400 text-black hover:bg-emerald-300 font-extrabold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full shadow-[0_0_40px_rgba(52,211,153,0.25)] text-xs sm:text-base disabled:opacity-50 disabled:grayscale"
+                                className={`flex items-center gap-2 font-extrabold uppercase tracking-widest px-6 py-4 sm:px-8 sm:py-6 rounded-2xl sm:rounded-3xl transition-all h-full text-xs sm:text-base disabled:opacity-50 disabled:grayscale ${
+                                    isComingSoon 
+                                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/20' 
+                                        : 'bg-emerald-400 text-black hover:bg-emerald-300 shadow-[0_0_40px_rgba(52,211,153,0.25)]'
+                                }`}
                             >
-                                <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
-                                {campaign.status === 'Active' ? 'Join Campaign' : 'Campaigns Paused'}
+                                {isComingSoon ? (
+                                    <>
+                                        <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+                                        Coming Soon
+                                    </>
+                                ) : (
+                                    <>
+                                        <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
+                                        {campaign?.status === 'Active' ? 'Join Campaign' : 'Campaigns Paused'}
+                                    </>
+                                )}
                             </Button>
                         )}
                     </div>
@@ -774,14 +791,21 @@ export const CampaignDetails = () => {
                             </div>
                             <div>
                                 <p className="text-sm font-bold text-white/90">Get Content Here</p>
-                                <p className="text-[10px] text-white/30">Find clips in the Discord channel</p>
+                                <p className="text-[10px] text-white/30">{isComingSoon ? 'Resources locked until start date' : 'Find clips in the Discord channel'}</p>
                             </div>
                         </div>
-                        <a href={campaign.discord_channel} target="_blank" rel="noreferrer"
-                            className="w-full flex items-center justify-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white font-bold text-xs uppercase tracking-widest rounded-2xl py-3.5 transition-all">
-                            <svg className="w-4 h-4" viewBox="0 0 127.14 96.36" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.71,32.65-1.82,56.6.39,80.21a105.73,105.73,0,0,0,32.77,16.15,77.7,77.7,0,0,0,7.07-11.41,68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,7.09,11.4,105.25,105.25,0,0,0,32.78-16.17C126.89,56.51,122.34,32.57,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5.18-12.69,11.43-12.69S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5.18-12.69,11.44-12.69S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" /></svg>
-                            Open Discord Channel
-                        </a>
+                        {isComingSoon ? (
+                            <div className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/20 font-bold text-xs uppercase tracking-widest rounded-2xl py-3.5 cursor-not-allowed">
+                                <Shield className="w-4 h-4" />
+                                Resources Locked
+                            </div>
+                        ) : (
+                            <a href={campaign.discord_channel} target="_blank" rel="noreferrer"
+                                className="w-full flex items-center justify-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white font-bold text-xs uppercase tracking-widest rounded-2xl py-3.5 transition-all">
+                                <svg className="w-4 h-4" viewBox="0 0 127.14 96.36" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.71,32.65-1.82,56.6.39,80.21a105.73,105.73,0,0,0,32.77,16.15,77.7,77.7,0,0,0,7.07-11.41,68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,7.09,11.4,105.25,105.25,0,0,0,32.78-16.17C126.89,56.51,122.34,32.57,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5.18-12.69,11.43-12.69S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5.18-12.69,11.44-12.69S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" /></svg>
+                                Open Discord Channel
+                            </a>
+                        )}
                     </div>
 
                     {/* About Campaign */}

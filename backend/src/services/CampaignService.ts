@@ -22,6 +22,11 @@ const createCampaignSchema = z.object({
   requires_dedicated_social: z.boolean().optional().default(false),
   requires_discord: z.boolean().optional().default(false),
   rules: z.array(z.string()).optional().default([]),
+  start_date: z.string().optional().refine(
+    (val) => !val || !isNaN(Date.parse(val)),
+    { message: 'start_date must be a valid date' }
+  ),
+  auto_start: z.boolean().optional().default(true),
 }).refine(
   (data) => {
     if (typeof data.per_clipper_cap === 'number' && typeof data.per_video_cap === 'number') {
@@ -202,6 +207,8 @@ export class CampaignService {
         requires_discord: validated.requires_discord,
         rules: validated.rules,
         status: 'Active',
+        start_date: validated.start_date || new Date().toISOString(),
+        auto_start: validated.auto_start ?? true,
         view_progress: 0,
         target_views: Math.floor(validated.total_budget / (validated.cpm_rate / 1000)),
       })
@@ -232,6 +239,8 @@ export class CampaignService {
         requires_dedicated_social: validated.requires_dedicated_social,
         requires_discord: validated.requires_discord,
         rules: validated.rules,
+        start_date: validated.start_date,
+        auto_start: validated.auto_start,
         target_views: Math.floor(validated.total_budget / (validated.cpm_rate / 1000)),
       })
       .eq('id', id)
