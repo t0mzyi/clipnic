@@ -40,6 +40,7 @@ import { Footer } from './components/Footer';
 import { BugReportModal } from './components/BugReportModal';
 import { AlertModal } from './components/ui/AlertModal';
 import { ToastContainer } from './components/ui/ToastContainer';
+import { Button } from './components/ui/Button';
 
 
 const BrandUnderConstruction = () => (
