@@ -41,7 +41,29 @@ const createCampaignSchema = z.object({
 );
 
 export class CampaignService {
+  static async autoActivateCampaigns() {
+    try {
+      const now = new Date().toISOString();
+      const { data: toActivate, error } = await supabase
+        .from('campaigns')
+        .update({ status: 'Active' })
+        .eq('status', 'Coming Soon')
+        .eq('auto_start', true)
+        .lte('start_date', now)
+        .select('id');
+      
+      if (error) {
+          console.error('[CampaignService] Auto-activation failed:', error);
+      } else if (toActivate && toActivate.length > 0) {
+          console.log(`[CampaignService] Auto-activated ${toActivate.length} campaigns.`);
+      }
+    } catch (e) {
+      console.error('[CampaignService] Error in auto-activation:', e);
+    }
+  }
+
   static async getAll() {
+    await this.autoActivateCampaigns();
     const { data, error } = await supabase
       .from('campaigns')
       .select('*')
@@ -51,6 +73,7 @@ export class CampaignService {
   }
 
   static async getAllAdmin() {
+    await this.autoActivateCampaigns();
     const { data: campaigns, error: campErr } = await supabase
       .from('campaigns')
       .select(`
@@ -84,6 +107,7 @@ export class CampaignService {
   }
 
   static async getById(id: string) {
+    await this.autoActivateCampaigns();
     const { data, error } = await supabase
       .from('campaigns')
       .select('*')

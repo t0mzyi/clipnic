@@ -485,7 +485,7 @@ export const MySubmissions = () => {
                                         </div>
                                     </td>
                                     <td className="py-5 border-y border-white/[0.05] text-[11px] text-white/30 font-medium">
-                                        {new Date(sub.created_at).toLocaleDateString()}
+                                        {new Date(sub.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}
                                     </td>
                                     <td className="py-5 pr-6 rounded-r-2xl border-y border-r border-white/[0.05] text-right">
                                         <div className="flex items-center justify-end gap-3">

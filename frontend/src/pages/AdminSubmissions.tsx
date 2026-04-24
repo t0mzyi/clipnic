@@ -97,9 +97,11 @@ export const AdminSubmissions = () => {
                     background: '#0D0D0D',
                     color: '#fff'
                 });
+            } else {
+                throw new Error(json.error || 'Failed to update status');
             }
-        } catch (err) {
-            Swal.fire({ title: 'Error', text: 'Failed to update status', icon: 'error' });
+        } catch (err: any) {
+            Swal.fire({ title: 'Error', text: err.message || 'Failed to update status', icon: 'error' });
         }
     };
 
@@ -366,7 +368,7 @@ export const AdminSubmissions = () => {
                                                         <td className="py-4 border-y border-white/[0.03]">
                                                             <div className="flex items-center gap-1.5 text-[10px] text-white/20 font-mono">
                                                                 <Calendar className="w-3 h-3" />
-                                                                {new Date(sub.created_at).toLocaleDateString()}
+                                                                {new Date(sub.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}
                                                             </div>
                                                         </td>
                                                         <td className="py-4 pr-6 rounded-r-2xl border-y border-r border-white/[0.03] text-right">

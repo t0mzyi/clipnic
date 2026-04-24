@@ -34,7 +34,7 @@ export class AdminController {
 
       const { data: user, error: userErr } = await supabase
         .from('users')
-        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, instagram_handle, tiktok_verified, tiktok_handle, is_blocked, youtube_channels')
+        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, instagram_handle, is_blocked')
         .eq('id', id)
         .single();
       
@@ -182,7 +182,7 @@ export class AdminController {
           // 4. Top Clippers
           const { data: topRaw } = await supabase
               .from('submissions')
-              .select('earnings, views, user_id, users(name, avatar_url)')
+              .select('earnings, views, user_id, users!inner(name, avatar_url)')
               .not('status', 'eq', 'Rejected');
 
           const usersMap: Record<string, any> = {};
