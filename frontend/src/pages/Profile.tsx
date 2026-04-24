@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ShieldCheck, Wallet, Trophy, Loader2, CheckCircle2, TrendingUp, Play, Camera } from 'lucide-react';
+import { ShieldCheck, Wallet, Trophy, Loader2, CheckCircle2, TrendingUp, Play, Camera, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '../components/ui/Button';
@@ -47,10 +47,43 @@ export const Profile = () => {
                     instagramVerified: result.data.instagram_verified,
                     instagramHandle: result.data.instagram_handle,
                     tiktokVerified: result.data.tiktok_verified,
-                    tiktokHandle: result.data.tiktok_handle
+                    tiktokHandle: result.data.tiktok_handle,
+                    youtubeChannels: result.data.youtube_channels || []
                 });
             }
         } catch (err) { console.error(err); }
+    };
+
+    const handleDeleteSocial = async (platform: string, id?: string) => {
+        const { isConfirmed } = await GlobalSwal.fire({
+            title: 'Disconnect Platform?',
+            text: `Are you sure you want to remove this ${platform} connection?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Disconnect',
+            confirmButtonColor: '#ef4444'
+        });
+
+        if (isConfirmed) {
+            try {
+                let url = `${import.meta.env.VITE_API_URL}/auth/${platform}`;
+                if (id) url += `/${id}`;
+
+                const res = await fetch(url, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                if (json.success) {
+                    Toast.fire({ title: 'Disconnected!', icon: 'success' });
+                    handleSync();
+                } else {
+                    throw new Error(json.error);
+                }
+            } catch (err: any) {
+                Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
+            }
+        }
     };
 
     useEffect(() => {
@@ -237,20 +270,55 @@ export const Profile = () => {
                             </div>
 
                             {/* YouTube Status */}
-                            <div className={`p-5 rounded-2xl border transition-all ${user?.youtubeVerified ? 'bg-red-500/5 border-red-500/20' : 'bg-white/[0.02] border-white/[0.05]'}`}>
-                                <div className="flex items-center justify-between mb-3">
-                                    <Play className={`w-5 h-5 ${user?.youtubeVerified ? 'text-red-500' : 'text-white/20'}`} />
+                            <div className={`p-5 rounded-2xl border transition-all ${user?.youtubeVerified ? 'bg-red-500/5 border-red-500/20' : 'bg-white/[0.02] border-white/[0.05]'} sm:col-span-2`}>
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <Play className={`w-5 h-5 ${user?.youtubeVerified ? 'text-red-500' : 'text-white/20'}`} />
+                                        <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">YouTube</h4>
+                                    </div>
                                     {user?.youtubeVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
                                 </div>
-                                <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">YouTube</h4>
-                                <p className="text-xs text-white/30 font-mono truncate">{user?.youtubeHandle || 'No Link Found'}</p>
+                                
+                                <div className="space-y-3">
+                                    {user?.youtubeChannels && user.youtubeChannels.length > 0 ? (
+                                        user.youtubeChannels.map((ch: any) => (
+                                            <div key={ch.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] group">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[10px] font-bold">{ch.handle?.[0]?.toUpperCase() || 'Y'}</div>
+                                                    <div>
+                                                        <p className="text-xs font-bold text-white">{ch.title}</p>
+                                                        <p className="text-[10px] text-white/40 font-mono">{ch.handle}</p>
+                                                    </div>
+                                                </div>
+                                                <button 
+                                                    onClick={() => handleDeleteSocial('youtube', ch.id)}
+                                                    className="p-2 text-white/20 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-xs text-white/20 italic p-2">No channels linked</p>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Instagram Status */}
                             <div className={`p-5 rounded-2xl border transition-all ${user?.instagramVerified ? 'bg-pink-500/5 border-pink-500/20' : 'bg-white/[0.02] border-white/[0.05]'}`}>
                                 <div className="flex items-center justify-between mb-3">
                                     <Camera className={`w-5 h-5 ${user?.instagramVerified ? 'text-pink-500' : 'text-white/20'}`} />
-                                    {user?.instagramVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
+                                    <div className="flex items-center gap-2">
+                                        {user?.instagramVerified && (
+                                            <button 
+                                                onClick={() => handleDeleteSocial('instagram')}
+                                                className="p-1.5 text-white/20 hover:text-red-500 transition-colors"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        )}
+                                        {user?.instagramVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
+                                    </div>
                                 </div>
                                 <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Instagram</h4>
                                 <p className="text-xs text-white/30 font-mono truncate">{user?.instagramHandle || 'No Link Found'}</p>
@@ -260,7 +328,17 @@ export const Profile = () => {
                             <div className={`p-5 rounded-2xl border transition-all ${user?.tiktokVerified ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-white/[0.02] border-white/[0.05]'}`}>
                                 <div className="flex items-center justify-between mb-3">
                                     <TikTokIcon />
-                                    {user?.tiktokVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
+                                    <div className="flex items-center gap-2">
+                                        {user?.tiktokVerified && (
+                                            <button 
+                                                onClick={() => handleDeleteSocial('tiktok')}
+                                                className="p-1.5 text-white/20 hover:text-red-500 transition-colors"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        )}
+                                        {user?.tiktokVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
+                                    </div>
                                 </div>
                                 <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">TikTok</h4>
                                 <p className="text-xs text-white/30 font-mono truncate">{user?.tiktokHandle || 'No Link Found'}</p>
