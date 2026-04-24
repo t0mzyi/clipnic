@@ -75,10 +75,11 @@ const globalLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20, // Limit each IP to 20 auth requests per hour
+  max: process.env.NODE_ENV === 'development' ? 1000 : 200, // Be much more lenient, especially in dev
   standardHeaders: true,
   legacyHeaders: false,
-  message: { success: false, error: 'Too many authentication attempts, please try again in an hour.' }
+  message: { success: false, error: 'Too many authentication attempts, please try again in an hour.' },
+  skip: (req) => process.env.NODE_ENV === 'development' // Skip limiting in local development
 });
 
 // Apply global limiter to all routes
