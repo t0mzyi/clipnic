@@ -91,7 +91,6 @@ const CustomTick = ({ checked }: { checked: boolean }) => (
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, closeMenu }) => {
     const { user, updateUser } = useAuthStore();
     const navigate = useNavigate();
-    const location = useLocation();
     const [step, setStep] = useState(1);
     const [name, setName] = useState(user?.name || '');
     const [bio, setBio] = useState('');
