@@ -149,6 +149,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         if (tourStepIdx === 0 && user?.discordVerified) {
             setTourStepIdx(1);
         }
+        
+        // Auto-advance Step 2 if any social linked
+        if (tourStepIdx === 1 && (user?.tiktokVerified || user?.instagramVerified || user?.youtubeVerified)) {
+            setTourStepIdx(2);
+        }
 
         // 2. Auto-advance if modal closed
         if (modalActive) {
@@ -164,7 +169,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
             stepAtModalStart.current = null;
         }
         prevModalActive.current = modalActive;
-    }, [user?.discordVerified, tourActive, tourStepIdx, modalActive, handleNextTour]);
+    }, [user?.discordVerified, user?.tiktokVerified, user?.instagramVerified, user?.youtubeVerified, tourActive, tourStepIdx, modalActive, handleNextTour]);
 
     // Tour Logic
     useEffect(() => {
