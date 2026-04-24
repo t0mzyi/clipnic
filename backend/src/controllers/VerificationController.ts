@@ -1,5 +1,34 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
+import crypto from 'crypto';
+
+const STATE_SECRET = process.env.STATE_SECRET || 'clipnic-secure-state-secret-2024';
+
+function signState(data: any): string {
+    const state = JSON.stringify(data);
+    const signature = crypto.createHmac('sha256', STATE_SECRET).update(state).digest('hex');
+    return Buffer.from(JSON.stringify({ state, signature })).toString('base64');
+}
+
+function verifyState(encodedState: string): any {
+    try {
+        const { state, signature } = JSON.parse(Buffer.from(encodedState, 'base64').toString());
+        const expectedSignature = crypto.createHmac('sha256', STATE_SECRET).update(state).digest('hex');
+        if (signature !== expectedSignature) return null;
+        return JSON.parse(state);
+    } catch (e) {
+        return null;
+    }
+}
+
+function validateRedirect(url: string | undefined): string | null {
+    if (!url) return null;
+    const frontendUrl = process.env.FRONTEND_URL || '';
+    if (url.startsWith(frontendUrl) || url.startsWith('/') || url.startsWith('http://localhost')) {
+        return url;
+    }
+    return null;
+}
 
 export class VerificationController {
   /**
@@ -16,7 +45,7 @@ export class VerificationController {
       }
 
       const { redirectTo } = req.query;
-      const state = encodeURIComponent(JSON.stringify({ userId, redirectTo }));
+      const state = signState({ userId, redirectTo: validateRedirect(redirectTo as string) });
       const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds&state=${state}`;
 
       res.json({ success: true, url });
@@ -43,13 +72,15 @@ export class VerificationController {
 
       let userId: string;
       let redirectTo: string | null = null;
-      try {
-          const parsedState = JSON.parse(decodeURIComponent(state as string));
-          userId = parsedState.userId;
-          redirectTo = parsedState.redirectTo;
-      } catch (e) {
-          userId = decodeURIComponent(state as string);
+      
+      const parsedState = verifyState(state as string);
+      if (!parsedState) {
+          console.error('[DiscordCallback] Invalid or tampered state');
+          return res.redirect(`${frontendUrl}/profile?discord_error=invalid_state`);
       }
+      
+      userId = parsedState.userId;
+      redirectTo = parsedState.redirectTo;
       
       const successBaseRedirect = redirectTo || `${frontendUrl}/profile`;
       const errorBaseRedirect = redirectTo || `${frontendUrl}/profile`;
@@ -191,7 +222,7 @@ export class VerificationController {
       }
 
       const { redirectTo } = req.query;
-      const state = encodeURIComponent(JSON.stringify({ userId: req.user.id, redirectTo }));
+      const state = signState({ userId: req.user.id, redirectTo: validateRedirect(redirectTo as string) });
       
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${clientId}` +
@@ -224,13 +255,14 @@ export class VerificationController {
       // Pre-parse state to get redirects for error handling
       let redirectTo: string | null = null;
       let userId: string | null = null;
-      try {
-          if (state) {
-              const parsed = JSON.parse(decodeURIComponent(state as string));
-              userId = parsed.userId;
-              redirectTo = parsed.redirectTo;
-          }
-      } catch (e) {}
+      
+      const parsedState = verifyState(state as string);
+      if (!parsedState) {
+          console.error('[YouTubeCallback] Invalid or tampered state');
+          return res.redirect(`${frontendUrl}/profile?youtube_error=invalid_state`);
+      }
+      userId = parsedState.userId;
+      redirectTo = parsedState.redirectTo;
 
       const successBaseRedirect = redirectTo || `${frontendUrl}/profile`;
       const errorBaseRedirect = redirectTo || `${frontendUrl}/profile`;

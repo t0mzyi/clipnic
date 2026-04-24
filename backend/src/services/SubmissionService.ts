@@ -445,8 +445,10 @@ export class SubmissionService {
     return data;
   }
 
-  static async getAllUserSubmissions(userId: string) {
-    const { data, error } = await supabase
+  static async getAllUserSubmissions(userId: string, page: number = 1, limit: number = 20) {
+    const offset = (page - 1) * limit;
+
+    const { data, count, error } = await supabase
       .from('submissions')
       .select(`
          *,
@@ -454,12 +456,13 @@ export class SubmissionService {
             title,
             cpm_rate
          )
-      `)
+      `, { count: 'exact' })
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
       
     if (error) throw error;
-    return data;
+    return { data: data || [], total: count || 0 };
   }
 
   static async getCampaignLeaderboard(campaignId: string) {
@@ -499,18 +502,21 @@ export class SubmissionService {
     return Object.values(aggregated).sort((a: any, b: any) => b.views - a.views);
   }
 
-  static async adminGetAllSubmissions() {
-    const { data, error } = await supabase
+  static async adminGetAllSubmissions(page: number = 1, limit: number = 20) {
+    const offset = (page - 1) * limit;
+    
+    const { data, count, error } = await supabase
       .from('submissions')
       .select(`
          *,
          campaigns (id, title, cpm_rate),
          users (id, name, avatar_url, email, instagram_handle, youtube_handle, youtube_channels)
-      `)
-      .order('created_at', { ascending: false });
+      `, { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
       
     if (error) throw error;
-    return data;
+    return { data: data || [], total: count || 0 };
   }
 
   static async adminUpdateStatus(submissionId: string, status: string, rejectionReason?: string) {

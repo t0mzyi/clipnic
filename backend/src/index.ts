@@ -15,22 +15,26 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.disable('x-powered-by');
+
 // Security: Helmet for various HTTP headers
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"], // Removed unsafe-inline for better security
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "https:", "http:"],
       connectSrc: ["'self'", "https:", "http:", "wss:", "ws:"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'", "https:", "http:"],
-      frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com"]
+      frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com"],
+      frameAncestors: ["'none'"] // SKILL.md recommendation
     }
   },
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  hsts: { maxAge: 63072000, includeSubDomains: true, preload: true } // SKILL.md recommendation
 }));
 
 // CORS configuration
@@ -38,13 +42,16 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:5173',
   'https://clipnic.com',
-  'https://www.clipnic.com'
+  'https://www.clipnic.com',
+  'https://dash.clipnic.com',
+  'https://www.dash.clipnic.com'
 ].filter(Boolean) as string[];
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+    // Be more specific even in development for security consistency
+    if (allowedOrigins.indexOf(origin) !== -1 || (process.env.NODE_ENV === 'development' && origin.startsWith('http://localhost:'))) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -52,10 +59,10 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Idempotency-Key']
 }));
 
-app.use(express.json({ limit: '100kb' })); // Limit body size
+app.use(express.json({ limit: '50kb' })); // SKILL.md recommendation: limit body size to 50kb
 
 // Rate Limiting
 const globalLimiter = rateLimit({
@@ -107,7 +114,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 app.listen(PORT, () => {
     const domain = process.env.RENDER_EXTERNAL_URL;
-    console.log(`Server listening on port ${PORT}`);
+    LoggerService.info('Server Started', `Server listening on port ${PORT}`);
     
     // Only log to Discord if we have a real domain (Production)
     if (domain && !domain.includes('localhost')) {

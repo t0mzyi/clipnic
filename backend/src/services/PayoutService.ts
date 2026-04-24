@@ -131,17 +131,20 @@ export class PayoutService {
     return payout;
   }
 
-  static async getPayoutHistory() {
-      const { data, error } = await supabase
+  static async getPayoutHistory(page: number = 1, limit: number = 20) {
+      const offset = (page - 1) * limit;
+
+      const { data, count, error } = await supabase
         .from('payouts')
         .select(`
             *,
             users:user_id (name, email, avatar_url),
             admin:admin_id (name)
-        `)
-        .order('created_at', { ascending: false });
+        `, { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
       
       if (error) throw error;
-      return data;
+      return { data: data || [], total: count || 0 };
   }
 }

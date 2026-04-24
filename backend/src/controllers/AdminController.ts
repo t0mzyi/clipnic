@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 import { SubmissionService } from '../services/SubmissionService';
 import { PayoutService } from '../services/PayoutService';
+import { AuditService } from '../services/AuditService';
+import { paginationSchema, updateRoleSchema, toggleBlockSchema, updateSubmissionStatusSchema, processPayoutSchema } from '../utils/validation';
 
 export class AdminController {
   /**
@@ -10,14 +12,33 @@ export class AdminController {
    */
   static async getAllUsers(req: Request, res: Response, next: NextFunction) {
     try {
-      const { q } = req.query as { q?: string };
-      let query = supabase.from('users').select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, is_blocked, created_at');
+      const { page, limit, q } = paginationSchema.parse(req.query);
+      const offset = (page - 1) * limit;
+
+      let query = supabase
+        .from('users')
+        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, is_blocked, created_at', { count: 'exact' });
+      
       if (q) {
         query = query.ilike('email', `%${q}%`).or(`name.ilike.%${q}%`);
       }
-      const { data, error } = await query;
+
+      const { data, count, error } = await query
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
       if (error) throw error;
-      res.json({ success: true, data });
+      
+      res.json({ 
+        success: true, 
+        data,
+        pagination: {
+          page,
+          limit,
+          total: count || 0,
+          pages: Math.ceil((count || 0) / limit)
+        }
+      });
     } catch (error) {
       next(error);
     }
@@ -64,12 +85,24 @@ export class AdminController {
   static async toggleBlock(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const { block } = req.body as { block: boolean };
+      const { block } = toggleBlockSchema.parse(req.body);
       const { error } = await supabase
         .from('users')
         .update({ is_blocked: block })
         .eq('id', id);
       if (error) throw error;
+
+      // Log action
+      await AuditService.log({
+        actorId: (req as any).user?.id,
+        actorRole: 'admin',
+        action: block ? 'USER_BLOCKED' : 'USER_UNBLOCKED',
+        targetId: id,
+        targetType: 'user',
+        metadata: { block },
+        ip: req.ip
+      });
+
       res.json({ success: true, message: `User ${block ? 'blocked' : 'unblocked'}` });
     } catch (error) {
       next(error);
@@ -83,11 +116,7 @@ export class AdminController {
   static async updateUserRole(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const { role } = req.body as { role: 'admin' | 'user' };
-
-      if (!['admin', 'user'].includes(role)) {
-        return res.status(400).json({ success: false, error: 'Invalid role' });
-      }
+      const { role } = updateRoleSchema.parse(req.body);
 
       // 1. Update public.users table
       const { error: dbError } = await supabase
@@ -106,6 +135,17 @@ export class AdminController {
           console.warn('Auth metadata update failed (Missing Service Role Key?):', authError.message);
       }
 
+      // Log action
+      await AuditService.log({
+        actorId: (req as any).user?.id,
+        actorRole: 'admin',
+        action: 'USER_ROLE_UPDATED',
+        targetId: id,
+        targetType: 'user',
+        metadata: { newRole: role },
+        ip: req.ip
+      });
+
       res.json({ success: true, message: `User role updated to ${role}` });
     } catch (error) {
       next(error);
@@ -117,8 +157,18 @@ export class AdminController {
    */
   static async getAllSubmissions(req: Request, res: Response, next: NextFunction) {
       try {
-          const data = await SubmissionService.adminGetAllSubmissions();
-          res.json({ success: true, data });
+          const { page, limit } = paginationSchema.parse(req.query);
+          const { data, total } = await SubmissionService.adminGetAllSubmissions(page, limit);
+          res.json({ 
+            success: true, 
+            data,
+            pagination: {
+              page,
+              limit,
+              total,
+              pages: Math.ceil(total / limit)
+            }
+          });
       } catch (error) {
           next(error);
       }
@@ -130,8 +180,20 @@ export class AdminController {
   static async updateSubmissionStatus(req: Request, res: Response, next: NextFunction) {
       try {
           const { id } = req.params;
-          const { status, rejectionReason } = req.body as { status: string, rejectionReason?: string };
+          const { status, rejectionReason } = updateSubmissionStatusSchema.parse(req.body);
           const data = await SubmissionService.adminUpdateStatus(id as string, status, rejectionReason);
+          
+          // Log action
+          await AuditService.log({
+            actorId: (req as any).user?.id,
+            actorRole: 'admin',
+            action: 'SUBMISSION_STATUS_UPDATED',
+            targetId: id,
+            targetType: 'submission',
+            metadata: { status, rejectionReason },
+            ip: req.ip
+          });
+
           res.json({ success: true, data });
       } catch (error) {
           next(error);
@@ -248,9 +310,21 @@ export class AdminController {
 
   static async processPayout(req: Request, res: Response, next: NextFunction) {
       try {
-          const { userId, notes } = req.body;
+          const { userId, notes } = processPayoutSchema.parse(req.body);
           const adminId = (req as any).user?.id; // From authMiddleware
           const data = await PayoutService.processPayout(userId, adminId, notes);
+          
+          // Log action
+          await AuditService.log({
+            actorId: adminId,
+            actorRole: 'admin',
+            action: 'PAYOUT_PROCESSED',
+            targetId: userId,
+            targetType: 'user',
+            metadata: { amount: data?.amount, submissionIds: data?.submission_ids, notes },
+            ip: req.ip
+          });
+
           res.json({ success: true, data });
       } catch (error) {
           next(error);
@@ -259,8 +333,18 @@ export class AdminController {
 
   static async getPayoutHistory(req: Request, res: Response, next: NextFunction) {
       try {
-          const data = await PayoutService.getPayoutHistory();
-          res.json({ success: true, data });
+          const { page, limit } = paginationSchema.parse(req.query);
+          const { data, total } = await PayoutService.getPayoutHistory(page, limit);
+          res.json({ 
+            success: true, 
+            data,
+            pagination: {
+              page,
+              limit,
+              total,
+              pages: Math.ceil(total / limit)
+            }
+          });
       } catch (error) {
           next(error);
       }

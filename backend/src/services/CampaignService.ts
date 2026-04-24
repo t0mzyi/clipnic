@@ -62,26 +62,33 @@ export class CampaignService {
     }
   }
 
-  static async getAll() {
+  static async getAll(page: number = 1, limit: number = 20) {
     await this.autoActivateCampaigns();
-    const { data, error } = await supabase
+    const offset = (page - 1) * limit;
+
+    const { data, count, error } = await supabase
       .from('campaigns')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
     if (error) throw error;
-    return data;
+    return { data: data || [], total: count || 0 };
   }
 
-  static async getAllAdmin() {
+  static async getAllAdmin(page: number = 1, limit: number = 20) {
     await this.autoActivateCampaigns();
-    const { data: campaigns, error: campErr } = await supabase
+    const offset = (page - 1) * limit;
+
+    const { data: campaigns, count, error: campErr } = await supabase
       .from('campaigns')
       .select(`
         *,
         participants:campaign_participants(count),
         submissions:submissions(count)
-      `)
-      .order('created_at', { ascending: false });
+      `, { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
     
     if (campErr) throw campErr;
 
@@ -98,12 +105,15 @@ export class CampaignService {
         pendingMap[s.campaign_id] = (pendingMap[s.campaign_id] || 0) + 1;
     });
 
-    return campaigns.map((c: any) => ({
-      ...c,
-      participant_count: c.participants?.[0]?.count || 0,
-      total_submissions_count: c.submissions?.[0]?.count || 0,
-      pending_submissions_count: pendingMap[c.id] || 0
-    }));
+    return {
+      data: campaigns.map((c: any) => ({
+        ...c,
+        participant_count: c.participants?.[0]?.count || 0,
+        total_submissions_count: c.submissions?.[0]?.count || 0,
+        pending_submissions_count: pendingMap[c.id] || 0
+      })),
+      total: count || 0
+    };
   }
 
   static async getById(id: string) {

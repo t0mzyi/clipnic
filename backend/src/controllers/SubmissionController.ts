@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { SubmissionService } from '../services/SubmissionService';
+import { paginationSchema } from '../utils/validation';
 
 export class SubmissionController {
   static async submitClip(req: Request, res: Response) {
@@ -30,10 +31,21 @@ export class SubmissionController {
   static async getAllMySubmissions(req: Request, res: Response) {
     try {
       const userId = (req as any).user.id;
-      console.log(`[getAllMySubmissions] Fetching for user: ${userId}`);
-      const data = await SubmissionService.getAllUserSubmissions(userId);
-      console.log(`[getAllMySubmissions] Found ${data?.length} submissions`);
-      res.json({ success: true, data });
+      const { page, limit } = paginationSchema.parse(req.query);
+      
+      console.log(`[getAllMySubmissions] Fetching for user: ${userId}, page: ${page}, limit: ${limit}`);
+      const { data, total } = await SubmissionService.getAllUserSubmissions(userId, page, limit);
+      
+      res.json({ 
+        success: true, 
+        data,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      });
     } catch (err: any) {
       console.error(`[getAllMySubmissions] Error:`, err);
       res.status(400).json({ success: false, error: err.message });

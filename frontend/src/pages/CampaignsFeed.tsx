@@ -56,12 +56,35 @@ export const CampaignsFeed = () => {
 
     useEffect(() => {
         const fetchCampaigns = async () => {
+            // 1. Try to load from cache first for instant UI
+            const cachedData = localStorage.getItem('clipnic_campaigns_cache');
+            if (cachedData) {
+                try {
+                    const { data, timestamp } = JSON.parse(cachedData);
+                    // If cache is less than 5 minutes old, we can still show it but will revalidate
+                    setCampaigns(data);
+                    if (Date.now() - timestamp < 300000) { // 5 mins
+                         setLoading(false);
+                    }
+                } catch (e) {
+                    localStorage.removeItem('clipnic_campaigns_cache');
+                }
+            }
+
             try {
                 const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const json = await res.json();
-                if (json.success) setCampaigns(json.data || []);
+                if (json.success) {
+                    const fetchedData = json.data || [];
+                    setCampaigns(fetchedData);
+                    // 2. Update cache
+                    localStorage.setItem('clipnic_campaigns_cache', JSON.stringify({
+                        data: fetchedData,
+                        timestamp: Date.now()
+                    }));
+                }
             } catch (err) {
                 console.error('Failed to fetch campaigns:', err);
             } finally {

@@ -6,8 +6,10 @@ export class LoggerService {
   static async sendDiscordLog(title: string, message: string, color: number = 0x10b981, ping: boolean = false) {
     let webhookUrl = process.env.DISCORD_LOG_WEBHOOK_URL;
 
-    // Use payout-specific webhook for payout logs if defined
-    if (title.includes('Payout') && process.env.DISCORD_PAYOUT_WEBHOOK_URL) {
+    // Use audit-specific webhook if title involves security/audit
+    if (title.includes('AUDIT') && process.env.DISCORD_AUDIT_WEBHOOK_URL) {
+        webhookUrl = process.env.DISCORD_AUDIT_WEBHOOK_URL;
+    } else if (title.includes('Payout') && process.env.DISCORD_PAYOUT_WEBHOOK_URL) {
         webhookUrl = process.env.DISCORD_PAYOUT_WEBHOOK_URL;
     }
     

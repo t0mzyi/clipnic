@@ -65,29 +65,47 @@ export const Profile = () => {
 
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const fetchStats = useCallback(async () => {
+    const fetchStats = useCallback(async (force = false) => {
         if (!token) return;
+        
+        // 1. Try cache first
+        const cacheKey = `clipnic_stats_${user?.id}`;
+        const cached = localStorage.getItem(cacheKey);
+        if (cached && !force) {
+            try {
+                const { data, timestamp } = JSON.parse(cached);
+                if (Date.now() - timestamp < 600000) { // 10 mins cache
+                    setStats(data);
+                }
+            } catch (e) { localStorage.removeItem(cacheKey); }
+        }
+
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/submissions/earnings?t=${Date.now()}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
             if (json.success) {
-                setStats({
+                const newStats = {
                     totalClips: json.data.breakdown.length,
                     totalViews: json.data.breakdown.reduce((sum: number, s: any) => sum + (s.views || 0), 0),
                     currentBalance: `$${json.data.claimableBalance.toFixed(2)}`
-                });
+                };
+                setStats(newStats);
+                localStorage.setItem(cacheKey, JSON.stringify({ data: newStats, timestamp: Date.now() }));
             }
         } catch (err) {
             console.error('Failed to fetch profile stats:', err);
         }
-    }, [token]);
+    }, [token, user?.id]);
 
     // Re-sync with backend (useful after OAuth redirects)
-    const fetchSync = useCallback(async () => {
+    const fetchSync = useCallback(async (force = false) => {
         if (!token) return;
-        fetchStats();
+        
+        // Only fetch stats if forced or not in cache
+        fetchStats(force);
+
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/sync`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -124,10 +142,10 @@ export const Profile = () => {
     useEffect(() => {
         if (token) {
             fetchSync();
-            // Auto-refresh every 10 seconds for real-time feel
+            // Auto-refresh every 30 seconds (increased from 10s for optimization)
             const interval = setInterval(() => {
-                fetchStats();
-            }, 10000);
+                fetchStats(true); // Background refresh
+            }, 30000);
             return () => clearInterval(interval);
         }
     }, [token, fetchSync, fetchStats]);

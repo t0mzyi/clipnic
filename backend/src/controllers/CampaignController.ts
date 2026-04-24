@@ -1,11 +1,23 @@
 import { Request, Response, NextFunction } from 'express';
 import { CampaignService } from '../services/CampaignService';
+import { AuditService } from '../services/AuditService';
+import { paginationSchema, campaignStatusSchema, campaignFeaturedSchema, joinCampaignSchema } from '../utils/validation';
 
 export class CampaignController {
   static async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const campaigns = await CampaignService.getAll();
-      res.json({ success: true, data: campaigns });
+      const { page, limit } = paginationSchema.parse(req.query);
+      const { data, total } = await CampaignService.getAll(page, limit);
+      res.json({ 
+        success: true, 
+        data,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      });
     } catch (error) {
       next(error);
     }
@@ -13,8 +25,18 @@ export class CampaignController {
 
   static async getAllAdmin(req: Request, res: Response, next: NextFunction) {
     try {
-      const campaigns = await CampaignService.getAllAdmin();
-      res.json({ success: true, data: campaigns });
+      const { page, limit } = paginationSchema.parse(req.query);
+      const { data, total } = await CampaignService.getAllAdmin(page, limit);
+      res.json({ 
+        success: true, 
+        data,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      });
     } catch (error) {
       next(error);
     }
@@ -58,7 +80,8 @@ export class CampaignController {
 
   static async updateStatus(req: Request, res: Response, next: NextFunction) {
     try {
-      const campaign = await CampaignService.updateStatus(req.params.id as string, req.body.status);
+      const { status } = campaignStatusSchema.parse(req.body);
+      const campaign = await CampaignService.updateStatus(req.params.id as string, status);
       res.json({ success: true, data: campaign });
     } catch (error) {
       next(error);
@@ -67,7 +90,8 @@ export class CampaignController {
 
   static async updateFeatured(req: Request, res: Response, next: NextFunction) {
     try {
-      const campaign = await CampaignService.updateFeatured(req.params.id as string, req.body.is_featured);
+      const { is_featured } = campaignFeaturedSchema.parse(req.body);
+      const campaign = await CampaignService.updateFeatured(req.params.id as string, is_featured);
       res.json({ success: true, data: campaign });
     } catch (error) {
       next(error);
@@ -77,7 +101,7 @@ export class CampaignController {
   static async joinCampaign(req: Request, res: Response, next: NextFunction) {
       try {
           const { id } = req.params;
-          const { linkedHandle } = req.body;
+          const { linkedHandle } = joinCampaignSchema.parse(req.body);
           const userId = (req as any).user.id;
           const data = await CampaignService.joinCampaign(userId, id as string, linkedHandle);
           res.json({ success: true, data });
@@ -119,7 +143,19 @@ export class CampaignController {
 
   static async deleteCampaign(req: Request, res: Response, next: NextFunction) {
     try {
-      await CampaignService.delete(req.params.id as string);
+      const { id } = req.params;
+      await CampaignService.delete(id as string);
+
+      // Log action
+      await AuditService.log({
+        actorId: (req as any).user?.id,
+        actorRole: 'admin',
+        action: 'CAMPAIGN_DELETED',
+        targetId: id,
+        targetType: 'campaign',
+        ip: req.ip
+      });
+
       res.json({ success: true, message: 'Campaign deleted' });
     } catch (error) {
       next(error);
