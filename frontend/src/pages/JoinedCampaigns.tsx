@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Globe, ChevronRight, Activity, Target } from 'lucide-react';
+import { Globe, ChevronRight, Activity, Target, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { Badge } from '../components/ui/Badge';
