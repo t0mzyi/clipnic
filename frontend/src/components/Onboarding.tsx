@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -129,13 +129,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
         }
     };
 
-    const handleNextTour = () => {
-        if (tourStepIdx < TOUR_STEPS.length - 1) {
-            setTourStepIdx(tourStepIdx + 1);
-        } else {
+    const handleNextTour = useCallback(() => {
+        setTourStepIdx(prev => {
+            if (prev < TOUR_STEPS.length - 1) return prev + 1;
             onComplete();
-        }
-    };
+            return prev;
+        });
+    }, [onComplete]);
 
     // Auto-advance logic
     useEffect(() => {
@@ -147,13 +147,15 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
         }
 
         // 2. Auto-advance if modal closed
+        // We use a small timeout to let the DOM actually clear (AnimatePresence)
         if (prevModalActive.current === true && modalActive === false) {
             if (tourStepIdx === 0 || tourStepIdx === 1) {
+                // Check if we are still on that step
                 handleNextTour();
             }
         }
         prevModalActive.current = modalActive;
-    }, [user?.discordVerified, tourActive, tourStepIdx, modalActive]);
+    }, [user?.discordVerified, tourActive, tourStepIdx, modalActive, handleNextTour]);
 
     // Tour Logic
     useEffect(() => {
@@ -169,11 +171,22 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
         // 2. Spotlight Calculation Logic
         const updateSpotlight = () => {
             // Check for modals blocking the view
-            const hasModal = !!document.querySelector('#verification-modal') || !!document.querySelector('#withdraw-modal');
-            setModalActive(hasModal);
+            // We also check for data-exiting attribute if possible, or just trust the state
+            const modalEl = document.querySelector('#verification-modal') || document.querySelector('#withdraw-modal');
+            
+            // Heuristic: If the modal is fading out (opacity < 0.5), we consider it closed
+            let isReallyActive = false;
+            if (modalEl) {
+                const style = window.getComputedStyle(modalEl);
+                if (parseFloat(style.opacity) > 0.5) {
+                    isReallyActive = true;
+                }
+            }
+            
+            setModalActive(isReallyActive);
 
             const el = document.querySelector(currentStep.target);
-            if (el && !hasModal) {
+            if (el && !isReallyActive) {
                 // For sidebar items on mobile, we might need to open menu
                 if (isMobile && currentStep.target.startsWith('#sidebar-') && openMenu) {
                     openMenu();
@@ -451,7 +464,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
                         </AnimatePresence>
                     </div>
                 </motion.div>
-            </motion.div>
+            </div>
         </AnimatePresence>
     );
 };
