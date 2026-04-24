@@ -1288,7 +1288,18 @@ export const CampaignDetails = () => {
                             </button>
 
                             <h2 className="text-2xl font-bold tracking-tight mb-2">Submit Clip</h2>
-                            <p className="text-white/30 text-xs mb-8">Paste your video link below. We will automatically detect the platform.</p>
+                            <p className="text-white/30 text-xs mb-4">Paste your video link below. We will automatically detect the platform.</p>
+                            
+                            {campaign?.start_date && (
+                                <div className="mb-8 p-3 rounded-xl bg-amber-500/5 border border-amber-500/10 flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                                        <History className="w-4 h-4 text-amber-500" />
+                                    </div>
+                                    <p className="text-[10px] text-amber-500/80 leading-relaxed font-medium">
+                                        Only videos published AFTER <span className="text-white font-bold">{new Date(campaign.start_date).toLocaleDateString()}</span> are eligible for this mission.
+                                    </p>
+                                </div>
+                            )}
 
                             <form onSubmit={handleSubmitClip} className="space-y-6">
                                 <div className="space-y-1.5">

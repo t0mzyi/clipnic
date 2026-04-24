@@ -49,7 +49,7 @@ const defaultForm = {
     requires_dedicated_social: false,
     requires_discord: true,
     rules: ['Follow brand guidelines', 'No artificial engagement'],
-    start_date: '',
+    start_date: new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16),
     auto_start: true,
 };
 
@@ -120,32 +120,31 @@ export const AdminCampaigns = () => {
         finally { setLoading(false); }
     };
 
-    const validateForm = () => {
-        if (!form.title.trim()) return "Campaigns need a catchy title.";
-        if (!form.description.trim()) return "Please provide a description so clippers know what to do.";
-        if (!form.discord_channel.trim() || !form.discord_channel.startsWith('http')) return "A valid Discord invitation link is required.";
-        
-        const cpm = parseFloat(form.cpm_rate);
-        const budget = parseFloat(form.total_budget);
-        
-        if (isNaN(cpm) || cpm <= 0) return "CPM rate must be a positive number.";
-        if (isNaN(budget) || budget <= 0) return "Total budget must be a positive number.";
-        if (budget < cpm) return "Total budget is too small for this CPM.";
-        
-        if (!form.end_date) return "Select a deadline for this campaign.";
-        if (new Date(form.end_date) <= new Date()) return "Deadline must be in the future.";
-        
-        if (form.start_date && new Date(form.end_date) <= new Date(form.start_date)) {
-            return "The campaign must end AFTER it starts. Check your dates.";
+    const validateStep = (currentStep: number) => {
+        if (currentStep === 1) {
+            if (!form.title.trim()) return "Campaigns need a catchy title.";
+            if (!form.description.trim()) return "Please provide a description so clippers know what to do.";
+            if (form.rules.some(r => !r.trim())) return "All rules must have content or be removed.";
         }
-        
-        if (form.allowed_platforms.length === 0) return "Select at least one platform (YouTube/IG/TikTok).";
-        
+        if (currentStep === 2) {
+            if (form.allowed_platforms.length === 0) return "Select at least one platform (YouTube/IG/TikTok).";
+            if (!form.discord_channel.trim() || !form.discord_channel.startsWith('http')) return "A valid Discord invitation or asset link is required.";
+        }
+        if (currentStep === 3) {
+            const cpm = parseFloat(form.cpm_rate);
+            const budget = parseFloat(form.total_budget);
+            if (isNaN(cpm) || cpm <= 0) return "CPM rate must be a positive number.";
+            if (isNaN(budget) || budget <= 0) return "Total budget must be a positive number.";
+            if (budget < cpm) return "Total budget is too small for this CPM.";
+            if (!form.end_date) return "Select a deadline for this campaign.";
+            if (new Date(form.end_date) <= new Date()) return "Deadline must be in the future.";
+            if (form.start_date && new Date(form.end_date) <= new Date(form.start_date)) return "The campaign must end AFTER it starts.";
+        }
         return null;
     };
 
     const handleSubmit = async () => {
-        const error = validateForm();
+        const error = validateStep(3); // Final check on step 3 logic
         if (error) {
             setFormError(error);
             Toast.fire({ title: 'Validation Error', text: error, icon: 'error', background: '#200' });
@@ -551,13 +550,27 @@ export const AdminCampaigns = () => {
                                                 <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Timing & Launch</p>
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-[9px] font-bold text-white/30 uppercase">Auto Start</span>
-                                                    <button onClick={() => setForm(p => ({ ...p, auto_start: !p.auto_start }))}>
+                                                    <button onClick={() => {
+                                                        const newAutoStart = !form.auto_start;
+                                                        setForm(p => ({ 
+                                                            ...p, 
+                                                            auto_start: newAutoStart,
+                                                            start_date: newAutoStart ? new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : p.start_date
+                                                        }));
+                                                    }}>
                                                         {form.auto_start ? <ToggleRight className="text-emerald-400 w-6 h-6" /> : <ToggleLeft className="text-white/10 w-6 h-6" />}
                                                     </button>
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
-                                                <InputField label="Start Date & Time" type="datetime-local" value={form.start_date} onChange={set('start_date')} />
+                                                <InputField 
+                                                    label="Start Date & Time" 
+                                                    type="datetime-local" 
+                                                    value={form.start_date} 
+                                                    onChange={set('start_date')} 
+                                                    disabled={form.auto_start}
+                                                    className={`w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-white/25 transition-all ${form.auto_start ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+                                                />
                                                 <InputField label="End Date & Time" required type="datetime-local" value={form.end_date} onChange={set('end_date')} />
                                             </div>
                                             {!form.auto_start && (
@@ -615,15 +628,25 @@ export const AdminCampaigns = () => {
                                                 {form.requires_dedicated_social && <span className="px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-tight">Dedicated Account Required</span>}
                                                 {form.requires_discord && <span className="px-2 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-tight">Discord Link Required</span>}
                                             </div>
+                                            </div>
                                         </div>
                                     </motion.div>
                                 )}
                             </div>
 
-                            <div className="mt-8 pt-6 border-t border-white/[0.05] flex gap-3">
+                             <div className="mt-8 pt-6 border-t border-white/[0.05] flex gap-3">
                                 {step > 1 && <Button variant="outline" onClick={() => setStep(s => s - 1)} className="px-8 py-3 rounded-xl text-xs">Back</Button>}
                                 {step < 4 ? (
-                                    <Button variant="primary" onClick={() => setStep(s => s + 1)} className="flex-1 bg-white text-zinc-950 py-4 rounded-xl font-bold uppercase tracking-widest text-xs">Continue</Button>
+                                    <Button variant="primary" onClick={() => {
+                                        const error = validateStep(step);
+                                        if (error) {
+                                            setFormError(error);
+                                            Toast.fire({ title: 'Required Info', text: error, icon: 'warning', background: '#200' });
+                                            return;
+                                        }
+                                        setFormError('');
+                                        setStep(s => s + 1);
+                                    }} className="flex-1 bg-white text-zinc-950 py-4 rounded-xl font-bold uppercase tracking-widest text-xs">Continue</Button>
                                 ) : (
                                     <Button variant="primary" onClick={handleSubmit} disabled={submitting} className="flex-1 bg-emerald-500 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs disabled:opacity-50 hover:bg-emerald-600 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
                                         {submitting ? "Launching..." : editingCampaign ? "Save Changes" : (
