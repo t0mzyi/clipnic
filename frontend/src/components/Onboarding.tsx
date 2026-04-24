@@ -102,6 +102,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
     const [tourStepIdx, setTourStepIdx] = useState(0);
     const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
     const [modalActive, setModalActive] = useState(false);
+    const prevModalActive = useRef(false);
     const pollingRef = useRef<number | null>(null);
 
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
@@ -128,18 +129,31 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
         }
     };
 
+    const handleNextTour = () => {
+        if (tourStepIdx < TOUR_STEPS.length - 1) {
+            setTourStepIdx(tourStepIdx + 1);
+        } else {
+            onComplete();
+        }
+    };
+
     // Auto-advance logic
     useEffect(() => {
         if (!tourActive) return;
         
-        // If Discord step and verified, move to next
+        // 1. Auto-advance if verified
         if (tourStepIdx === 0 && user?.discordVerified) {
             setTourStepIdx(1);
         }
-        
-        // If Socials step and any social verified, we could move on, but usually users want to see it
-        // so we only auto-advance Discord as requested.
-    }, [user?.discordVerified, tourActive, tourStepIdx]);
+
+        // 2. Auto-advance if modal closed
+        if (prevModalActive.current === true && modalActive === false) {
+            if (tourStepIdx === 0 || tourStepIdx === 1) {
+                handleNextTour();
+            }
+        }
+        prevModalActive.current = modalActive;
+    }, [user?.discordVerified, tourActive, tourStepIdx, modalActive]);
 
     // Tour Logic
     useEffect(() => {
@@ -188,14 +202,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
             if (pollingRef.current) cancelAnimationFrame(pollingRef.current);
         };
     }, [tourActive, tourStepIdx, location.pathname, isMobile, openMenu, navigate]);
-
-    const handleNextTour = () => {
-        if (tourStepIdx < TOUR_STEPS.length - 1) {
-            setTourStepIdx(tourStepIdx + 1);
-        } else {
-            onComplete();
-        }
-    };
 
     if (tourActive) {
         // Build the "hole-punch" path
@@ -260,7 +266,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
                                     </h4>
                                     <p className="text-white/50 text-sm leading-relaxed">
                                         {modalActive 
-                                            ? 'Finish your registration in the window to continue the tour.' 
+                                            ? 'Finish your action in the window to continue the tour.' 
                                             : TOUR_STEPS[tourStepIdx].content
                                         }
                                     </p>
