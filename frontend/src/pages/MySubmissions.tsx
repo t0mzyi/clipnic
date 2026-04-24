@@ -342,11 +342,6 @@ export const MySubmissions = () => {
                     </div>
                 )}
 
-                {summary.pendingPayout === 0 && summary.claimableBalance === 0 && summary.claimed === 0 && (
-                    <div className="col-span-full py-8 text-center border border-dashed border-white/5 rounded-3xl">
-                        <p className="text-[10px] uppercase tracking-widest text-white/20 font-bold">No active earnings or payouts found.</p>
-                    </div>
-                )}
             </div>
 
             {/* Content Area */}

@@ -161,11 +161,6 @@ export const Earnings = () => {
                             <p className="text-[9px] mt-2 uppercase tracking-widest text-white/20">Total Received</p>
                         </motion.div>
 
-                        {(!data || (data.pendingPayout === 0 && data.claimableBalance === 0 && data.claimed === 0)) && (
-                            <div className="col-span-full py-12 text-center border border-dashed border-white/5 rounded-[32px]">
-                                <p className="text-[10px] uppercase tracking-widest text-white/20 font-bold">No active earnings or payouts found.</p>
-                            </div>
-                        )}
                     </div>
 
                     {/* Breakdown Table */}
