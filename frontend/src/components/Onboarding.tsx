@@ -217,11 +217,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                 if (rect.width > 0 && rect.height > 0) {
                     setSpotlightRect(rect);
                     // Minimal smooth scrolling for targeted elements
-                    if (!currentStep.target.startsWith('#sidebar-')) {
-                        const isInView = rect.top >= 0 && rect.bottom <= window.innerHeight;
-                        if (!isInView) {
-                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
+                    const isInView = rect.top >= 0 && rect.bottom <= window.innerHeight;
+                    if (!isInView) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 }
             } else {

@@ -35,6 +35,7 @@ import { Login } from './pages/Login';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './store/useAuthStore';
 import { Onboarding } from './components/Onboarding';
+import { Footer } from './components/Footer';
 
 const Sidebar = ({ isOpen, closeMenu }: { isOpen: boolean, closeMenu: () => void }) => {
     const location = useLocation();
@@ -431,6 +432,7 @@ const Layout = () => {
                         </Routes>
                     </AnimatePresence>
                 </div>
+                {!location.pathname.startsWith('/admin') && <Footer />}
             </main>
         </div>
     );
