@@ -91,7 +91,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     const { user } = useAuthStore();
     const navigate = useNavigate();
     const location = useLocation();
-    const [step, setStep] = useState(1);
+    const [step] = useState(1);
     const [agreed, setAgreed] = useState(false);
     
     // Tour State
