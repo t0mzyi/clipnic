@@ -27,14 +27,14 @@ const TOUR_STEPS: TourStep[] = [
         target: '#profile-discord-step',
         path: '/clippers/profile',
         title: 'Step 1: Discord',
-        content: 'Join our Discord server to confirm your identity. This is required to unlock platform features. You can start now or click Next to skip.',
+        content: 'Join our Discord server to confirm your identity. This is required to unlock platform features. You can start now or skip to the next step.',
         position: 'bottom'
     },
     {
         target: '#profile-socials-step',
         path: '/clippers/profile',
         title: 'Step 2: Socials',
-        content: 'Link your TikTok, Instagram, or YouTube channel to track views. Feel free to skip this for now by clicking Next.',
+        content: 'Link your TikTok, Instagram, or YouTube channel to track views. Feel free to skip this for now.',
         position: 'bottom'
     },
     {
@@ -101,6 +101,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
     const [tourActive, setTourActive] = useState(false);
     const [tourStepIdx, setTourStepIdx] = useState(0);
     const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
+    const [modalActive, setModalActive] = useState(false);
     const pollingRef = useRef<number | null>(null);
 
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
@@ -127,6 +128,19 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
         }
     };
 
+    // Auto-advance logic
+    useEffect(() => {
+        if (!tourActive) return;
+        
+        // If Discord step and verified, move to next
+        if (tourStepIdx === 0 && user?.discordVerified) {
+            setTourStepIdx(1);
+        }
+        
+        // If Socials step and any social verified, we could move on, but usually users want to see it
+        // so we only auto-advance Discord as requested.
+    }, [user?.discordVerified, tourActive, tourStepIdx]);
+
     // Tour Logic
     useEffect(() => {
         if (!tourActive) return;
@@ -140,8 +154,12 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
 
         // 2. Spotlight Calculation Logic
         const updateSpotlight = () => {
+            // Check for modals blocking the view
+            const hasModal = !!document.querySelector('#verification-modal') || !!document.querySelector('#withdraw-modal');
+            setModalActive(hasModal);
+
             const el = document.querySelector(currentStep.target);
-            if (el) {
+            if (el && !hasModal) {
                 // For sidebar items on mobile, we might need to open menu
                 if (isMobile && currentStep.target.startsWith('#sidebar-') && openMenu) {
                     openMenu();
@@ -181,15 +199,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
 
     if (tourActive) {
         // Build the "hole-punch" path
-        // We draw a large rectangle for the screen, then a smaller one for the hole
-        // fillRule="evenodd" will subtract the hole from the screen
         const holePath = spotlightRect ? `M 0 0 h ${window.innerWidth} v ${window.innerHeight} h -${window.innerWidth} Z M ${spotlightRect.x - 8} ${spotlightRect.y - 8} h ${spotlightRect.width + 16} v ${spotlightRect.height + 16} h -${spotlightRect.width + 16} Z` : '';
 
         return (
             <div className="fixed inset-0 z-[2000] pointer-events-none">
                 {/* SVG Overlay with Clickable Hole */}
                 <svg className="absolute inset-0 w-full h-full">
-                    {spotlightRect && (
+                    {spotlightRect && !modalActive && (
                         <path
                             d={holePath}
                             fill="rgba(0,0,0,0.75)"
@@ -197,65 +213,78 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
                             className="pointer-events-auto backdrop-blur-[1px]"
                         />
                     )}
-                    {!spotlightRect && (
-                        <rect width="100%" height="100%" fill="rgba(0,0,0,0.75)" className="pointer-events-auto backdrop-blur-[1px]" />
+                    {(modalActive || !spotlightRect) && (
+                        <rect width="100%" height="100%" fill="rgba(0,0,0,0.4)" className="pointer-events-none backdrop-blur-[1px]" />
                     )}
                 </svg>
 
                 {/* Tooltip */}
                 <AnimatePresence mode="wait">
-                    {spotlightRect && (
+                    {(spotlightRect || modalActive) && (
                         <motion.div
-                            key={tourStepIdx}
+                            key={modalActive ? 'paused' : tourStepIdx}
                             initial={{ opacity: 0, scale: 0.9, y: 10 }}
                             animate={{ 
                                 opacity: 1, 
                                 scale: 1, 
                                 y: 0,
-                                x: isMobile 
-                                    ? (window.innerWidth / 2) - 160 
-                                    : (TOUR_STEPS[tourStepIdx].position === 'right' 
-                                        ? spotlightRect.right + 24 
-                                        : spotlightRect.left + (spotlightRect.width / 2) - 160),
-                                top: isMobile
-                                    ? (window.innerHeight - 300)
-                                    : (TOUR_STEPS[tourStepIdx].position === 'right'
-                                        ? Math.max(20, spotlightRect.top + (spotlightRect.height / 2) - 100)
-                                        : Math.min(window.innerHeight - 250, spotlightRect.bottom + 24))
+                                x: modalActive 
+                                    ? 24 // Move to side
+                                    : (isMobile 
+                                        ? (window.innerWidth / 2) - 160 
+                                        : (TOUR_STEPS[tourStepIdx].position === 'right' 
+                                            ? spotlightRect!.right + 24 
+                                            : spotlightRect!.left + (spotlightRect!.width / 2) - 160)),
+                                top: modalActive
+                                    ? window.innerHeight - 250 // Move to bottom-left
+                                    : (isMobile
+                                        ? (window.innerHeight - 300)
+                                        : (TOUR_STEPS[tourStepIdx].position === 'right'
+                                            ? Math.max(20, spotlightRect!.top + (spotlightRect!.height / 2) - 100)
+                                            : Math.min(window.innerHeight - 250, spotlightRect!.bottom + 24)))
                             }}
                             className="absolute z-[2001] w-[320px] sm:w-80 bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto"
                         >
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
-                                        Step {tourStepIdx + 1} of {TOUR_STEPS.length}
+                                        {modalActive ? 'Tour Paused' : `Step ${tourStepIdx + 1} of ${TOUR_STEPS.length}`}
                                     </div>
                                     <button onClick={onComplete} className="text-white/20 hover:text-white transition-colors">
                                         <X size={16} />
                                     </button>
                                 </div>
                                 <div className="space-y-2">
-                                    <h4 className="text-lg font-bold text-white tracking-tight">{TOUR_STEPS[tourStepIdx].title}</h4>
-                                    <p className="text-white/50 text-sm leading-relaxed">{TOUR_STEPS[tourStepIdx].content}</p>
+                                    <h4 className="text-lg font-bold text-white tracking-tight">
+                                        {modalActive ? 'Complete Action' : TOUR_STEPS[tourStepIdx].title}
+                                    </h4>
+                                    <p className="text-white/50 text-sm leading-relaxed">
+                                        {modalActive 
+                                            ? 'Finish your registration in the window to continue the tour.' 
+                                            : TOUR_STEPS[tourStepIdx].content
+                                        }
+                                    </p>
                                 </div>
-                                <div className="pt-4 flex items-center justify-between">
-                                    <button 
-                                        onClick={onComplete}
-                                        className="text-xs font-bold text-white/20 uppercase tracking-widest hover:text-white transition-colors"
-                                    >
-                                        Skip Tour
-                                    </button>
-                                    <Button 
-                                        onClick={handleNextTour}
-                                        className="rounded-xl px-6 py-2.5 text-xs uppercase font-bold tracking-widest h-auto"
-                                    >
-                                        {tourStepIdx === TOUR_STEPS.length - 1 ? 'Get Started' : 'Next'}
-                                    </Button>
-                                </div>
+                                {!modalActive && (
+                                    <div className="pt-4 flex items-center justify-between">
+                                        <button 
+                                            onClick={onComplete}
+                                            className="text-xs font-bold text-white/20 uppercase tracking-widest hover:text-white transition-colors"
+                                        >
+                                            Skip Tour
+                                        </button>
+                                        <Button 
+                                            onClick={handleNextTour}
+                                            className="rounded-xl px-6 py-2.5 text-xs uppercase font-bold tracking-widest h-auto"
+                                        >
+                                            {tourStepIdx < 2 ? 'Skip' : (tourStepIdx === TOUR_STEPS.length - 1 ? 'Get Started' : 'Next')}
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Arrow Indicator - Hidden on Mobile for simplicity */}
-                            {!isMobile && (
+                            {/* Arrow Indicator - Hidden on Mobile or Modal */}
+                            {!isMobile && !modalActive && (
                                 <div className={`absolute w-4 h-4 bg-[#0c0c0c] border-l border-t border-white/10 transform rotate-[-45deg] ${
                                     TOUR_STEPS[tourStepIdx].position === 'right' 
                                     ? '-left-2 top-1/2 -translate-y-1/2' 
@@ -331,7 +360,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
                                             <textarea 
                                                 value={bio}
                                                 onChange={(e) => setBio(e.target.value)}
-                                                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-5 sm:px-6 py-3 sm:py-4 text-white focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-white/10 min-h-[80px] sm:min-h-[120px] resize-none text-sm"
+                                                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 sm:px-6 py-3 sm:py-4 text-white focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-white/10 min-h-[80px] sm:min-h-[120px] resize-none text-sm"
                                                 placeholder="Tell us about yourself, your niche, or your clipping journey..."
                                             />
                                         </div>

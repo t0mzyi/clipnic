@@ -661,6 +661,7 @@ export const Profile = () => {
                         className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
                     >
                         <motion.div
+                            id="withdraw-modal"
                             initial={{ y: 20, scale: 0.97, opacity: 0 }}
                             animate={{ y: 0, scale: 1, opacity: 1 }}
                             exit={{ y: 20, scale: 0.97, opacity: 0 }}
@@ -716,6 +717,7 @@ export const Profile = () => {
                         className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
                     >
                         <motion.div
+                            id="verification-modal"
                             initial={{ y: 20, scale: 0.97, opacity: 0 }}
                             animate={{ y: 0, scale: 1, opacity: 1 }}
                             exit={{ y: 20, scale: 0.97, opacity: 0 }}
