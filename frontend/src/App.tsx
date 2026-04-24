@@ -33,6 +33,7 @@ import { AdminPayouts } from './pages/AdminPayouts';
 import { AdminCampaignDetails } from './pages/AdminCampaignDetails';
 import { JoinedCampaigns } from './pages/JoinedCampaigns';
 import { Login } from './pages/Login';
+import ComingSoon from './pages/ComingSoon';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './store/useAuthStore';
 import { Onboarding } from './components/Onboarding';
@@ -516,6 +517,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                                     <Route path="/clippers/submissions" element={<MySubmissions />} />
                                     <Route path="/clippers/earnings" element={<Earnings />} />
                                     <Route path="/clippers/profile" element={<Profile />} />
+                                    <Route path="/coming-soon" element={<ComingSoon />} />
 
                                     {/* Admin Routes */}
                                     <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

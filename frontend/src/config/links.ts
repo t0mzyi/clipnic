@@ -11,7 +11,9 @@ export const LEGAL_LINKS = {
 };
 
 export const ECOSYSTEM_LINKS = {
-    documentation: "#",
-    revenueModel: "#",
-    viralMetrics: "#",
+    documentation: "/coming-soon",
+    revenueModel: "/coming-soon",
+    viralMetrics: "/coming-soon",
+    campaignRegistry: "/coming-soon",
+    payoutHistory: "/coming-soon",
 };
