@@ -292,7 +292,7 @@ const Layout = () => {
     useEffect(() => {
         // Check for onboarding
         if (user && !loading && !isSyncing) {
-            const demoSeen = localStorage.getItem('clipnic_demo_seen');
+            const demoSeen = localStorage.getItem('clipnic_tour_v2');
             const isAdmin = user.role === 'admin';
             // Only show to non-admins who haven't completed bio or haven't seen demo
             if (!isAdmin && (!user.bio || !demoSeen)) {
@@ -302,7 +302,7 @@ const Layout = () => {
     }, [user, loading, isSyncing]);
 
     const handleOnboardingComplete = () => {
-        localStorage.setItem('clipnic_demo_seen', 'true');
+        localStorage.setItem('clipnic_tour_v2', 'true');
         setShowOnboarding(false);
     };
 
@@ -361,7 +361,7 @@ const Layout = () => {
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black font-sans flex flex-col md:flex-row">
-            {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
+            {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} openMenu={() => setMobileMenuOpen(true)} />}
             
             {/* Mobile Header - Hidden for Admins as they use the Dock */}
             {!location.pathname.startsWith('/admin') && (

@@ -13,13 +13,14 @@ import { supabase } from '../lib/supabase';
 
 interface OnboardingProps {
     onComplete: () => void;
+    openMenu?: () => void;
 }
 
 interface TourStep {
     target: string;
     title: string;
     content: string;
-    position: 'right' | 'left' | 'top' | 'bottom';
+    position: 'right' | 'left' | 'top' | 'bottom' | 'center';
 }
 
 const TOUR_STEPS: TourStep[] = [
@@ -49,7 +50,7 @@ const TOUR_STEPS: TourStep[] = [
     }
 ];
 
-export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
+export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) => {
     const { user, updateUser } = useAuthStore();
     const [step, setStep] = useState(1);
     const [name, setName] = useState(user?.name || '');
@@ -61,6 +62,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     const [tourActive, setTourActive] = useState(false);
     const [tourStepIdx, setTourStepIdx] = useState(0);
     const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
+
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
     const handleSaveProfile = async () => {
         if (!agreed) return;
@@ -126,16 +129,30 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         if (!tourActive) return;
 
         const updateSpotlight = () => {
-            const el = document.querySelector(TOUR_STEPS[tourStepIdx].target);
-            if (el) {
-                setSpotlightRect(el.getBoundingClientRect());
+            const currentStep = TOUR_STEPS[tourStepIdx];
+            
+            // If it's a sidebar step and we're on mobile, try to open the menu
+            if (isMobile && currentStep.target.startsWith('#sidebar-') && openMenu) {
+                openMenu();
+                // We need to wait for the menu animation to finish to get the correct rect
+                setTimeout(() => {
+                    const el = document.querySelector(currentStep.target);
+                    if (el) setSpotlightRect(el.getBoundingClientRect());
+                }, 500);
+            } else {
+                const el = document.querySelector(currentStep.target);
+                if (el) setSpotlightRect(el.getBoundingClientRect());
             }
         };
 
         updateSpotlight();
+        const interval = setInterval(updateSpotlight, 1000); // Polling for any layout changes
         window.addEventListener('resize', updateSpotlight);
-        return () => window.removeEventListener('resize', updateSpotlight);
-    }, [tourActive, tourStepIdx]);
+        return () => {
+            window.removeEventListener('resize', updateSpotlight);
+            clearInterval(interval);
+        };
+    }, [tourActive, tourStepIdx, isMobile, openMenu]);
 
     const handleNextTour = () => {
         if (tourStepIdx < TOUR_STEPS.length - 1) {
@@ -188,14 +205,18 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                                 opacity: 1, 
                                 scale: 1, 
                                 y: 0,
-                                x: TOUR_STEPS[tourStepIdx].position === 'right' 
-                                    ? spotlightRect.right + 24 
-                                    : spotlightRect.left + (spotlightRect.width / 2) - 160,
-                                top: TOUR_STEPS[tourStepIdx].position === 'right'
-                                    ? spotlightRect.top + (spotlightRect.height / 2) - 100
-                                    : spotlightRect.bottom + 24
+                                x: isMobile 
+                                    ? (window.innerWidth / 2) - 160 
+                                    : (TOUR_STEPS[tourStepIdx].position === 'right' 
+                                        ? spotlightRect.right + 24 
+                                        : spotlightRect.left + (spotlightRect.width / 2) - 160),
+                                top: isMobile
+                                    ? (window.innerHeight - 300)
+                                    : (TOUR_STEPS[tourStepIdx].position === 'right'
+                                        ? Math.max(20, spotlightRect.top + (spotlightRect.height / 2) - 100)
+                                        : spotlightRect.bottom + 24)
                             }}
-                            className="absolute z-[2001] w-80 bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto"
+                            className="absolute z-[2001] w-[320px] sm:w-80 bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto"
                         >
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
@@ -226,12 +247,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                                 </div>
                             </div>
 
-                            {/* Arrow Indicator */}
-                            <div className={`absolute w-4 h-4 bg-[#0c0c0c] border-l border-t border-white/10 transform rotate-[-45deg] ${
-                                TOUR_STEPS[tourStepIdx].position === 'right' 
-                                ? '-left-2 top-1/2 -translate-y-1/2' 
-                                : 'left-1/2 -top-2 -translate-x-1/2 rotate-[45deg]'
-                            }`} />
+                            {/* Arrow Indicator - Hidden on Mobile for simplicity */}
+                            {!isMobile && (
+                                <div className={`absolute w-4 h-4 bg-[#0c0c0c] border-l border-t border-white/10 transform rotate-[-45deg] ${
+                                    TOUR_STEPS[tourStepIdx].position === 'right' 
+                                    ? '-left-2 top-1/2 -translate-y-1/2' 
+                                    : 'left-1/2 -top-2 -translate-x-1/2 rotate-[45deg]'
+                                }`} />
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>
