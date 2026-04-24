@@ -1,7 +1,7 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Mail, Wallet, Upload, Trophy, Globe, Loader2, ChevronRight, AlertCircle, Copy, CheckCircle2, TrendingUp, Star, Award, Zap, Instagram, Youtube } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ShieldCheck, Mail, Wallet, Trophy, Loader2, CheckCircle2, TrendingUp, Zap, Camera, Play } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '../components/ui/Button';
 import { Toast, GlobalSwal } from '../lib/swal';
 import { ProfileVerifyModal } from '../components/modals/ProfileVerifyModal';
@@ -198,7 +198,7 @@ export const Profile = () => {
                          {user?.youtubeVerified && (
                              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-red-500/20 text-red-500 rounded-lg"><Youtube size={16} /></div>
+                                    <div className="p-2 bg-red-500/20 text-red-500 rounded-lg"><Play size={16} /></div>
                                     <span className="text-sm font-bold text-white/60">{user.youtubeHandle}</span>
                                 </div>
                                 <ShieldCheck size={16} className="text-emerald-500" />
@@ -207,7 +207,7 @@ export const Profile = () => {
                          {user?.instagramVerified && (
                              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-pink-500/20 text-pink-500 rounded-lg"><Instagram size={16} /></div>
+                                    <div className="p-2 bg-pink-500/20 text-pink-500 rounded-lg"><Camera size={16} /></div>
                                     <span className="text-sm font-bold text-white/60">{user.instagramHandle}</span>
                                 </div>
                                 <ShieldCheck size={16} className="text-emerald-500" />

@@ -1,9 +1,9 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useParams, Link } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Shield, Eye, Clock, Target, Upload, ChevronLeft, CheckCircle, Globe, Trophy, Award, Medal, Trash2, History as HistoryIcon } from 'lucide-react';
+import { Shield, Eye, Clock, Target, Upload, ChevronLeft, CheckCircle, Globe, Trophy, Trash2, Star } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Toast, GlobalSwal } from '../lib/swal';
 import { useCountdown } from '../hooks/useCountdown';
@@ -39,7 +39,7 @@ const FALLBACK_BANNERS = [
 
 export const CampaignDetails = () => {
     const { id } = useParams();
-    const { token, user, updateUser } = useAuthStore();
+    const { token } = useAuthStore();
     const [campaign, setCampaign] = useState<Campaign | null>(null);
     const [loading, setLoading] = useState(true);
     const [isJoined, setIsJoined] = useState(false);

@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Loader2, Play, Camera, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { X, Loader2, Play, Camera, AlertCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useState, useEffect } from 'react';
 
@@ -15,7 +15,7 @@ const TikTokIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg>
 );
 
-export const SubmitClipModal = ({ isOpen, onClose, campaign, onSubmit, token }: SubmitClipModalProps) => {
+export const SubmitClipModal = ({ isOpen, onClose, onSubmit, token }: SubmitClipModalProps) => {
     const [submissionUrl, setSubmissionUrl] = useState('');
     const [platform, setPlatform] = useState<'youtube' | 'instagram' | 'tiktok' | ''>('');
     const [isSubmitting, setIsSubmitting] = useState(false);

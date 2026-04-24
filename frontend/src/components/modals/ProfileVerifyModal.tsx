@@ -1,7 +1,6 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, X, Trash2, Loader2, Play, Camera } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { X, Loader2, Play, Camera } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { Dropdown } from '../Dropdown';
 import { useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Toast } from '../../lib/swal';
@@ -18,7 +17,7 @@ const TikTokIcon = () => (
 );
 
 export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync }: ProfileVerifyModalProps) => {
-    const { user, token, settings } = useAuthStore();
+    const { user, token } = useAuthStore();
     const [step, setStep] = useState<1 | 2>(1);
     const [selectedSocial, setSelectedSocial] = useState('');
     const [handle, setHandle] = useState('');
