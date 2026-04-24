@@ -27,7 +27,7 @@ const TOUR_STEPS: TourStep[] = [
         target: '#profile-discord-step',
         path: '/clippers/profile',
         title: 'Step 1: Discord',
-        content: 'Join our Discord server to confirm your identity. This is required before you can link your socials.',
+        content: 'Join our Discord server to confirm your identity. This is required before you can link your socials. Click the button to start!',
         position: 'bottom'
     },
     {
@@ -180,36 +180,26 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
     };
 
     if (tourActive) {
+        // Build the "hole-punch" path
+        // We draw a large rectangle for the screen, then a smaller one for the hole
+        // fillRule="evenodd" will subtract the hole from the screen
+        const holePath = spotlightRect ? `M 0 0 h ${window.innerWidth} v ${window.innerHeight} h -${window.innerWidth} Z M ${spotlightRect.x - 8} ${spotlightRect.y - 8} h ${spotlightRect.width + 16} v ${spotlightRect.height + 16} h -${spotlightRect.width + 16} Z` : '';
+
         return (
             <div className="fixed inset-0 z-[2000] pointer-events-none">
-                {/* SVG Overlay with Spotlight Hole */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-auto">
-                    <defs>
-                        <mask id="spotlight-mask">
-                            <rect width="100%" height="100%" fill="white" />
-                            {spotlightRect && (
-                                <motion.rect
-                                    initial={false}
-                                    animate={{
-                                        x: spotlightRect.x - 8,
-                                        y: spotlightRect.y - 8,
-                                        width: spotlightRect.width + 16,
-                                        height: spotlightRect.height + 16,
-                                        rx: 12
-                                    }}
-                                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                                    fill="black"
-                                />
-                            )}
-                        </mask>
-                    </defs>
-                    <rect 
-                        width="100%" 
-                        height="100%" 
-                        fill="rgba(0,0,0,0.75)" 
-                        mask="url(#spotlight-mask)" 
-                        className="backdrop-blur-[1px]"
-                    />
+                {/* SVG Overlay with Clickable Hole */}
+                <svg className="absolute inset-0 w-full h-full">
+                    {spotlightRect && (
+                        <path
+                            d={holePath}
+                            fill="rgba(0,0,0,0.75)"
+                            fillRule="evenodd"
+                            className="pointer-events-auto backdrop-blur-[1px]"
+                        />
+                    )}
+                    {!spotlightRect && (
+                        <rect width="100%" height="100%" fill="rgba(0,0,0,0.75)" className="pointer-events-auto backdrop-blur-[1px]" />
+                    )}
                 </svg>
 
                 {/* Tooltip */}
@@ -426,7 +416,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu }) 
                         </AnimatePresence>
                     </div>
                 </motion.div>
-            </motion.div>
+            </div>
         </AnimatePresence>
     );
 };
