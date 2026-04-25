@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabase';
+import { LoggerService } from './LoggerService';
 
 export class AuthService {
   /**
@@ -6,6 +7,9 @@ export class AuthService {
    * This ensures we have a record to link submissions, campaigns, etc.
    */
   static async syncUser(supabaseId: string, email: string, name?: string, avatarUrl?: string, role: string = 'user') {
+    // Check if this is a new registration
+    const { data: existing } = await supabase.from('users').select('id').eq('id', supabaseId).maybeSingle();
+
     const { data, error } = await supabase
       .from('users')
       .upsert({
@@ -22,6 +26,10 @@ export class AuthService {
     if (error) {
       console.error('Error syncing user:', error.message);
       throw error;
+    }
+
+    if (!existing) {
+        LoggerService.info('User Registered', `New user registered: **${email}** (${name || 'No Name'})\nID: ${supabaseId}`);
     }
 
     return data;

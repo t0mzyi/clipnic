@@ -1,6 +1,7 @@
 import { supabase } from '../config/supabase';
 import { z } from 'zod';
 import { CampaignService } from './CampaignService';
+import { LoggerService } from './LoggerService';
 
 const createSubmissionSchema = z.object({
   campaign_id: z.string().uuid(),
@@ -342,7 +343,10 @@ export class SubmissionService {
     
     if (updatedCampaign && updatedCampaign.budget_used >= updatedCampaign.total_budget) {
         await CampaignService.updateStatus(validated.campaign_id, 'Completed');
+        LoggerService.warn('Campaign Completed', `Campaign **${campaign.title}** has reached its budget and is now marked as Completed.`);
     }
+
+    LoggerService.info('New Submission', `User **${userId}** submitted a clip for campaign **${campaign.title}**.\nPlatform: ${validated.platform}\nURL: ${canonicalUrl}\nViews: ${views}\nPotential Earnings: $${earnings.toFixed(2)}`);
 
     return submission;
   }
@@ -374,6 +378,8 @@ export class SubmissionService {
           earnings_add: -Number(submission.earnings || 0),
           views_add: -Number(submission.views || 0)
       });
+
+      LoggerService.info('Submission Deleted', `User **${userId}** deleted a submission.\nSubmission ID: ${submissionId}\nEarnings Deducted: $${submission.earnings.toFixed(2)}`);
 
       return true;
   }

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 import crypto from 'crypto';
+import { LoggerService } from '../services/LoggerService';
 
 const STATE_SECRET = process.env.STATE_SECRET || 'clipnic-secure-state-secret-2024';
 
@@ -211,6 +212,8 @@ export class VerificationController {
         return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}discord_error=db_error`);
       }
 
+      LoggerService.info('Social Linked', `User **${userId}** linked Discord: **${discordDisplayName}** (${discordId})`);
+
       // 5. Success Redirect
       return res.redirect(`${successBaseRedirect}${successBaseRedirect.includes('?') ? '&' : '?'}discord_success=true`);
 
@@ -379,6 +382,8 @@ export class VerificationController {
         console.error('Supabase youtube link error:', dbError);
         return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}youtube_error=${encodeURIComponent('Failed to link channel in database.')}`);
       }
+
+      LoggerService.info('Social Linked', `User **${userId}** linked YouTube: **${handle}** (${channelId})`);
 
       return res.redirect(`${successBaseRedirect}${successBaseRedirect.includes('?') ? '&' : '?'}youtube_success=true`);
 
@@ -731,6 +736,9 @@ export class VerificationController {
         .single();
 
       if (error) throw error;
+      
+      LoggerService.info('Social Linked', `User **${userId}** linked Instagram: **@${handle}**`);
+      
       res.json({ success: true, data });
     } catch (error: any) {
       next(error);
@@ -812,6 +820,9 @@ export class VerificationController {
         .single();
 
       if (error) throw error;
+      
+      LoggerService.info('Social Linked', `User **${userId}** linked TikTok: **@${handle}**`);
+      
       res.json({ success: true, data });
     } catch (error: any) {
       next(error);
