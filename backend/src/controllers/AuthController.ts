@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
 import { SettingsService } from '../services/SettingsService';
+import { supabase } from '../config/supabase';
+
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
