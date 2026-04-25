@@ -48,7 +48,6 @@ export class CampaignService {
         .from('campaigns')
         .update({ status: 'Active' })
         .eq('status', 'Coming Soon')
-        .eq('auto_start', true)
         .lte('start_date', now)
         .select('id');
       
@@ -221,6 +220,11 @@ export class CampaignService {
 
   static async create(data: any) {
     const validated = createCampaignSchema.parse(data);
+    // Use a 5-second buffer to handle minor clock desync between frontend and backend
+    const now = new Date();
+    const startDate = validated.start_date ? new Date(validated.start_date) : now;
+    const isFuture = startDate.getTime() > (now.getTime() + 5000);
+
     const { data: campaign, error } = await supabase
       .from('campaigns')
       .insert({
@@ -241,8 +245,8 @@ export class CampaignService {
         requires_dedicated_social: validated.requires_dedicated_social,
         requires_discord: validated.requires_discord,
         rules: validated.rules,
-        status: (validated.start_date && new Date(validated.start_date) > new Date()) ? 'Coming Soon' : 'Active',
-        start_date: validated.start_date || new Date().toISOString(),
+        status: isFuture ? 'Coming Soon' : 'Active',
+        start_date: startDate.toISOString(),
         auto_start: validated.auto_start ?? true,
         view_progress: 0,
         target_views: Math.floor(validated.total_budget / (validated.cpm_rate / 1000)),
@@ -255,6 +259,10 @@ export class CampaignService {
 
   static async update(id: string, data: any) {
     const validated = createCampaignSchema.parse(data);
+    const now = new Date();
+    const startDate = validated.start_date ? new Date(validated.start_date) : now;
+    const isFuture = startDate.getTime() > (now.getTime() + 5000);
+
     const { data: campaign, error } = await supabase
       .from('campaigns')
       .update({
@@ -274,9 +282,9 @@ export class CampaignService {
         requires_dedicated_social: validated.requires_dedicated_social,
         requires_discord: validated.requires_discord,
         rules: validated.rules,
-        start_date: validated.start_date,
+        start_date: startDate.toISOString(),
         auto_start: validated.auto_start,
-        status: (validated.start_date && new Date(validated.start_date) > new Date()) ? 'Coming Soon' : 'Active',
+        status: isFuture ? 'Coming Soon' : 'Active',
         target_views: Math.floor(validated.total_budget / (validated.cpm_rate / 1000)),
       })
       .eq('id', id)
