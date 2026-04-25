@@ -333,9 +333,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                     >
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <div className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-[10px] font-bold text-emerald-400 uppercase tracking-widest text-center min-w-[80px]">
-                                    {modalActive ? 'Tour Paused' : (!spotlightRect ? 'Please Wait' : `Step ${tourStepIdx + 1} of ${activeSteps.length}`)}
-                                </div>
+                                {modalActive && (
+                                    <div className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-md text-[10px] font-bold text-amber-400 uppercase tracking-widest text-center min-w-[80px]">
+                                        Tour Paused
+                                    </div>
+                                )}
                                 <button onClick={onComplete} className="text-white/20 hover:text-white transition-colors">
                                     <X size={16} />
                                 </button>
