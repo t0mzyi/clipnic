@@ -1,7 +1,7 @@
 export const SOCIAL_LINKS = {
-    discord: "https://discord.gg/rzhvv9Rf42",
+    discord: "https://discord.gg/pW6RJs8Ctp",
     twitter: "https://x.com/clipnic",
-    instagram: "https://instagram.com/clipnic",
+    instagram: "https://instagram.com/clipnicteam",
 };
 
 export const LEGAL_LINKS = {
