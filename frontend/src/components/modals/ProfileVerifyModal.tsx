@@ -127,6 +127,11 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync, initia
                             </h2>
                             <p className="text-sm text-white/40">
                                 {selectedSocial ? `Link your ${selectedSocial} account.` : 'Choose a platform to link.'}
+                                {selectedSocial === 'instagram' && (
+                                    <span className="block mt-1 text-[10px] text-amber-400/60 font-medium">
+                                        Note: Instagram verification can take up to 2 minutes.
+                                    </span>
+                                )}
                             </p>
                         </div>
                         

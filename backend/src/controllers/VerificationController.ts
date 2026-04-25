@@ -648,11 +648,12 @@ export class VerificationController {
       }
 
       console.log(`[InstagramVerify] Requesting Apify Pro for @${handle}...`);
-      try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s max wait for Apify
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // Increased to 120s
 
-          const apifyRes = await fetch(`https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?token=${apifyToken}`, {
+      try {
+          const apifyRes = await fetch(`https://api.apify.com/v2/acts/apify~instagram-profile-scraper/run-sync-get-dataset-items?token=${apifyToken}&timeout=120`, {
               method: 'POST',
               signal: controller.signal,
               headers: { 'Content-Type': 'application/json' },
@@ -670,57 +671,49 @@ export class VerificationController {
               const items = await apifyRes.json();
               if (items && items.length > 0) {
                   const profile = items[0];
-                  // If Apify found the code in the bio, we use that text to pass our check
-                  if (profile.biography && profile.biography.includes(code)) {
-                      html = profile.biography;
+                  const bio = profile.biography || "";
+                  
+                  if (bio.includes(code)) {
+                      html = bio; // Success
                   } else {
-                      // Even if code isn't there, we store the bio for debugging the error message
-                      html = profile.biography || "Bio is empty";
+                      html = bio; // Found bio but no code
                   }
+              } else {
+                  console.error('[InstagramVerify] Apify returned no items for handle:', handle);
               }
           } else {
               const errText = await apifyRes.text();
               console.error('[InstagramVerify] Apify Error Response:', errText);
+              
+              if (apifyRes.status === 408 || apifyRes.status === 504) {
+                  return res.status(408).json({ 
+                      success: false, 
+                      error: 'Instagram verification timed out. Please try again in a moment.' 
+                  });
+              }
           }
-      } catch (e) {
+      } catch (e: any) {
+          clearTimeout(timeoutId);
           console.error('[InstagramVerify] Apify Connection Error:', e);
+          if (e.name === 'AbortError') {
+              return res.status(408).json({ 
+                  success: false, 
+                  error: 'Instagram is taking too long to respond. Please try again.' 
+              });
+          }
       }
 
-      const isVerified = html ? html.includes(code) : false;
+      const isVerified = html !== null && html.includes(code);
       
       if (!isVerified) {
-          return res.status(400).json({ 
-              success: false, 
-              error: `Verification code "${code}" not found in @${handle}'s bio. Make sure it's added correctly.`,
-              details: html === null ? "Could not reach verification service." : `We saw: "${html.slice(0, 50)}..."`
-          });
-      }
-      const bioMatch = 
-        html.match(/"biography":"([^"]+)"/i) || 
-        html.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i) ||
-        html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i) ||
-        html.match(/"description":"([^"]+)"/i) ||
-        html.match(/<div[^>]*class="profile-description"[^>]*>([\s\S]*?)<\/div>/i);
-
-      let scrapedBio = bioMatch ? bioMatch[1] : null;
-      
-      // Clean up scraped bio (remove HTML entities if any)
-      if (scrapedBio) {
-          scrapedBio = scrapedBio.replace(/\\u([0-9a-fA-F]{4})/g, (match: string, p1: string) => String.fromCharCode(parseInt(p1, 16)));
-      }
-
-      const bioDisplay = scrapedBio ? scrapedBio.slice(0, 100) : "Could not extract bio text";
-
-      if (!isVerified) {
-          const isBlocked = html.includes('login') || html.includes('checkpoint') || html.length < 2000;
-          const bioSnippet = `(We saw: "${bioDisplay}${scrapedBio && scrapedBio.length > 100 ? '...' : ''}")`;
+          const isBlocked = html === null; // Could not get bio
           
           return res.status(400).json({ 
               success: false, 
               error: isBlocked 
-                ? `Instagram is blocking our verification attempt. Please try again in 5 minutes.` 
-                : `Verification code "${code}" not found in @${handle}'s bio. ${bioSnippet}`,
-              details: isBlocked ? "Bot detection triggered." : bioSnippet
+                ? `Instagram is currently blocking our verification attempt. Please wait a few minutes and try again.` 
+                : `Verification code "${code}" not found in @${handle}'s bio.`,
+              details: isBlocked ? "Bot detection triggered or service timeout." : `Found bio: "${html?.slice(0, 50)}..."`
           });
       }
 
