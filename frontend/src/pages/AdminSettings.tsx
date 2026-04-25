@@ -121,7 +121,7 @@ export const AdminSettings = () => {
                             </div>
                         </button>
                     </div>
-
+                </motion.div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
