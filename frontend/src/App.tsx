@@ -335,7 +335,6 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                                     youtubeChannels: result.data.youtube_channels,
                                     instagramVerified: result.data.instagram_verified,
                                     instagramHandle: result.data.instagram_handle,
-                                    onboardingCompleted: result.data.onboarding_completed,
                                     onboardingCompleted: result.data.onboarding_completed
                                 };
                                 login(userData, session.access_token, result.settings);
