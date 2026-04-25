@@ -9,11 +9,9 @@ export const Footer: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                     {/* Brand & Mission */}
                     <div className="space-y-6">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center border border-white/10">
-                                <Zap className="w-4 h-4 text-emerald-400 fill-emerald-400" />
-                            </div>
-                            <span className="font-display text-xl tracking-widest text-white uppercase">CLIPNIC</span>
+                        <div className="flex items-center gap-1.5">
+                            <img src="/logo.webp" alt="Logo" className="w-8 h-8 rounded-lg object-contain" />
+                            <span className="font-display text-xl tracking-widest text-white uppercase">CLIPNIC.COM</span>
                         </div>
                         <p className="text-sm text-white/30 leading-relaxed max-w-xs font-light">
                             The primary infrastructure for turning engagement into capital. We automate the creator economy.

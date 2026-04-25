@@ -122,7 +122,7 @@ const Sidebar = ({ isOpen, closeMenu, onReportBug }: { isOpen: boolean, closeMen
     return (
         <aside className={`w-72 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-500 ease-[0.16,1,0.3,1] ${isOpen ? 'fixed inset-y-0 left-0 translate-x-0 h-full' : 'fixed inset-y-0 left-0 -translate-x-full md:sticky md:top-0 md:h-screen md:translate-x-0'} ${isAdminPortal ? 'hidden md:hidden' : 'flex'}`}>
             <div className="flex items-center justify-between mb-8">
-                <Link to="/clippers/campaigns" className="flex items-center gap-2 group">
+                <Link to="/clippers/campaigns" className="flex items-center gap-1.5 group">
                     <img src="/logo.webp" alt="Logo" className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
                     <span className="text-xl font-bold tracking-tight text-premium-white">
                         CLIPNIC.COM
