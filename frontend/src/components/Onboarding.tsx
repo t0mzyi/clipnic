@@ -271,8 +271,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <h3 className="text-xl font-display uppercase tracking-widest text-white">Calibrating</h3>
-                            <p className="text-white/30 text-xs font-mono uppercase tracking-[0.2em]">Synchronizing Tour Protocol</p>
+                            <h3 className="text-xl font-display uppercase tracking-widest text-white">Loading</h3>
+                            <p className="text-white/30 text-xs font-mono uppercase tracking-[0.2em]">Preparing your experience</p>
                         </div>
                     </motion.div>
                 </div>
