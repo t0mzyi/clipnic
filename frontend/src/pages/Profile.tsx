@@ -26,6 +26,14 @@ export const Profile = () => {
     const [withdrawLoading, setWithdrawLoading] = useState(false);
     const [discordLoading, setDiscordLoading] = useState(false);
     const [selectedPlatform, setSelectedPlatform] = useState('');
+    const [verifyCode, setVerifyCode] = useState('CLPNIC-VERIFY');
+
+    useEffect(() => {
+        if (isVerifyOpen) {
+            const random = Math.floor(1000 + Math.random() * 9000);
+            setVerifyCode(`CLPNIC-${random}`);
+        }
+    }, [isVerifyOpen]);
 
     const fetchStats = useCallback(async () => {
         if (!token) return;
@@ -406,7 +414,7 @@ export const Profile = () => {
             <ProfileVerifyModal 
                 isOpen={isVerifyOpen} 
                 onClose={() => setIsVerifyOpen(false)} 
-                verifyCode="CLPNIC-VERIFY" 
+                verifyCode={verifyCode} 
                 onSync={handleSync} 
                 initialSocial={selectedPlatform}
             />
