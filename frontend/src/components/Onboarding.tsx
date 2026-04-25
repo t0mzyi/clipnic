@@ -207,7 +207,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         }
 
         const updateSpotlight = () => {
-            // ALWAYS use the Ref to avoid closure issues during high-frequency polling
             const currentIdx = tourStepIdxRef.current;
             const currentStep = activeSteps[currentIdx];
 
@@ -222,18 +221,19 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
 
             const el = document.querySelector(currentStep.target);
             if (el && !isReallyActive) {
-                if (isMobile) {
-                    if (currentStep.target.startsWith('#sidebar-') && openMenu) {
-                        openMenu();
-                    } else if (closeMenu) {
-                        closeMenu();
-                    }
-                }
-
                 const rect = el.getBoundingClientRect();
                 if (rect.width > 0 && rect.height > 0) {
-                    setSpotlightRect(rect);
-                    // Minimal smooth scrolling for targeted elements
+                    // Use a threshold to prevent flickering/shaking on mobile
+                    setSpotlightRect(prev => {
+                        if (!prev) return rect;
+                        const diffX = Math.abs(prev.x - rect.x);
+                        const diffY = Math.abs(prev.y - rect.y);
+                        const diffW = Math.abs(prev.width - rect.width);
+                        const diffH = Math.abs(prev.height - rect.height);
+                        if (diffX < 1 && diffY < 1 && diffW < 1 && diffH < 1) return prev;
+                        return rect;
+                    });
+                    
                     const isInView = rect.top >= 0 && rect.bottom <= window.innerHeight;
                     if (!isInView) {
                         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -249,7 +249,18 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         return () => {
             if (pollingRef.current) cancelAnimationFrame(pollingRef.current);
         };
-    }, [tourActive, isMobile, openMenu, closeMenu, navigate, tourStepIdx, location.pathname]);
+    }, [tourActive, navigate, tourStepIdx, location.pathname]);
+
+    // Handle menu state changes separately from spotlight polling
+    useEffect(() => {
+        if (!tourActive || !isMobile) return;
+        const currentStep = activeSteps[tourStepIdx];
+        if (currentStep?.target.startsWith('#sidebar-') && openMenu) {
+            openMenu();
+        } else if (closeMenu) {
+            closeMenu();
+        }
+    }, [tourStepIdx, tourActive, isMobile]);
 
     if (tourActive) {
         if (isTourBooting) {
@@ -280,7 +291,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         }
 
         const currentStep = activeSteps[tourStepIdx];
-        const holePath = spotlightRect ? `M 0 0 h ${window.innerWidth} v ${window.innerHeight} h -${window.innerWidth} Z M ${spotlightRect.x - 8} ${spotlightRect.y - 8} h ${spotlightRect.width + 16} v ${spotlightRect.height + 16} h -${spotlightRect.width + 16} Z` : '';
+        const vw = typeof window !== 'undefined' ? window.innerWidth : 1920;
+        const vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
+        const holePath = spotlightRect ? `M 0 0 h ${vw} v ${vh} h -${vw} Z M ${spotlightRect.x - 8} ${spotlightRect.y - 8} h ${spotlightRect.width + 16} v ${spotlightRect.height + 16} h -${spotlightRect.width + 16} Z` : '';
 
         return (
             <div className="fixed inset-0 z-[2000] pointer-events-none">
@@ -338,7 +351,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                             opacity: { duration: 0.2 }
                         }}
                         layout
-                        className="absolute z-[2001] bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto"
+                        className={`${isMobile ? 'fixed' : 'absolute'} z-[2001] bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto`}
                     >
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
