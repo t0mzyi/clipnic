@@ -549,13 +549,13 @@ export const AdminCampaigns = () => {
                                             <div className="flex items-center justify-between border-b border-white/5 pb-2">
                                                 <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Timing & Launch</p>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-[9px] font-bold text-white/30 uppercase">Auto Start</span>
+                                                    <span className="text-[9px] font-bold text-white/30 uppercase">Instant Start</span>
                                                     <button onClick={() => {
-                                                        const newAutoStart = !form.auto_start;
+                                                        const newInstantStart = !form.auto_start;
                                                         setForm(p => ({ 
                                                             ...p, 
-                                                            auto_start: newAutoStart,
-                                                            start_date: newAutoStart ? new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : p.start_date
+                                                            auto_start: newInstantStart,
+                                                            start_date: newInstantStart ? new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : p.start_date
                                                         }));
                                                     }}>
                                                         {form.auto_start ? <ToggleRight className="text-emerald-400 w-6 h-6" /> : <ToggleLeft className="text-white/10 w-6 h-6" />}
@@ -581,7 +581,7 @@ export const AdminCampaigns = () => {
                                                 />
                                             </div>
                                             {!form.auto_start && (
-                                                <p className="text-[9px] text-amber-500/60 font-medium italic">* Manual start: Campaign will remain "Paused" until you activate it manually, regardless of start date.</p>
+                                                <p className="text-[9px] text-emerald-500/60 font-medium italic">* Scheduled Start: Campaign will automatically activate as "Coming Soon" and flip to "Active" at the chosen time.</p>
                                             )}
                                         </div>
                                         

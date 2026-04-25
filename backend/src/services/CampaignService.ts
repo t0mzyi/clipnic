@@ -241,7 +241,7 @@ export class CampaignService {
         requires_dedicated_social: validated.requires_dedicated_social,
         requires_discord: validated.requires_discord,
         rules: validated.rules,
-        status: 'Active',
+        status: (validated.start_date && new Date(validated.start_date) > new Date()) ? 'Coming Soon' : 'Active',
         start_date: validated.start_date || new Date().toISOString(),
         auto_start: validated.auto_start ?? true,
         view_progress: 0,
@@ -276,6 +276,7 @@ export class CampaignService {
         rules: validated.rules,
         start_date: validated.start_date,
         auto_start: validated.auto_start,
+        status: (validated.start_date && new Date(validated.start_date) > new Date()) ? 'Coming Soon' : 'Active',
         target_views: Math.floor(validated.total_budget / (validated.cpm_rate / 1000)),
       })
       .eq('id', id)
