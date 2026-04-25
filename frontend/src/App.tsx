@@ -336,7 +336,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                                     instagramVerified: result.data.instagram_verified,
                                     instagramHandle: result.data.instagram_handle,
                                     onboardingCompleted: result.data.onboarding_completed,
-                                    onboardingStep: result.data.onboarding_step
+                                    onboardingCompleted: result.data.onboarding_completed
                                 };
                                 login(userData, session.access_token, result.settings);
                             }

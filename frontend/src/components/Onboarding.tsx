@@ -98,14 +98,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     const updateProgress = async (newStep: number) => {
         if (!user) return;
         updateUser({ onboardingStep: newStep });
-        try {
-            await supabase
-                .from('users')
-                .update({ onboarding_step: newStep })
-                .eq('id', user.id);
-        } catch (err) {
-            console.error('Failed to update onboarding progress:', err);
-        }
     };
 
     // Tour State logic
