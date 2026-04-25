@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 import crypto from 'crypto';
 import { LoggerService } from '../services/LoggerService';
+import { getBaseUrl } from '../utils/url';
+
 
 const STATE_SECRET = process.env.STATE_SECRET || 'clipnic-secure-state-secret-2024';
 
@@ -53,10 +55,10 @@ export class VerificationController {
   static async discordAuth(req: any, res: Response, next: NextFunction) {
     try {
       const { id: userId } = req.user; // From authenticate middleware
-      const clientId = process.env.DISCORD_CLIENT_ID;
-      const redirectUri = process.env.DISCORD_REDIRECT_URI;
+      const baseUrl = getBaseUrl();
+      const redirectUri = process.env.DISCORD_REDIRECT_URI || `${baseUrl}/api/auth/discord/callback`;
 
-      if (!clientId || !redirectUri) {
+      if (!clientId) {
         return res.status(500).json({ success: false, error: 'Discord OAuth credentials missing in backend.' });
       }
 
@@ -102,7 +104,8 @@ export class VerificationController {
       const errorBaseRedirect = redirectTo || `${frontendUrl}/clippers/profile`;
       const clientId = process.env.DISCORD_CLIENT_ID;
       const clientSecret = process.env.DISCORD_CLIENT_SECRET;
-      const redirectUri = process.env.DISCORD_REDIRECT_URI;
+      const baseUrl = getBaseUrl();
+      const redirectUri = process.env.DISCORD_REDIRECT_URI || `${baseUrl}/api/auth/discord/callback`;
 
       const tokenUrl = process.env.DISCORD_PROXY_URL 
         ? `${process.env.DISCORD_PROXY_URL}?url=${encodeURIComponent('https://discord.com/api/v10/oauth2/token')}`
