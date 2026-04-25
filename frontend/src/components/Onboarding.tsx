@@ -313,22 +313,30 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                             scale: 1,
                             y: 0,
                             x: modalActive || !spotlightRect
-                                ? (isMobile ? (window.innerWidth / 2) - 160 : 24)
+                                ? (isMobile ? 'calc(50% - 160px)' : '24px')
                                 : (isMobile
-                                    ? (window.innerWidth / 2) - 160
+                                    ? 'calc(50% - 160px)'
                                     : (currentStep.position === 'right'
                                         ? (spotlightRect ? spotlightRect.right + 24 : 24)
                                         : (spotlightRect ? spotlightRect.left + (spotlightRect.width / 2) - 160 : (window.innerWidth / 2) - 160))),
                             top: modalActive || !spotlightRect
-                                ? (isMobile ? window.innerHeight - 320 : window.innerHeight - 250)
+                                ? (isMobile ? 'auto' : window.innerHeight - 250)
                                 : (isMobile
-                                    ? (window.innerHeight - 320)
+                                    ? 'auto'
                                     : (currentStep.position === 'right'
                                         ? Math.max(20, (spotlightRect ? spotlightRect.top + (spotlightRect.height / 2) - 100 : window.innerHeight / 2 - 100))
-                                        : Math.min(window.innerHeight - 250, (spotlightRect ? spotlightRect.bottom + 24 : window.innerHeight / 2 + 100))))
+                                        : Math.min(window.innerHeight - 250, (spotlightRect ? spotlightRect.bottom + 24 : window.innerHeight / 2 + 100)))),
+                            bottom: isMobile ? 24 : 'auto'
                         }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ 
+                            type: 'spring', 
+                            stiffness: 400, 
+                            damping: 40, 
+                            mass: 1,
+                            opacity: { duration: 0.2 }
+                        }}
+                        layout
                         className="absolute z-[2001] w-[320px] sm:w-80 bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto"
                     >
                         <div className="space-y-4">
