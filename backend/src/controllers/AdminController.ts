@@ -17,7 +17,7 @@ export class AdminController {
 
       let query = supabase
         .from('users')
-        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, is_blocked, created_at', { count: 'exact' });
+        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, tiktok_verified, is_blocked, created_at', { count: 'exact' });
       
       if (q) {
         query = query.ilike('email', `%${q}%`).or(`name.ilike.%${q}%`);
@@ -55,7 +55,7 @@ export class AdminController {
 
       const { data: user, error: userErr } = await supabase
         .from('users')
-        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, instagram_handle, is_blocked')
+        .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, youtube_handle, instagram_verified, instagram_handle, tiktok_verified, tiktok_handle, is_blocked, created_at')
         .eq('id', id)
         .single();
       
