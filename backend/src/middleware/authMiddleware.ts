@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 import jwt from 'jsonwebtoken';
+import { AuthService } from '../services/AuthService';
+import { LoggerService } from '../services/LoggerService';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -71,11 +73,29 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       console.error('Database user fetch error:', dbError);
     }
 
+    // CRITICAL FIX: If user exists in Auth but not in our 'users' table, sync them now.
+    // This prevents "User not found" errors in controllers that follow.
+    if (!dbUser && userData.email) {
+        try {
+            console.log(`[AuthMiddleware] User ${userData.id} not found in DB. Attempting auto-sync...`);
+            const syncedUser = await AuthService.syncUser(
+                userData.id,
+                userData.email,
+                userData.name,
+                userData.avatarUrl,
+                userData.role
+            );
+            userData.role = syncedUser.role;
+            LoggerService.warn('Auto-Sync Triggered', `User **${userData.email}** was missing from database and was auto-synced during authentication.\nID: ${userData.id}`, false);
+        } catch (syncErr) {
+            console.error('[AuthMiddleware] Auto-sync failed:', syncErr);
+        }
+    } else if (dbUser) {
+        userData.role = dbUser.role;
+    }
+
     // Map to request object
-    req.user = {
-      ...userData,
-      role: dbUser?.role || userData.role
-    };
+    req.user = { ...userData };
 
     if (dbUser?.is_blocked) {
       return res.status(403).json({ success: false, error: 'Your account is blocked', code: 403 });

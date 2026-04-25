@@ -173,8 +173,8 @@ export class CampaignService {
           .single();
 
       if (userError || !user) {
-          console.error('[CampaignService] User lookup failed for ID:', userId, userError);
-          throw new Error("User not found.");
+          console.error('[CampaignService] User lookup failed for ID:', userId, 'Error:', userError);
+          throw new Error(`User account not found (ID: ${userId}). Please try re-linking your Discord or refreshing the page.`);
       }
 
 
