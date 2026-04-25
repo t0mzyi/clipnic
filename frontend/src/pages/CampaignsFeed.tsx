@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
@@ -35,6 +35,7 @@ const FALLBACK_BANNERS = [
 const MotionLink = motion.create(Link);
 
 export const CampaignsFeed = () => {
+    const navigate = useNavigate();
     const { token } = useAuthStore();
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [loading, setLoading] = useState(true);
