@@ -277,19 +277,25 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                                                 <button onClick={() => setLinkMode('select')} className="text-[9px] font-bold text-emerald-400 hover:underline uppercase tracking-widest">Back to selection</button>
                                             )}
                                         </div>
-                                        <div className="grid grid-cols-3 gap-3">
-                                            <button onClick={() => setSelectedSocial('youtube')} className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${selectedSocial === 'youtube' ? 'bg-[#FF0000]/10 border-[#FF0000]/40 text-[#FF0000]' : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'}`}>
-                                                <YoutubeIcon />
-                                                <span className="text-[8px] font-bold uppercase">YouTube</span>
-                                            </button>
-                                            <button onClick={() => setSelectedSocial('instagram')} className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${selectedSocial === 'instagram' ? 'bg-[#E1306C]/10 border-[#E1306C]/40 text-[#E1306C]' : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'}`}>
-                                                <InstagramIcon />
-                                                <span className="text-[8px] font-bold uppercase">Instagram</span>
-                                            </button>
-                                            <button onClick={() => setSelectedSocial('tiktok')} className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${selectedSocial === 'tiktok' ? 'bg-[#00f2fe]/10 border-[#00f2fe]/40 text-[#00f2fe]' : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'}`}>
-                                                <TikTokIcon />
-                                                <span className="text-[8px] font-bold uppercase">TikTok</span>
-                                            </button>
+                                        <div className={`grid gap-3 ${allowed.length === 1 ? 'grid-cols-1' : allowed.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                                            {allowed.includes('youtube') && (
+                                                <button onClick={() => setSelectedSocial('youtube')} className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${selectedSocial === 'youtube' ? 'bg-[#FF0000]/10 border-[#FF0000]/40 text-[#FF0000]' : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'}`}>
+                                                    <YoutubeIcon />
+                                                    <span className="text-[8px] font-bold uppercase">YouTube</span>
+                                                </button>
+                                            )}
+                                            {allowed.includes('instagram') && (
+                                                <button onClick={() => setSelectedSocial('instagram')} className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${selectedSocial === 'instagram' ? 'bg-[#E1306C]/10 border-[#E1306C]/40 text-[#E1306C]' : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'}`}>
+                                                    <InstagramIcon />
+                                                    <span className="text-[8px] font-bold uppercase">Instagram</span>
+                                                </button>
+                                            )}
+                                            {allowed.includes('tiktok') && (
+                                                <button onClick={() => setSelectedSocial('tiktok')} className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${selectedSocial === 'tiktok' ? 'bg-[#00f2fe]/10 border-[#00f2fe]/40 text-[#00f2fe]' : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'}`}>
+                                                    <TikTokIcon />
+                                                    <span className="text-[8px] font-bold uppercase">TikTok</span>
+                                                </button>
+                                            )}
                                         </div>
 
                                         {selectedSocial && (
