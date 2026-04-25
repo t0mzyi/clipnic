@@ -89,7 +89,7 @@ const authLimiter = rateLimit({
 app.use(globalLimiter);
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/submissions', submissionRoutes);

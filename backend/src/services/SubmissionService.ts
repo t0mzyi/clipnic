@@ -184,6 +184,14 @@ export class SubmissionService {
         .single();
     
     if (capErr || !campaign) throw new Error("Campaign not found");
+    
+    if (campaign.status !== 'Active') {
+        throw new Error(`This campaign is currently ${campaign.status.toLowerCase()} and not accepting submissions.`);
+    }
+
+    if (campaign.budget_used >= campaign.total_budget) {
+        throw new Error("This campaign has reached its total budget and is no longer accepting submissions.");
+    }
 
     // 2. Check if user is joined
     const { data: participation } = await supabase
@@ -231,7 +239,7 @@ export class SubmissionService {
     // 5. Verify ownership
     const { data: userRaw, error: userErr } = await supabase
         .from('users')
-        .select('name, email, instagram_handle, youtube_handle, youtube_channels')
+        .select('name, email, instagram_handle, youtube_handle, youtube_channels, tiktok_handle')
         .eq('id', userId)
         .single();
 

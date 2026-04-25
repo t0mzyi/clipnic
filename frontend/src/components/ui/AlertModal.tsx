@@ -37,10 +37,9 @@ export const AlertModal = () => {
                 <div className="space-y-2 w-full">
                     <h2 className="text-2xl font-bold tracking-tight text-white">{options.title}</h2>
                     {options.text && (
-                        <p 
-                            className="text-white/40 leading-relaxed text-sm"
-                            dangerouslySetInnerHTML={{ __html: options.text }}
-                        />
+                        <p className="text-white/40 leading-relaxed text-sm whitespace-pre-wrap">
+                            {options.text}
+                        </p>
                     )}
                 </div>
 

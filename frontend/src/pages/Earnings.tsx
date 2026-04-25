@@ -267,7 +267,7 @@ export const Earnings = () => {
                                 </div>
                                 <div className="pt-4 flex flex-col gap-3">
                                     <a 
-                                        href="https://discord.com/channels/1298616616459702282/1495081184118444265" 
+                                        href="https://discord.gg/zWygCBNUY" 
                                         target="_blank" 
                                         rel="noreferrer"
                                         className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-2xl py-4 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"

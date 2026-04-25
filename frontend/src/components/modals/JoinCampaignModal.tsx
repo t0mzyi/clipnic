@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { X, Loader2, Play, Camera, ShieldCheck } from 'lucide-react';
+import { X, Loader2, ShieldCheck } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';

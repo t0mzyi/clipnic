@@ -17,7 +17,7 @@ router.get('/youtube', authenticate, VerificationController.youtubeGoogleAuth);
 router.get('/youtube/callback', VerificationController.youtubeGoogleCallback);
 router.post('/verify-youtube', authenticate, VerificationController.verifyYoutube);
 router.post('/verify-instagram', authenticate, VerificationController.verifyInstagram);
-router.post('/verify-instagram-bio', authenticate, VerificationController.verifyInstagramBio);
+router.post('/verify-instagram-bio', authenticate, VerificationController.verifyInstagram);
 router.post('/verify-tiktok-bio', authenticate, VerificationController.verifyTiktokBio);
 router.delete('/youtube/:channelId', authenticate, VerificationController.disconnectYoutubeChannel);
 router.delete('/instagram', authenticate, VerificationController.disconnectInstagram);

@@ -65,7 +65,7 @@ const BrandUnderConstruction = () => (
             </div>
             <div className="pt-8 flex flex-col sm:flex-row justify-center gap-4">
                 <a
-                    href="https://discord.gg/pW6RJs8Ctp"
+                    href="https://discord.gg/m4d6QA6w3"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-8 py-3 rounded-full bg-[#5865F2] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#4752C4] transition-all flex items-center justify-center gap-2"

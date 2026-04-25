@@ -1,5 +1,5 @@
 export const SOCIAL_LINKS = {
-    discord: "https://discord.gg/pW6RJs8Ctp",
+    discord: "https://discord.gg/m4d6QA6w3",
     twitter: "https://x.com/clipnic",
     instagram: "https://instagram.com/clipnicteam",
 };

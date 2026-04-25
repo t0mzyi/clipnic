@@ -23,9 +23,24 @@ function verifyState(encodedState: string): any {
 
 function validateRedirect(url: string | undefined): string | null {
     if (!url) return null;
-    const frontendUrl = process.env.FRONTEND_URL || '';
-    if (url.startsWith(frontendUrl) || url.startsWith('/') || url.startsWith('http://localhost')) {
-        return url;
+    const frontendUrl = process.env.FRONTEND_URL;
+    if (!frontendUrl) return null;
+
+    try {
+        const targetUrl = new URL(url, frontendUrl);
+        const allowedUrl = new URL(frontendUrl);
+
+        // Strict hostname check
+        if (targetUrl.hostname === allowedUrl.hostname) {
+            return url;
+        }
+
+        // Allow localhost only in non-production environments
+        if (process.env.NODE_ENV !== 'production' && targetUrl.hostname === 'localhost') {
+            return url;
+        }
+    } catch (e) {
+        return null;
     }
     return null;
 }
@@ -587,59 +602,12 @@ export class VerificationController {
    * Uses a claim-based system with duplicate protection since Instagram
    * pages are fully JS-rendered and bio scraping is not feasible server-side.
    */
-  /**
-   * Links an Instagram account to the user's profile.
-   */
-  static async verifyInstagram(req: any, res: Response, next: NextFunction) {
-    try {
-      const { id: userId } = req.user;
-      let { handle } = req.body;
 
-      if (!handle) {
-        return res.status(400).json({ success: false, error: 'Instagram handle is required.' });
-      }
-
-      handle = handle.trim().replace(/^@/, '').toLowerCase();
-      
-      if (handle.length < 1 || handle.length > 30) {
-        return res.status(400).json({ success: false, error: 'Invalid Instagram handle.' });
-      }
-
-      // 1. DUPLICATE CHECK: Prevent two users from claiming same handle
-      const { data: duplicateUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('instagram_handle', `@${handle}`)
-        .neq('id', userId)
-        .maybeSingle();
-      
-      if (duplicateUser) {
-        return res.status(400).json({ success: false, error: 'This Instagram account is already linked to another user.' });
-      }
-
-      const newHandle = `@${handle}`;
-
-      // 3. Update Database
-      const { error } = await supabase
-        .from('users')
-        .update({ 
-            instagram_verified: true, 
-            instagram_handle: newHandle 
-        })
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      res.json({ success: true, message: 'Instagram account linked successfully!' });
-    } catch (error) {
-      next(error);
-    }
-  }
 
   /**
    * Verifies an Instagram account by checking for a unique code in the profile bio.
    */
-  static async verifyInstagramBio(req: any, res: Response, next: NextFunction) {
+  static async verifyInstagram(req: any, res: Response, next: NextFunction) {
     try {
       const { id: userId } = req.user;
       let { handle, code } = req.body;

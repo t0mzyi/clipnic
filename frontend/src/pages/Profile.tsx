@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ShieldCheck, Wallet, Trophy, Loader2, CheckCircle2, TrendingUp, Play, Camera, Trash2 } from 'lucide-react';
+import { ShieldCheck, Wallet, Trophy, Loader2, CheckCircle2, TrendingUp, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '../components/ui/Button';

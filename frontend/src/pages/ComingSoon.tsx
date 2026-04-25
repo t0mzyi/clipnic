@@ -54,7 +54,7 @@ const ComingSoon: React.FC = () => {
                         Return to Feed
                     </button>
                     <button 
-                        onClick={() => window.location.href = 'https://discord.gg/pW6RJs8Ctp'}
+                        onClick={() => window.location.href = 'https://discord.gg/m4d6QA6w3'}
                         className="px-8 py-4 rounded-2xl bg-emerald-500 text-black font-sans font-bold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-3 uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.3)]"
                     >
                         <Zap size={18} fill="currentColor" />
