@@ -55,6 +55,7 @@ export class VerificationController {
   static async discordAuth(req: any, res: Response, next: NextFunction) {
     try {
       const { id: userId } = req.user; // From authenticate middleware
+      const clientId = process.env.DISCORD_CLIENT_ID;
       const baseUrl = getBaseUrl();
       const redirectUri = process.env.DISCORD_REDIRECT_URI || `${baseUrl}/api/auth/discord/callback`;
 
