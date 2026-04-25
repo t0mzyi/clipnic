@@ -325,6 +325,21 @@ export const CampaignDetails = () => {
                 </div>
 
                 <div className="space-y-8">
+                    <div className="p-8 rounded-[32px] bg-emerald-500/5 border border-emerald-500/10 space-y-4">
+                        <div className="flex items-center gap-2 text-emerald-400">
+                            <Shield className="w-5 h-5" />
+                            <h4 className="text-sm font-bold uppercase tracking-widest">Platform Rules</h4>
+                        </div>
+                        <div className="space-y-3">
+                            {campaign.rules?.map((rule, i) => (
+                                <div key={i} className="flex gap-2 text-[11px] text-white/50 leading-relaxed">
+                                    <span className="text-emerald-500/40 mt-1">•</span>
+                                    <span>{rule}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/[0.05] space-y-6">
                         <div className="flex items-center justify-between">
                             <h3 className="text-xl font-bold tracking-tight">Leaderboard</h3>
@@ -348,21 +363,6 @@ export const CampaignDetails = () => {
                                     </div>
                                 ))
                             )}
-                        </div>
-                    </div>
-
-                    <div className="p-8 rounded-[32px] bg-emerald-500/5 border border-emerald-500/10 space-y-4">
-                        <div className="flex items-center gap-2 text-emerald-400">
-                            <Shield className="w-5 h-5" />
-                            <h4 className="text-sm font-bold uppercase tracking-widest">Platform Rules</h4>
-                        </div>
-                        <div className="space-y-3">
-                            {campaign.rules?.map((rule, i) => (
-                                <div key={i} className="flex gap-2 text-[11px] text-white/50 leading-relaxed">
-                                    <span className="text-emerald-500/40 mt-1">•</span>
-                                    <span>{rule}</span>
-                                </div>
-                            ))}
                         </div>
                     </div>
                 </div>
