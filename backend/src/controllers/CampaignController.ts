@@ -110,8 +110,14 @@ export class CampaignController {
       try {
           const { id } = req.params;
           const { linkedHandle } = joinCampaignSchema.parse(req.body);
-          const userId = (req as any).user.id;
+          const userId = (req as any).user?.id;
+
+          console.log(`[CampaignController] User ${userId} joining campaign ${id} with handle ${linkedHandle}`);
+          console.log('[CampaignController] Full User Object:', JSON.stringify((req as any).user));
+
           const data = await CampaignService.joinCampaign(userId, id as string, linkedHandle);
+          
+          console.log(`[CampaignController] Successfully joined. Participant ID: ${data.id}`);
           res.json({ success: true, data });
       } catch (error) {
           next(error);

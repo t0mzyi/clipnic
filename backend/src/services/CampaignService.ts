@@ -161,6 +161,9 @@ export class CampaignService {
   static async joinCampaign(userId: string, campaignId: string, linkedHandle?: string) {
       const campaign = await this.getById(campaignId);
       if (!campaign) throw new Error("Campaign not found.");
+      
+      console.log(`[CampaignService] Join Attempt: User=${userId}, Campaign=${campaignId}, Handle=${linkedHandle}`);
+
       if (campaign.status !== 'Active') {
           throw new Error(`This campaign is currently ${campaign.status.toLowerCase()} and not accepting new participants.`);
       }
@@ -173,8 +176,30 @@ export class CampaignService {
           .single();
 
       if (userError || !user) {
-          console.error('[CampaignService] User lookup failed for ID:', userId, 'Error:', userError);
-          throw new Error(`User account not found (ID: ${userId}). Please try re-linking your Discord or refreshing the page.`);
+          console.error(`[CampaignService] User lookup failed for ID: ${userId}. Postgres Error:`, userError?.message || 'No user record');
+          
+          // Final attempt to verify if this user exists in auth.users but was missed by sync
+          const { data: authUser, error: authErr } = await supabase.auth.admin.getUserById(userId);
+          if (!authErr && authUser?.user) {
+              console.log(`[CampaignService] Found user in auth.users but not public.users. Syncing now...`);
+              const synced = await AuthService.syncUser(
+                  authUser.user.id,
+                  authUser.user.email || '',
+                  authUser.user.user_metadata?.full_name || authUser.user.user_metadata?.name,
+                  authUser.user.user_metadata?.avatar_url || authUser.user.user_metadata?.picture,
+                  (authUser.user.user_metadata?.role as string) || 'user'
+              );
+              if (synced) {
+                  // Retry the user fetch once
+                  const { data: retryUser } = await supabase.from('users').select('id, instagram_verified, youtube_verified, tiktok_verified').eq('id', userId).single();
+                  if (retryUser) {
+                      console.log('[CampaignService] User synced successfully. Retrying join...');
+                      return CampaignService.joinCampaign(userId, campaignId, linkedHandle); // Recurse once
+                  }
+              }
+          }
+
+          throw new Error(`User account not found (ID: ${userId}). This can happen if your account wasn't properly synced. Please try logging out and back in.`);
       }
 
 

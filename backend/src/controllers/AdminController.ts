@@ -20,14 +20,19 @@ export class AdminController {
         .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, tiktok_verified, is_blocked, created_at', { count: 'exact' });
       
       if (q) {
-        query = query.ilike('email', `%${q}%`).or(`name.ilike.%${q}%`);
+        query = query.or(`email.ilike.%${q}%,name.ilike.%${q}%`);
       }
 
       const { data, count, error } = await query
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
-      if (error) throw error;
+      if (error) {
+          console.error('[AdminController] User fetch error:', error.message);
+          throw error;
+      }
+      
+      console.log(`[AdminController] Found ${data?.length || 0} users (Total: ${count}) for search: "${q || ''}"`);
       
       res.json({ 
         success: true, 

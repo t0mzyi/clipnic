@@ -8,7 +8,15 @@ export class AuthService {
    */
   static async syncUser(supabaseId: string, email: string, name?: string, avatarUrl?: string, role: string = 'user') {
     // Check if this is a new registration
-    const { data: existing } = await supabase.from('users').select('id').eq('id', supabaseId).maybeSingle();
+    const { data: existing, error: findErr } = await supabase.from('users').select('id, role').eq('id', supabaseId).maybeSingle();
+    
+    // If the user exists and we are trying to sync them as a standard 'user', 
+    // keep their existing role (e.g. 'admin') so they don't get demoted.
+    let targetRole = role;
+    if (existing?.role && role === 'user') {
+        targetRole = existing.role;
+        console.log(`[AuthService] Preserving role "${targetRole}" for user ${email}`);
+    }
 
     const { data, error } = await supabase
       .from('users')
@@ -17,9 +25,9 @@ export class AuthService {
         email,
         name,
         avatar_url: avatarUrl,
-        role,
+        role: targetRole,
         updated_at: new Date().toISOString()
-      }, { onConflict: 'id' })
+    }, { onConflict: 'id' })
       .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, youtube_handle, youtube_channels, instagram_verified, instagram_handle, is_blocked, onboarding_completed')
       .single();
 
