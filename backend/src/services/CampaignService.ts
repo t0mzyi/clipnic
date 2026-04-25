@@ -1,6 +1,7 @@
 import { supabase } from '../config/supabase';
 import { z } from 'zod';
 import { NotificationService } from './NotificationService';
+import { AuthService } from './AuthService';
 
 const createCampaignSchema = z.object({
   title: z.string().min(1),
@@ -158,7 +159,7 @@ export class CampaignService {
           }));
   }
 
-  static async joinCampaign(userId: string, campaignId: string, linkedHandle?: string) {
+  static async joinCampaign(userId: string, campaignId: string, linkedHandle?: string): Promise<any> {
       const campaign = await this.getById(campaignId);
       if (!campaign) throw new Error("Campaign not found.");
       
