@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import {
@@ -42,6 +42,11 @@ import { AlertModal } from './components/ui/AlertModal';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { Button } from './components/ui/Button';
 import { SpeedInsights } from "@vercel/speed-insights/react";
+
+const CampaignRedirect = () => {
+    const { id } = useParams();
+    return <Navigate to={`/clippers/campaigns/${id}`} replace />;
+};
 
 
 const BrandUnderConstruction = () => (
@@ -520,6 +525,11 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                                     <Route path="/clippers/campaigns" element={<CampaignsFeed />} />
                                     <Route path="/clippers/campaigns/joined" element={<JoinedCampaigns />} />
                                     <Route path="/clippers/campaigns/:id" element={<CampaignDetails />} />
+                                    
+                                    {/* Safety Redirects for missing /clippers prefix */}
+                                    <Route path="/campaigns" element={<Navigate to="/clippers/campaigns" replace />} />
+                                    <Route path="/campaigns/joined" element={<Navigate to="/clippers/campaigns/joined" replace />} />
+                                    <Route path="/campaigns/:id" element={<CampaignRedirect />} />
                                     <Route path="/clippers/submissions" element={<MySubmissions />} />
                                     <Route path="/clippers/earnings" element={<Earnings />} />
                                     <Route path="/clippers/profile" element={<Profile />} />

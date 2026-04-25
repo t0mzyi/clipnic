@@ -206,7 +206,14 @@ export const CampaignsFeed = () => {
                                 }}
                                 className="absolute inset-0"
                             >
-                                <Link to={`/clippers/campaigns/${featured[activeIdx].id}`} className="block h-full w-full relative group/slide">
+                                <div 
+                                    onClick={() => {
+                                        if (featured[activeIdx]?.id) {
+                                            navigate(`/clippers/campaigns/${featured[activeIdx].id}`);
+                                        }
+                                    }}
+                                    className="block h-full w-full relative group/slide cursor-pointer"
+                                >
                                     <img
                                         src={featured[activeIdx].banner_url || FALLBACK_BANNERS[activeIdx % FALLBACK_BANNERS.length]}
                                         className="absolute inset-0 w-full h-full object-cover opacity-60 transition-transform duration-1000 group-hover/slide:scale-105"
@@ -238,7 +245,7 @@ export const CampaignsFeed = () => {
 
                                     {/* Glass Shine Animation Overlay */}
                                     <div className="absolute inset-0 glowing-glass-item opacity-40 pointer-events-none" />
-                                </Link>
+                                </div>
                             </motion.div>
                         </AnimatePresence>
 

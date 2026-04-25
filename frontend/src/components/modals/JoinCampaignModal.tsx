@@ -14,11 +14,11 @@ interface JoinCampaignModalProps {
 }
 
 const TikTokIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.36-.54.38-.89.98-1.03 1.63-.11.45-.12.92-.01 1.37.11.83.63 1.57 1.35 1.97.66.36 1.45.41 2.18.23.69-.15 1.3-.57 1.69-1.16.27-.42.41-.9.44-1.39-.03-3.9-.01-7.8-.02-11.7z" /></svg>
 );
 
 export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyCode }: JoinCampaignModalProps) => {
-    const { user, token, updateUser } = useAuthStore();
+    const { user, token, updateUser, settings } = useAuthStore();
     const [step, setStep] = useState(1);
     const [selectedSocial, setSelectedSocial] = useState('');
     const [linkedHandle, setLinkedHandle] = useState('');
@@ -162,7 +162,31 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                                 </div>
                             ))}
                         </div>
-                        <Button variant="primary" onClick={() => setStep(2)} className="w-full rounded-2xl py-4 font-bold uppercase tracking-widest text-xs bg-emerald-500 text-white hover:bg-emerald-400">Understood, Continue</Button>
+                        <Button 
+                            variant="primary" 
+                            onClick={() => {
+                                const allowed = campaign?.allowed_platforms || [];
+                                const hasLinkedYoutube = user?.youtubeVerified && allowed.includes('youtube');
+                                const hasLinkedInstagram = user?.instagramVerified && allowed.includes('instagram');
+                                const hasLinkedTiktok = user?.tiktokVerified && allowed.includes('tiktok');
+                                
+                                const isSocialLinked = hasLinkedYoutube || hasLinkedInstagram || hasLinkedTiktok;
+                                const needsDedicated = campaign?.requires_dedicated_social;
+                                
+                                if (user?.discordVerified && isSocialLinked && !needsDedicated) {
+                                    // Use first available allowed handle
+                                    const handle = (hasLinkedYoutube ? user.youtubeHandle : null) || 
+                                                 (hasLinkedInstagram ? user.instagramHandle : null) || 
+                                                 (hasLinkedTiktok ? user.tiktokHandle : null);
+                                    onJoined(handle || '');
+                                } else {
+                                    setStep(2);
+                                }
+                            }} 
+                            className="w-full rounded-2xl py-4 font-bold uppercase tracking-widest text-xs bg-emerald-500 text-white hover:bg-emerald-400"
+                        >
+                            Understood, Continue
+                        </Button>
                     </div>
                 )}
 
@@ -220,38 +244,60 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
 
                                 {selectedSocial && (
                                     <div className="pt-4 space-y-4">
-                                        {selectedSocial === 'youtube' && user?.youtubeVerified ? (
+                                        {selectedSocial === 'youtube' && user?.youtubeVerified && !campaign?.requires_dedicated_social ? (
                                             <Button variant="primary" onClick={() => onJoined(user.youtubeHandle)} className="w-full py-4 rounded-2xl bg-emerald-500 text-white font-bold uppercase tracking-widest text-xs">Join with {user.youtubeHandle}</Button>
-                                        ) : selectedSocial === 'instagram' && user?.instagramVerified ? (
+                                        ) : selectedSocial === 'instagram' && user?.instagramVerified && !campaign?.requires_dedicated_social ? (
                                             <Button variant="primary" onClick={() => onJoined(user.instagramHandle)} className="w-full py-4 rounded-2xl bg-emerald-500 text-white font-bold uppercase tracking-widest text-xs">Join with {user.instagramHandle}</Button>
-                                        ) : selectedSocial === 'tiktok' && user?.tiktokVerified ? (
+                                        ) : selectedSocial === 'tiktok' && user?.tiktokVerified && !campaign?.requires_dedicated_social ? (
                                             <Button variant="primary" onClick={() => onJoined(user.tiktokHandle)} className="w-full py-4 rounded-2xl bg-emerald-500 text-white font-bold uppercase tracking-widest text-xs">Join with {user.tiktokHandle}</Button>
                                         ) : (
                                             <div className="space-y-4">
-                                                <input 
-                                                    type="text" 
-                                                    placeholder={`Enter ${selectedSocial} handle...`}
-                                                    value={linkedHandle}
-                                                    onChange={(e) => setLinkedHandle(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-white/20 transition-all"
-                                                />
-                                                {(showIgCode || showYtCode || showTtCode) && (
-                                                    <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2">
-                                                        <p className="text-[10px] text-emerald-500 font-bold uppercase">Verification Code</p>
-                                                        <p className="text-xl font-mono font-bold text-white tracking-widest">{verifyCode}</p>
-                                                        <p className="text-[10px] text-white/40">Add this to your bio and click verify.</p>
+                                                {/* YouTube OAuth vs Manual Toggle */}
+                                                {selectedSocial === 'youtube' && (settings?.youtube_auth_mode === 'oauth' || !settings?.youtube_auth_mode) ? (
+                                                    <div className="space-y-4">
+                                                        <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 text-center space-y-3">
+                                                            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto border border-red-500/20 text-red-500">
+                                                                <Play size={20} />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-bold text-white">1-Click Verification</p>
+                                                                <p className="text-xs text-white/40">Link your channel directly via Google.</p>
+                                                            </div>
+                                                        </div>
+                                                        <Button 
+                                                            variant="primary" 
+                                                            onClick={handleYouTubeOAuth}
+                                                            disabled={isVerifying}
+                                                            className="w-full py-5 rounded-2xl bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-white/90 transition-all shadow-lg shadow-white/5"
+                                                        >
+                                                            {isVerifying ? <Loader2 className="animate-spin w-4 h-4 mx-auto" /> : 'Continue with Google'}
+                                                        </Button>
                                                     </div>
-                                                )}
-                                                <Button 
-                                                    variant="primary" 
-                                                    disabled={isVerifying || !linkedHandle}
-                                                    onClick={selectedSocial === 'youtube' ? handleYouTubeVerify : selectedSocial === 'instagram' ? handleInstagramVerify : handleTiktokVerify}
-                                                    className="w-full py-4 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-xs"
-                                                >
-                                                    {isVerifying ? <Loader2 className="animate-spin w-4 h-4 mx-auto" /> : (showIgCode || showYtCode || showTtCode) ? 'Verify Now' : 'Link Account'}
-                                                </Button>
-                                                {selectedSocial === 'youtube' && !showYtCode && (
-                                                    <button onClick={handleYouTubeOAuth} className="w-full text-[10px] text-white/30 uppercase font-bold tracking-widest hover:text-white transition-colors">Or Link via Google</button>
+                                                ) : (
+                                                    <>
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder={`Enter ${selectedSocial} handle...`}
+                                                            value={linkedHandle}
+                                                            onChange={(e) => setLinkedHandle(e.target.value)}
+                                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-white/20 transition-all"
+                                                        />
+                                                        {(showIgCode || showYtCode || showTtCode) && (
+                                                            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2">
+                                                                <p className="text-[10px] text-emerald-500 font-bold uppercase">Verification Code</p>
+                                                                <p className="text-xl font-mono font-bold text-white tracking-widest">{verifyCode}</p>
+                                                                <p className="text-[10px] text-white/40">Add this to your bio and click verify.</p>
+                                                            </div>
+                                                        )}
+                                                        <Button 
+                                                            variant="primary" 
+                                                            disabled={isVerifying || !linkedHandle}
+                                                            onClick={selectedSocial === 'youtube' ? handleYouTubeVerify : selectedSocial === 'instagram' ? handleInstagramVerify : handleTiktokVerify}
+                                                            className="w-full py-4 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-xs"
+                                                        >
+                                                            {isVerifying ? <Loader2 className="animate-spin w-4 h-4 mx-auto" /> : (showIgCode || showYtCode || showTtCode) ? 'Verify Now' : 'Link Account'}
+                                                        </Button>
+                                                    </>
                                                 )}
                                             </div>
                                         )}

@@ -313,9 +313,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                             scale: 1,
                             y: 0,
                             x: modalActive || !spotlightRect
-                                ? (isMobile ? 'calc(50% - 160px)' : '24px')
+                                ? (isMobile ? 12 : 24) 
                                 : (isMobile
-                                    ? 'calc(50% - 160px)'
+                                    ? 12
                                     : (currentStep.position === 'right'
                                         ? (spotlightRect ? spotlightRect.right + 24 : 24)
                                         : (spotlightRect ? spotlightRect.left + (spotlightRect.width / 2) - 160 : (window.innerWidth / 2) - 160))),
@@ -326,7 +326,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                     : (currentStep.position === 'right'
                                         ? Math.max(20, (spotlightRect ? spotlightRect.top + (spotlightRect.height / 2) - 100 : window.innerHeight / 2 - 100))
                                         : Math.min(window.innerHeight - 250, (spotlightRect ? spotlightRect.bottom + 24 : window.innerHeight / 2 + 100)))),
-                            bottom: isMobile ? 24 : 'auto'
+                            bottom: isMobile ? 24 : 'auto',
+                            width: isMobile ? 'calc(100vw - 24px)' : '320px'
                         }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ 
@@ -337,7 +338,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                             opacity: { duration: 0.2 }
                         }}
                         layout
-                        className="absolute z-[2001] w-[320px] sm:w-80 bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto"
+                        className="absolute z-[2001] bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto"
                     >
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
