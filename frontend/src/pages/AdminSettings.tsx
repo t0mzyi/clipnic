@@ -123,6 +123,69 @@ export const AdminSettings = () => {
                     </div>
 
 
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-6 rounded-[32px] bg-white/[0.03] border border-white/10 flex flex-col gap-6 shadow-xl relative overflow-hidden"
+                >
+                    <div className="flex items-center gap-4 relative z-10">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 text-amber-500">
+                            <Shield className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 className="text-base font-bold text-white tracking-tight">Maintenance Mode</h3>
+                            <p className="text-[10px] text-white/40 font-light">Restrict access to admins only.</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-6 rounded-2xl bg-white/[0.01] border border-white/5 relative z-10">
+                        <div className="space-y-1">
+                            <p className="text-sm font-bold text-white uppercase tracking-wider">Status</p>
+                            <p className="text-xs text-white/30">Currently: {settings?.maintenance_mode ? 'ENABLED' : 'DISABLED'}</p>
+                        </div>
+                        <button
+                            disabled={isSaving}
+                            onClick={async () => {
+                                const newMode = !settings?.maintenance_mode;
+                                setIsSaving(true);
+                                try {
+                                    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/settings`, {
+                                        method: 'PATCH',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`
+                                        },
+                                        body: JSON.stringify({
+                                            key: 'maintenance_mode',
+                                            value: newMode
+                                        })
+                                    });
+                                    if (!res.ok) throw new Error('Failed to update');
+                                    setSettings({ maintenance_mode: newMode });
+                                    Swal.fire({
+                                        title: newMode ? 'Maintenance Enabled' : 'Maintenance Disabled',
+                                        icon: newMode ? 'warning' : 'success',
+                                        toast: true,
+                                        position: 'top-end',
+                                        timer: 2000,
+                                        showConfirmButton: false,
+                                        background: '#0c0c0c',
+                                        color: '#fff'
+                                    });
+                                } catch (e: any) {
+                                    Swal.fire({ title: 'Error', text: e.message, icon: 'error' });
+                                } finally {
+                                    setIsSaving(false);
+                                }
+                            }}
+                            className={`px-8 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all ${settings?.maintenance_mode
+                                    ? 'bg-red-500/20 text-red-500 border border-red-500/40 hover:bg-red-500/30'
+                                    : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30'
+                                }`}
+                        >
+                            {isSaving ? 'Updating...' : (settings?.maintenance_mode ? 'Disable Maintenance' : 'Enable Maintenance')}
+                        </button>
+                    </div>
                 </motion.div>
             </div>
         </div>

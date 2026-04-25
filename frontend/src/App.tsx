@@ -34,6 +34,7 @@ import { AdminCampaignDetails } from './pages/AdminCampaignDetails';
 import { JoinedCampaigns } from './pages/JoinedCampaigns';
 import { Login } from './pages/Login';
 import ComingSoon from './pages/ComingSoon';
+import Maintenance from './pages/Maintenance';
 import { supabase } from './lib/supabase';
 import { useAuthStore } from './store/useAuthStore';
 import { Onboarding } from './components/Onboarding';
@@ -273,7 +274,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
     const [loading, setLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
     const [showOnboarding, setShowOnboarding] = useState(false);
-    const { login, logout, user, updateUser, token, isAuthenticated } = useAuthStore();
+    const { login, logout, user, updateUser, token, isAuthenticated, settings, setSettings } = useAuthStore();
     const location = useLocation();
 
     useEffect(() => {
@@ -366,6 +367,21 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
     }, []); // Only run once on mount
 
     useEffect(() => {
+        const fetchGlobalSettings = async () => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/settings`);
+                const data = await res.json();
+                if (data.success) {
+                    setSettings(data.settings);
+                }
+            } catch (e) {
+                console.error('Failed to fetch global settings:', e);
+            }
+        };
+        fetchGlobalSettings();
+    }, []);
+
+    useEffect(() => {
         // Check for onboarding
         if (user && !loading && !isSyncing) {
             const isAdmin = user.role === 'admin';
@@ -390,6 +406,13 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
             }
         }
     };
+
+    const isMaintenance = settings?.maintenance_mode;
+    const isAdmin = user?.role === 'admin';
+
+    if (isMaintenance && !isAdmin && !loading) {
+        return <Maintenance />;
+    }
 
     if (loading || (isSyncing && !user)) {
         return (
