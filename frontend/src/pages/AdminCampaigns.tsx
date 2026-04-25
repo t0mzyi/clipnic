@@ -340,7 +340,7 @@ export const AdminCampaigns = () => {
                                                         )}
                                                     </div>
                                                     <div className="flex flex-col min-w-0">
-                                                        <Link to={`/campaigns/${camp.id}`} target="_blank" className="font-bold text-white/90 hover:text-white transition-colors truncate">
+                                                        <Link to={`/clippers/campaigns/${camp.id}`} target="_blank" className="font-bold text-white/90 hover:text-white transition-colors truncate">
                                                             {camp.title}
                                                         </Link>
                                                         <div className="flex items-center gap-2 mt-1">

@@ -21,6 +21,7 @@ interface User {
   created_at?: string;
   user_metadata?: any;
   onboardingCompleted?: boolean;
+  onboardingStep?: number;
 }
 
 interface AuthState {

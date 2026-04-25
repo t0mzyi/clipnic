@@ -86,25 +86,60 @@ const CustomTick = ({ checked }: { checked: boolean }) => (
 );
 
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, closeMenu }) => {
-    const { user } = useAuthStore();
+    const { user, updateUser } = useAuthStore();
     const navigate = useNavigate();
     const location = useLocation();
-    const [step] = useState(1);
-    const [agreed, setAgreed] = useState(false);
+    
+    // Progress Tracking
+    const [step, setStep] = useState(user?.onboardingStep || 1);
+    const [tourActive, setTourActive] = useState((user?.onboardingStep || 0) >= 2);
+    const [tourStepIdx, setTourStepIdx] = useState(Math.max(0, (user?.onboardingStep || 2) - 2));
 
-    // Tour State
+    const updateProgress = async (newStep: number) => {
+        if (!user) return;
+        updateUser({ onboardingStep: newStep });
+        try {
+            await supabase
+                .from('users')
+                .update({ onboarding_step: newStep })
+                .eq('id', user.id);
+        } catch (err) {
+            console.error('Failed to update onboarding progress:', err);
+        }
+    };
+
+    // Tour State logic
     const activeSteps = TOUR_STEPS.filter((_, idx) => {
+        // Step 0: Discord
         if (idx === 0 && user?.discordVerified) return false;
+        
+        // Step 1: Socials
+        // User request: Skip socials if discord not linked
+        if (idx === 1 && !user?.discordVerified) return false;
+        
         return true;
     });
 
-    const [tourActive, setTourActive] = useState(false);
-    const [tourStepIdx, setTourStepIdx] = useState(0);
-    const tourStepIdxRef = useRef(0);
+    const [agreed, setAgreed] = useState(false);
+    const tourStepIdxRef = useRef(tourStepIdx);
     const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
     const [modalActive, setModalActive] = useState(false);
     const [isTourBooting, setIsTourBooting] = useState(false);
     const prevModalActive = useRef(false);
+
+    // Sync Ref and local state from user store on mount/init
+    useEffect(() => {
+        if (!user?.onboardingStep) {
+            updateProgress(1);
+        }
+        if (user?.onboardingStep && user.onboardingStep >= 2) {
+            setTourActive(true);
+            const idx = user.onboardingStep - 2;
+            if (idx < activeSteps.length) {
+                setTourStepIdx(idx);
+            }
+        }
+    }, [user?.id]);
 
     // Initial tour boot delay to prevent glitches
     useEffect(() => {
@@ -137,16 +172,16 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
 
     const handleNextTour = useCallback(() => {
         setTourStepIdx(prev => {
-            // If on Discord and user skips, skip Socials too
-            if (prev === 0) return 2;
-
             const next = prev + 1;
-            if (next < activeSteps.length) return next;
+            if (next < activeSteps.length) {
+                updateProgress(next + 2); // onboardingStep = index + 2
+                return next;
+            }
             onComplete();
             navigate('/clippers/campaigns');
             return prev;
         });
-    }, [onComplete, navigate]);
+    }, [onComplete, navigate, activeSteps.length, user?.id]);
 
     // Auto-advance logic
     useEffect(() => {
@@ -440,7 +475,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                         <div className="flex flex-col gap-3 sm:gap-4">
                                             <Button
                                                 disabled={!agreed}
-                                                onClick={() => setTourActive(true)}
+                                                onClick={() => {
+                                                    setTourActive(true);
+                                                    updateProgress(2);
+                                                }}
                                                 className="w-full rounded-2xl py-4 sm:py-5 text-[11px] sm:text-sm uppercase font-bold tracking-[0.2em] shadow-[0_20px_40px_-12px_rgba(16,185,129,0.3)] disabled:opacity-50"
                                             >
                                                 Start Tour

@@ -335,7 +335,7 @@ export const AdminCampaignDetails = () => {
                                 </div>
                             </div>
 
-                            <Link to={`/campaigns/${campaign.id}`} target="_blank" className="w-full py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-widest text-white/70 transition-all">
+                            <Link to={`/clippers/campaigns/${campaign.id}`} target="_blank" className="w-full py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-widest text-white/70 transition-all">
                                 <LayoutGrid className="w-4 h-4" />
                                 Preview Public Page
                             </Link>

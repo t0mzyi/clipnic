@@ -18,7 +18,7 @@ const TikTokIcon = () => (
 );
 
 export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync, initialSocial = '' }: ProfileVerifyModalProps) => {
-    const { user, token } = useAuthStore();
+    const { user, token, settings } = useAuthStore();
     const [step, setStep] = useState<1 | 2>(user?.discordVerified ? 2 : 1);
     const [selectedSocial, setSelectedSocial] = useState(initialSocial);
     const [handle, setHandle] = useState('');
@@ -50,12 +50,31 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync, initia
         } catch (err) { setIsVerifying(false); }
     };
 
+    const handleYoutubeOAuth = async () => {
+        setIsVerifying(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/youtube`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.url) {
+                window.location.href = json.url;
+            } else {
+                throw new Error(json.error || 'Failed to get auth URL');
+            }
+        } catch (err: any) {
+            Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
+            setIsVerifying(false);
+        }
+    };
+
     const handleManualVerify = async () => {
         if (!handle) return;
         if (!showCode) { setShowCode(true); return; }
         setIsVerifying(true);
         try {
-            const endpoint = selectedSocial === 'youtube' ? 'verify-youtube-bio' : selectedSocial === 'instagram' ? 'verify-instagram-bio' : 'verify-tiktok-bio';
+            // Fix: endpoint for YouTube bio verification is verify-youtube
+            const endpoint = selectedSocial === 'youtube' ? 'verify-youtube' : selectedSocial === 'instagram' ? 'verify-instagram-bio' : 'verify-tiktok-bio';
             const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -70,6 +89,8 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync, initia
             Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
         } finally { setIsVerifying(false); }
     };
+
+    const isYoutubeOAuth = selectedSocial === 'youtube' && (settings?.youtube_auth_mode === 'oauth' || !settings?.youtube_auth_mode);
 
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
@@ -98,22 +119,67 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync, initia
                             <h2 className="text-2xl font-bold tracking-tight">Social Platforms</h2>
                             <p className="text-sm text-white/40">Choose a platform to link.</p>
                         </div>
-                        <div className="grid grid-cols-3 gap-3">
-                            <button onClick={() => setSelectedSocial('youtube')} className={`p-4 rounded-2xl border ${selectedSocial === 'youtube' ? 'border-red-500/50 bg-red-500/10' : 'border-white/5 bg-white/5'}`}><Play /></button>
-                            <button onClick={() => setSelectedSocial('instagram')} className={`p-4 rounded-2xl border ${selectedSocial === 'instagram' ? 'border-pink-500/50 bg-pink-500/10' : 'border-white/5 bg-white/5'}`}><Camera /></button>
-                            <button onClick={() => setSelectedSocial('tiktok')} className={`p-4 rounded-2xl border ${selectedSocial === 'tiktok' ? 'border-cyan-500/50 bg-cyan-500/10' : 'border-white/5 bg-white/5'}`}><TikTokIcon /></button>
+                        <div className="grid grid-cols-3 gap-4">
+                            <button 
+                                onClick={() => setSelectedSocial('youtube')} 
+                                className={`h-24 rounded-[28px] border transition-all duration-500 flex items-center justify-center group ${selectedSocial === 'youtube' ? 'border-red-500/40 bg-red-500/5 text-white shadow-[0_15px_30px_rgba(239,68,68,0.1)]' : 'border-white/5 bg-white/[0.02] text-white/20 hover:border-white/10 hover:bg-white/[0.04]'}`}
+                            >
+                                <Play size={28} className={`transition-transform duration-500 ${selectedSocial === 'youtube' ? 'scale-110' : 'group-hover:scale-105 group-hover:text-white/40'}`} />
+                            </button>
+                            <button 
+                                onClick={() => setSelectedSocial('instagram')} 
+                                className={`h-24 rounded-[28px] border transition-all duration-500 flex items-center justify-center group ${selectedSocial === 'instagram' ? 'border-pink-500/40 bg-pink-500/5 text-white shadow-[0_15px_30px_rgba(236,72,153,0.1)]' : 'border-white/5 bg-white/[0.02] text-white/20 hover:border-white/10 hover:bg-white/[0.04]'}`}
+                            >
+                                <Camera size={28} className={`transition-transform duration-500 ${selectedSocial === 'instagram' ? 'scale-110' : 'group-hover:scale-105 group-hover:text-white/40'}`} />
+                            </button>
+                            <button 
+                                onClick={() => setSelectedSocial('tiktok')} 
+                                className={`h-24 rounded-[28px] border transition-all duration-500 flex items-center justify-center group ${selectedSocial === 'tiktok' ? 'border-cyan-500/40 bg-cyan-500/5 text-white shadow-[0_15px_30px_rgba(6,182,212,0.1)]' : 'border-white/5 bg-white/[0.02] text-white/20 hover:border-white/10 hover:bg-white/[0.04]'}`}
+                            >
+                                <div className={`transition-transform duration-500 ${selectedSocial === 'tiktok' ? 'scale-110' : 'group-hover:scale-105 group-hover:text-white/40'}`}>
+                                    <TikTokIcon />
+                                </div>
+                            </button>
                         </div>
+                        
                         {selectedSocial && (
-                            <div className="space-y-4 pt-4">
-                                <input type="text" placeholder="Handle..." value={handle} onChange={e => setHandle(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none" />
-                                {showCode && (
-                                    <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center">
-                                        <p className="text-[10px] text-emerald-500 font-bold uppercase mb-1">Bio Code</p>
-                                        <p className="font-mono text-white text-lg font-bold">{verifyCode}</p>
+                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 pt-4">
+                                {isYoutubeOAuth ? (
+                                    <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 text-center space-y-3">
+                                        <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto border border-red-500/20 text-red-500">
+                                            <Youtube size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-white">1-Click Verification</p>
+                                            <p className="text-xs text-white/40">Link your channel directly via Google.</p>
+                                        </div>
                                     </div>
+                                ) : (
+                                    <>
+                                        <input 
+                                            type="text" 
+                                            placeholder={selectedSocial === 'youtube' ? "Channel Handle (e.g. @username)" : "Account Handle"} 
+                                            value={handle} 
+                                            onChange={e => setHandle(e.target.value)} 
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-sm focus:outline-none focus:border-white/20 transition-colors" 
+                                        />
+                                        {showCode && (
+                                            <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center">
+                                                <p className="text-[10px] text-emerald-500 font-bold uppercase mb-1">Add this to your bio</p>
+                                                <p className="font-mono text-white text-xl font-bold tracking-wider">{verifyCode}</p>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
-                                <Button onClick={handleManualVerify} disabled={isVerifying} className="w-full py-4 rounded-2xl bg-white text-black text-xs font-bold uppercase">{isVerifying ? <Loader2 className="animate-spin w-4 h-4 mx-auto" /> : showCode ? 'Verify Now' : 'Link Account'}</Button>
-                            </div>
+                                
+                                <Button 
+                                    onClick={isYoutubeOAuth ? handleYoutubeOAuth : handleManualVerify} 
+                                    disabled={isVerifying} 
+                                    className="w-full py-5 rounded-2xl bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-white/90 transition-all shadow-lg shadow-white/5"
+                                >
+                                    {isVerifying ? <Loader2 className="animate-spin w-4 h-4 mx-auto" /> : showCode ? 'Verify Now' : isYoutubeOAuth ? 'Continue with Google' : 'Link Account'}
+                                </Button>
+                            </motion.div>
                         )}
                     </div>
                 )}
