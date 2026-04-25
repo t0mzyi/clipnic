@@ -201,7 +201,20 @@ export class VerificationController {
         return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}discord_error=not_in_server`);
       }
 
-      // 4. Update Database
+      // 4. Duplicate Check: Ensure this Discord ID isn't already linked to someone else
+      const { data: duplicateUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('discord_id', discordId)
+        .neq('id', userId)
+        .maybeSingle();
+
+      if (duplicateUser) {
+        console.error(`Discord ID ${discordId} already linked to user ${duplicateUser.id}`);
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}discord_error=${encodeURIComponent('This Discord account is already linked to another user.')}`);
+      }
+
+      // 5. Update Database
       const { error } = await supabase
         .from('users')
         .update({ 
@@ -363,7 +376,19 @@ export class VerificationController {
       let handle = channel.snippet.customUrl || channel.snippet.title;
       if (!handle.startsWith('@')) handle = '@' + handle; // Safely default
 
-      // 5. Update Database
+      // 5. Check if this channel is already linked to another user
+      const { data: duplicateChannelUser } = await supabase
+        .from('users')
+        .select('id')
+        .contains('youtube_channels', [{ channelId }])
+        .neq('id', userId)
+        .maybeSingle();
+
+      if (duplicateChannelUser) {
+        return res.redirect(`${errorBaseRedirect}${errorBaseRedirect.includes('?') ? '&' : '?'}youtube_error=${encodeURIComponent('This YouTube channel is already linked to another user.')}`);
+      }
+
+      // 6. Update Database
       const { data: userRaw } = await supabase.from('users').select('youtube_channels').eq('id', userId).single();
       const existingChannels = userRaw?.youtube_channels || [];
 
@@ -418,6 +443,18 @@ export class VerificationController {
           handle = `@${handleMatch[1]}`;
       } else {
           if (!handle.startsWith('@')) handle = '@' + handle;
+      }
+
+      // Check if this YouTube handle is already linked to another user
+      const { data: duplicateUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('youtube_handle', handle)
+        .neq('id', userId)
+        .maybeSingle();
+      
+      if (duplicateUser) {
+        return res.status(400).json({ success: false, error: 'This YouTube account is already linked to another user.' });
       }
 
       // Fetch the raw HTML of the YouTube channel
@@ -586,6 +623,18 @@ export class VerificationController {
           return res.status(400).json({ success: false, error: 'User is not in the server.', code: 400 });
         }
         return res.status(400).json({ success: false, error: 'Failed to verify with Discord. Check the ID.', code: 400 });
+      }
+
+      // 1. Duplicate Check: Ensure this Discord ID isn't already linked to someone else
+      const { data: duplicateUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('discord_id', discordId)
+        .neq('id', userId)
+        .maybeSingle();
+
+      if (duplicateUser) {
+        return res.status(400).json({ success: false, error: 'This Discord account is already linked to another user.' });
       }
 
       // If we got here, they are in the server. Update the database.
