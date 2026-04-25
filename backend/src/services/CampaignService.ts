@@ -166,13 +166,17 @@ export class CampaignService {
       }
 
       // Check if user is verified for at least one allowed platform
-      const { data: user } = await supabase
+      const { data: user, error: userError } = await supabase
           .from('users')
-          .select('instagram_verified, youtube_verified, tiktok_verified')
+          .select('id, instagram_verified, youtube_verified, tiktok_verified')
           .eq('id', userId)
           .single();
 
-      if (!user) throw new Error("User not found.");
+      if (userError || !user) {
+          console.error('[CampaignService] User lookup failed for ID:', userId, userError);
+          throw new Error("User not found.");
+      }
+
 
       const isVerifiedForAllowedPlatform = campaign.allowed_platforms?.some((p: string) => {
           if (p === 'instagram') return user.instagram_verified;

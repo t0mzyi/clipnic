@@ -184,19 +184,20 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                         <Button 
                             variant="primary" 
                             onClick={() => {
-                                // If they have linked socials AND it's not a dedicated campaign, they can theoretically auto-join,
-                                // but the user wants them to be able to select or link new. So we always go to Step 2 if not Discord-verified.
-                                if (!user?.discordVerified || linkedAccounts.length === 0 || needsDedicated) {
-                                    setStep(2);
-                                } else {
-                                    // Even if they have linked accounts, let them select or link new
-                                    setStep(2);
+                                // If not dedicated AND has at least one valid account, just join
+                                if (!needsDedicated && linkedAccounts.length > 0) {
+                                    // If only one account, use it. If multiple, we could let them choose, 
+                                    // but user said "don't show it", so we join with null (any)
+                                    onJoined(); 
+                                    return;
                                 }
+                                setStep(2);
                             }} 
                             className="w-full rounded-2xl py-4 font-bold uppercase tracking-widest text-xs bg-emerald-500 text-white hover:bg-emerald-400"
                         >
                             Understood, Continue
                         </Button>
+
                     </div>
                 )}
 
@@ -238,7 +239,7 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                {linkedAccounts.length > 0 && !needsDedicated && linkMode === 'select' ? (
+                                {linkedAccounts.length > 0 && linkMode === 'select' ? (
                                     <div className="space-y-6">
                                         <div className="space-y-4">
                                             <Dropdown 
