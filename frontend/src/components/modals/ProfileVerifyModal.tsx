@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { X, Loader2, Play, Camera } from 'lucide-react';
+import { X, Loader2, Play, Camera, Youtube } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';

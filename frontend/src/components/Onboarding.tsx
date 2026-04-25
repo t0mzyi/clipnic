@@ -91,7 +91,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
     const location = useLocation();
     
     // Progress Tracking
-    const [step, setStep] = useState(user?.onboardingStep || 1);
+    const step = user?.onboardingStep || 1;
     const [tourActive, setTourActive] = useState((user?.onboardingStep || 0) >= 2);
     const [tourStepIdx, setTourStepIdx] = useState(Math.max(0, (user?.onboardingStep || 2) - 2));
 
