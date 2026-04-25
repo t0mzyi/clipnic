@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '../components/ui/Button';
 import { Toast, GlobalSwal } from '../lib/swal';
 import { ProfileVerifyModal } from '../components/modals/ProfileVerifyModal';
+import { DiscordInfoModal } from '../components/modals/DiscordInfoModal';
 
 const TikTokIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.36-.54.38-.89.98-1.03 1.63-.11.45-.12.92-.01 1.37.11.83.63 1.57 1.35 1.97.66.36 1.45.41 2.18.23.69-.15 1.3-.57 1.69-1.16.27-.42.41-.9.44-1.39-.03-3.9-.01-7.8-.02-11.7z"/></svg>
@@ -23,6 +24,7 @@ export const Profile = () => {
     const [stats, setStats] = useState({ totalEarned: 0, totalViews: 0, pendingPayout: 0, missionsJoined: 0 });
     const [loading, setLoading] = useState(true);
     const [isVerifyOpen, setIsVerifyOpen] = useState(false);
+    const [isDiscordInfoOpen, setIsDiscordInfoOpen] = useState(false);
     const [withdrawLoading, setWithdrawLoading] = useState(false);
     const [discordLoading, setDiscordLoading] = useState(false);
     const [selectedPlatform, setSelectedPlatform] = useState('');
@@ -274,7 +276,7 @@ export const Profile = () => {
                                 id="profile-discord-step" 
                                 onClick={() => {
                                     if (user?.discordVerified) {
-                                        setIsVerifyOpen(true);
+                                        setIsDiscordInfoOpen(true);
                                     } else {
                                         handleDiscordLink();
                                     }
@@ -417,6 +419,12 @@ export const Profile = () => {
                 verifyCode={verifyCode} 
                 onSync={handleSync} 
                 initialSocial={selectedPlatform}
+            />
+
+            <DiscordInfoModal 
+                isOpen={isDiscordInfoOpen} 
+                onClose={() => setIsDiscordInfoOpen(false)} 
+                username={user?.name || ''} 
             />
         </motion.div>
     );
