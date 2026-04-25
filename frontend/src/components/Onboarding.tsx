@@ -131,7 +131,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                 setTourStepIdx(idx);
             }
         }
-    }, [user?.id]);
+    }, [user?.id, user?.onboardingStep]);
 
     // Initial tour boot delay to prevent glitches
     useEffect(() => {
