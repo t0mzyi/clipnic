@@ -270,11 +270,10 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 // Layout
 const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
     const [showOnboarding, setShowOnboarding] = useState(false);
-    const { login, logout, user, updateUser } = useAuthStore();
+    const { login, logout, user, updateUser, token, isAuthenticated } = useAuthStore();
     const location = useLocation();
 
     useEffect(() => {
@@ -289,44 +288,14 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
     }, [mobileMenuOpen]);
 
     useEffect(() => {
-        const syncBackend = async (session: any, isInitial = false) => {
-            if (session) {
+        const syncBackend = async (currentToken: string) => {
+            if (currentToken) {
                 setIsSyncing(true);
-                const metadata = session.user.user_metadata;
-                const { user: currentUser, login: storeLogin, updateUser: storeUpdateUser } = useAuthStore.getState();
-
-                // 1. Create instant user from session metadata, being careful about the role
-                const instantUser: any = {
-                    id: session.user.id,
-                    email: session.user.email,
-                    name: metadata?.given_name
-                        ? `${metadata.given_name} ${metadata.family_name || ''}`.trim()
-                        : (metadata?.full_name || metadata?.name),
-                    avatarUrl: metadata?.avatar_url || metadata?.picture,
-                };
-
-                // Priority: Metadata Role > Current Store Role (prevents flicker) > Default 'user'
-                const metadataRole = metadata?.role as 'admin' | 'user';
-                if (metadataRole) {
-                    instantUser.role = metadataRole;
-                } else if (currentUser && currentUser.id === session.user.id) {
-                    instantUser.role = currentUser.role;
-                } else {
-                    instantUser.role = 'user';
-                }
-
-                // Update store immediately for responsiveness
-                if (currentUser && currentUser.id === session.user.id) {
-                    storeUpdateUser(instantUser);
-                } else {
-                    storeLogin(instantUser, session.access_token);
-                }
-
-                // 2. Sync with backend in the background
+                // Sync with backend
                 try {
                     const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/sync`, {
                         headers: {
-                            'Authorization': `Bearer ${session.access_token}`
+                            'Authorization': `Bearer ${currentToken}`
                         }
                     });
                     if (response.ok) {
@@ -346,43 +315,55 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                                     instagramHandle: result.data.instagram_handle,
                                     onboardingCompleted: result.data.onboarding_completed
                                 };
-                                login(userData, session.access_token, result.settings);
+                                login(userData, currentToken, result.settings);
                             }
                         }
+                    } else if (response.status === 401) {
+                        // Token expired or invalid
+                        logout();
                     }
                 } catch (err) {
                     console.error('Failed to sync with backend:', err);
                 } finally {
                     setIsSyncing(false);
-                    if (isInitial) setLoading(false);
+                    setLoading(false);
                 }
             } else {
-                logout();
-                setIsSyncing(false);
-                if (isInitial) setLoading(false);
+                setLoading(false);
             }
         };
 
-        // Check current session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            // We await the FIRST sync to ensure we don't flicker unverified content
-            syncBackend(session, true);
-        });
+        // Initial sync if we have a token
+        if (token) {
+            syncBackend(token);
+        } else {
+            // Check for Supabase session as a fallback (legacy or if they used Discord)
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    syncBackend(session.access_token);
+                } else {
+                    setLoading(false);
+                }
+            });
+        }
 
-        // Listen for auth changes
+        // Listen for Supabase auth changes (in case they still use standard Discord login)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            setSession(session);
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-                syncBackend(session);
+                if (session) syncBackend(session.access_token);
             } else if (event === 'SIGNED_OUT') {
-                logout();
-                setIsSyncing(false);
+                // Only logout if we DON'T have a custom token (prevents logging out custom-flow users)
+                const currentToken = useAuthStore.getState().token;
+                // If the token doesn't look like a Supabase token (Supabase tokens are very long)
+                // actually, just clear if they specifically sign out.
+                if (!currentToken || currentToken.length > 500) { // Supabase tokens are typically > 1000 chars
+                    logout();
+                }
             }
         });
 
         return () => subscription.unsubscribe();
-    }, [login, logout]);
+    }, []); // Only run once on mount
 
     useEffect(() => {
         // Check for onboarding
@@ -399,10 +380,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
         setShowOnboarding(false);
         if (user) {
             try {
-                // 1. Update store immediately for UI responsiveness
                 updateUser({ onboardingCompleted: true });
-
-                // 2. Persist to database
                 await supabase
                     .from('users')
                     .update({ onboarding_completed: true })
@@ -413,10 +391,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
         }
     };
 
-    // Only show full-screen loader if we're genuinely waiting for the first session check
-    // OR if we're syncing and don't even have basic user info in the store yet.
-    const currentUser = useAuthStore(s => s.user);
-    if (loading || (isSyncing && !currentUser)) {
+    if (loading || (isSyncing && !user)) {
         return (
             <div className="min-h-screen bg-[#050505] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-8">
@@ -445,18 +420,15 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
         );
     }
 
-    // If logged in and on login page, redirect to dashboard
-    if (session && location.pathname === '/login') {
+    if (isAuthenticated && location.pathname === '/login') {
         return <Navigate to="/clippers/dashboard" replace />;
     }
 
-    // Public Brand Page
     if (location.pathname === '/brand' || location.pathname === '/brands') {
         return <BrandUnderConstruction />;
     }
 
-    // If not logged in and not on login page, redirect to login
-    if (!session && location.pathname !== '/login') {
+    if (!isAuthenticated && location.pathname !== '/login') {
         return <Navigate to="/login" replace />;
     }
 

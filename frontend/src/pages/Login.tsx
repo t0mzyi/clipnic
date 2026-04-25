@@ -1,19 +1,62 @@
+import { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
+import { useAuthStore } from '../store/useAuthStore';
+import { Toast } from '../lib/swal';
 
 export const Login = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { login, token: existingToken } = useAuthStore();
+
+    useEffect(() => {
+        // Handle token from custom backend Google Auth
+        const params = new URLSearchParams(location.search);
+        const token = params.get('token');
+        const error = params.get('error');
+
+        if (token) {
+            // We have a token from our backend! 
+            // We'll call /sync to get user data and populate the store.
+            const fetchUser = async () => {
+                try {
+                    const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/sync`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                        login(json.data, token, json.settings);
+                        navigate('/clippers/dashboard');
+                    } else {
+                        Toast.fire({ title: 'Login Failed', text: json.error, icon: 'error' });
+                    }
+                } catch (err) {
+                    console.error('Sync failed:', err);
+                }
+            };
+            fetchUser();
+        } else if (error) {
+            Toast.fire({ title: 'Authentication Error', text: error, icon: 'error' });
+        } else if (existingToken) {
+            navigate('/clippers/dashboard');
+        }
+    }, [location, login, navigate, existingToken]);
+
     const handleLogin = async (provider: 'google' | 'discord') => {
         try {
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider,
-                options: {
-                    redirectTo: `${window.location.origin}/clippers/dashboard`
-                }
-            });
-            if (error) throw error;
+            // Use our CUSTOM backend-led Auth to avoid Supabase URL
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/login/${provider}`);
+            const json = await res.json();
+            if (json.success && json.url) {
+                window.location.href = json.url;
+            } else {
+                throw new Error(json.error || `Failed to start ${provider} Auth`);
+            }
         } catch (error: any) {
             console.error('Error logging in:', error.message);
+            Toast.fire({ title: 'Login Error', text: error.message, icon: 'error' });
         }
     };
 

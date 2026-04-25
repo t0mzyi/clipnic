@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
+import jwt from 'jsonwebtoken';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -11,6 +12,8 @@ export interface AuthRequest extends Request {
   };
 }
 
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
+
 export const authenticate = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -19,34 +22,59 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
 
   const token = authHeader.split(' ')[1];
   try {
-    // Verify token with Supabase
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    
-    if (error || !user) {
+    let userData: any = null;
+
+    // 1. Try to verify with jsonwebtoken (Custom Backend Flow)
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      if (decoded && decoded.sub) {
+        userData = {
+          id: decoded.sub,
+          email: decoded.email,
+          name: decoded.name,
+          avatarUrl: decoded.avatar_url || decoded.picture,
+          role: decoded.role || 'user'
+        };
+      }
+    } catch (e) {
+      // Not a local JWT, proceed to Supabase check
+    }
+
+    // 2. If not a local JWT, try to verify with Supabase
+    if (!userData) {
+      const { data: { user }, error } = await supabase.auth.getUser(token);
+      if (!error && user) {
+        userData = {
+          id: user.id,
+          email: user.email,
+          name: user.user_metadata?.given_name 
+                ? `${user.user_metadata.given_name} ${user.user_metadata.family_name || ''}`.trim()
+                : (user.user_metadata?.full_name || user.user_metadata?.name),
+          avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+          role: (user.user_metadata?.role as string) || 'user'
+        };
+      }
+    }
+
+    if (!userData) {
       return res.status(401).json({ success: false, error: 'Invalid or expired token', code: 401 });
     }
 
-    // Fetch latest user data from database (Role & Block status)
+    // 3. Fetch latest user data from database (Role & Block status)
     const { data: dbUser, error: dbError } = await supabase
       .from('users')
       .select('role, is_blocked')
-      .eq('id', user.id)
+      .eq('id', userData.id)
       .single();
 
-    if (dbError && dbError.code !== 'PGRST116') { // PGRST116 is 'not found'
+    if (dbError && dbError.code !== 'PGRST116') {
       console.error('Database user fetch error:', dbError);
     }
 
-    // Map Supabase user to our request object
+    // Map to request object
     req.user = {
-      id: user.id,
-      email: user.email,
-      name: user.user_metadata?.given_name 
-            ? `${user.user_metadata.given_name} ${user.user_metadata.family_name || ''}`.trim()
-            : (user.user_metadata?.full_name || user.user_metadata?.name),
-      avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture,
-      // DB role takes precedence over JWT metadata to prevent stale token issues
-      role: dbUser?.role || (user.user_metadata?.role as string) || 'user'
+      ...userData,
+      role: dbUser?.role || userData.role
     };
 
     if (dbUser?.is_blocked) {
@@ -55,6 +83,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     
     next();
   } catch (error) {
+    console.error('[AuthMiddleware] Verification failed:', error);
     return res.status(401).json({ success: false, error: 'Authentication failed', code: 401 });
   }
 };

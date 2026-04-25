@@ -7,6 +7,10 @@ import { authenticate } from '../middleware/authMiddleware';
 const router = Router();
 
 router.get('/sync', authenticate, AuthController.sync);
+router.get('/login/google', AuthController.googleAuth);
+router.get('/login/google/callback', AuthController.googleCallback);
+router.get('/login/discord', AuthController.discordAuth);
+router.get('/login/discord/callback', AuthController.discordCallback);
 router.post('/verify-discord', authenticate, VerificationController.verifyDiscord);
 router.get('/discord', authenticate, VerificationController.discordAuth);
 router.get('/discord/callback', VerificationController.discordCallback);

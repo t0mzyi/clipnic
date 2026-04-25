@@ -291,9 +291,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
         }
 
         const currentStep = activeSteps[tourStepIdx];
-        const vw = typeof window !== 'undefined' ? window.innerWidth : 1920;
-        const vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
-        const holePath = spotlightRect ? `M 0 0 h ${vw} v ${vh} h -${vw} Z M ${spotlightRect.x - 8} ${spotlightRect.y - 8} h ${spotlightRect.width + 16} v ${spotlightRect.height + 16} h -${spotlightRect.width + 16} Z` : '';
+        // const vw = typeof window !== 'undefined' ? window.innerWidth : 1920;
+        // const vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
+
 
         return (
             <div className="fixed inset-0 z-[2000] pointer-events-none">

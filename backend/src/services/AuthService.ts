@@ -34,4 +34,15 @@ export class AuthService {
 
     return data;
   }
+
+  static async findUserByEmail(email: string) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, role')
+      .eq('email', email)
+      .maybeSingle();
+    
+    if (error) return { data: null };
+    return { data };
+  }
 }
