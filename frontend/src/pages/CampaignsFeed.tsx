@@ -23,6 +23,7 @@ interface Campaign {
     start_date?: string;
     end_date: string;
     auto_start?: boolean;
+    allowed_platforms: string[];
 }
 
 const FALLBACK_BANNERS = [
@@ -389,6 +390,16 @@ export const CampaignsFeed = () => {
                                     <div>
 
                                         <h3 className="text-lg font-bold leading-tight tracking-tight text-white/90 group-hover:text-white transition-colors">{campaign.title}</h3>
+                                        
+                                        <div className="flex gap-2 mt-2">
+                                            {campaign.allowed_platforms?.map(platform => (
+                                                <div key={platform} className="p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-white/40 group-hover:text-white/60 transition-colors">
+                                                    {platform === 'youtube' && <Play size={10} />}
+                                                    {platform === 'tiktok' && <TikTokIcon />}
+                                                    {platform === 'instagram' && <Camera size={10} />}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-3">
