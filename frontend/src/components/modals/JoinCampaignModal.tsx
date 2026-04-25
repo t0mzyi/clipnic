@@ -19,7 +19,7 @@ const TikTokIcon = () => (
 );
 
 const YoutubeIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
 );
 
 const InstagramIcon = () => (
@@ -158,7 +158,7 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
 
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-            <motion.div 
+            <motion.div
                 initial={{ y: 20, opacity: 0, scale: 0.95 }}
                 animate={{ y: 0, opacity: 1, scale: 1 }}
                 className="bg-[#0D0D0D] border border-white/10 rounded-[32px] p-8 max-w-lg w-full relative shadow-2xl"
@@ -170,7 +170,7 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                 {step === 1 && (
                     <div className="space-y-6">
                         <div className="space-y-2">
-                            <h2 className="text-2xl font-bold tracking-tight">Mission Briefing</h2>
+                            <h2 className="text-2xl font-bold tracking-tight">Campaign Rules</h2>
                             <p className="text-sm text-white/40">Review the guidelines before joining the campaign.</p>
                         </div>
                         <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
@@ -181,18 +181,18 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                                 </div>
                             ))}
                         </div>
-                        <Button 
-                            variant="primary" 
+                        <Button
+                            variant="primary"
                             onClick={() => {
                                 // If not dedicated AND has at least one valid account, just join
                                 if (!needsDedicated && linkedAccounts.length > 0) {
                                     // If only one account, use it. If multiple, we could let them choose, 
                                     // but user said "don't show it", so we join with null (any)
-                                    onJoined(); 
+                                    onJoined();
                                     return;
                                 }
                                 setStep(2);
-                            }} 
+                            }}
                             className="w-full rounded-2xl py-4 font-bold uppercase tracking-widest text-xs bg-emerald-500 text-white hover:bg-emerald-400"
                         >
                             Understood, Continue
@@ -219,8 +219,8 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                                     <p className="text-sm font-bold text-white">Discord Required</p>
                                     <p className="text-xs text-white/40">Connect your Discord to join this mission.</p>
                                 </div>
-                                <Button 
-                                    variant="primary" 
+                                <Button
+                                    variant="primary"
                                     onClick={async () => {
                                         setIsVerifying(true);
                                         try {
@@ -230,7 +230,7 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                                             const json = await res.json();
                                             window.location.href = json.url;
                                         } catch (err) { setIsVerifying(false); }
-                                    }} 
+                                    }}
                                     disabled={isVerifying}
                                     className="w-full py-4 rounded-2xl bg-[#5865F2] text-white font-bold uppercase tracking-widest text-xs"
                                 >
@@ -242,7 +242,7 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                                 {linkedAccounts.length > 0 && linkMode === 'select' ? (
                                     <div className="space-y-6">
                                         <div className="space-y-4">
-                                            <Dropdown 
+                                            <Dropdown
                                                 label="Select Account"
                                                 placeholder="Select an account..."
                                                 value=""
@@ -313,8 +313,8 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                                                                 <p className="text-xs text-white/40">Link your channel directly via Google.</p>
                                                             </div>
                                                         </div>
-                                                        <Button 
-                                                            variant="primary" 
+                                                        <Button
+                                                            variant="primary"
                                                             onClick={handleYouTubeOAuth}
                                                             disabled={isVerifying}
                                                             className="w-full py-5 rounded-2xl bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-white/90 transition-all shadow-lg shadow-white/5"
@@ -324,8 +324,8 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                                                     </div>
                                                 ) : (
                                                     <>
-                                                        <input 
-                                                            type="text" 
+                                                        <input
+                                                            type="text"
                                                             placeholder={`Enter ${selectedSocial} handle...`}
                                                             value={linkedHandle}
                                                             onChange={(e) => setLinkedHandle(e.target.value)}
@@ -338,8 +338,8 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                                                                 <p className="text-[10px] text-white/40">Add this to your bio and click verify.</p>
                                                             </div>
                                                         )}
-                                                        <Button 
-                                                            variant="primary" 
+                                                        <Button
+                                                            variant="primary"
                                                             disabled={isVerifying || !linkedHandle}
                                                             onClick={selectedSocial === 'youtube' ? handleYouTubeVerify : selectedSocial === 'instagram' ? handleInstagramVerify : handleTiktokVerify}
                                                             className="w-full py-4 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-xs"
