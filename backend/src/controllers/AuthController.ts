@@ -10,6 +10,13 @@ import crypto from 'crypto';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
 const STATE_SECRET = process.env.STATE_SECRET || 'clipnic-secure-state-secret-2024';
 
+function getBaseUrl() {
+    // Priority: API_URL > Render URL > localhost
+    if (process.env.API_URL) return process.env.API_URL.replace(/\/$/, '');
+    if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL.replace(/\/$/, '');
+    return 'http://localhost:5000';
+}
+
 function signState(data: any): string {
     const state = JSON.stringify(data);
     const signature = crypto.createHmac('sha256', STATE_SECRET).update(state).digest('hex');
@@ -49,7 +56,8 @@ export class AuthController {
   static async googleAuth(req: Request, res: Response, next: NextFunction) {
     try {
       const clientId = process.env.GOOGLE_CLIENT_ID;
-      const redirectUri = process.env.GOOGLE_LOGIN_REDIRECT_URI || `${process.env.API_URL || 'http://localhost:5000'}/api/auth/login/google/callback`;
+      const baseUrl = getBaseUrl();
+      const redirectUri = process.env.GOOGLE_LOGIN_REDIRECT_URI || `${baseUrl}/api/auth/login/google/callback`;
       
       if (!clientId) {
         return res.status(500).json({ success: false, error: 'Google Client ID is missing.' });
@@ -77,10 +85,11 @@ export class AuthController {
   static async googleCallback(req: Request, res: Response, next: NextFunction) {
     try {
       const { code, state } = req.query;
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const frontendUrl = process.env.FRONTEND_URL || 'https://dash.clipnic.com';
       const clientId = process.env.GOOGLE_CLIENT_ID;
       const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-      const redirectUri = process.env.GOOGLE_LOGIN_REDIRECT_URI || `${process.env.API_URL || 'http://localhost:5000'}/api/auth/login/google/callback`;
+      const baseUrl = getBaseUrl();
+      const redirectUri = process.env.GOOGLE_LOGIN_REDIRECT_URI || `${baseUrl}/api/auth/login/google/callback`;
 
       if (!code || !state || !clientId || !clientSecret) {
         return res.redirect(`${frontendUrl}/login?error=missing_params`);
@@ -170,7 +179,8 @@ export class AuthController {
   static async discordAuth(req: Request, res: Response, next: NextFunction) {
     try {
       const clientId = process.env.DISCORD_CLIENT_ID;
-      const redirectUri = process.env.DISCORD_LOGIN_REDIRECT_URI || `${process.env.API_URL || 'http://localhost:5000'}/api/auth/login/discord/callback`;
+      const baseUrl = getBaseUrl();
+      const redirectUri = process.env.DISCORD_LOGIN_REDIRECT_URI || `${baseUrl}/api/auth/login/discord/callback`;
 
       if (!clientId) {
         return res.status(500).json({ success: false, error: 'Discord Client ID is missing.' });
@@ -191,10 +201,11 @@ export class AuthController {
   static async discordCallback(req: Request, res: Response, next: NextFunction) {
     try {
       const { code, state } = req.query;
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const frontendUrl = process.env.FRONTEND_URL || 'https://dash.clipnic.com';
       const clientId = process.env.DISCORD_CLIENT_ID;
       const clientSecret = process.env.DISCORD_CLIENT_SECRET;
-      const redirectUri = process.env.DISCORD_LOGIN_REDIRECT_URI || `${process.env.API_URL || 'http://localhost:5000'}/api/auth/login/discord/callback`;
+      const baseUrl = getBaseUrl();
+      const redirectUri = process.env.DISCORD_LOGIN_REDIRECT_URI || `${baseUrl}/api/auth/login/discord/callback`;
 
       if (!code || !state || !clientId || !clientSecret) {
         return res.redirect(`${frontendUrl}/login?error=missing_params`);

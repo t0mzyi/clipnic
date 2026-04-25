@@ -9,6 +9,7 @@ import { Toast, GlobalSwal } from '../lib/swal';
 import { useCountdown } from '../hooks/useCountdown';
 import { JoinCampaignModal } from '../components/modals/JoinCampaignModal';
 import { SubmitClipModal } from '../components/modals/SubmitClipModal';
+import { JoinSuccessModal } from '../components/modals/JoinSuccessModal';
 
 import { YoutubeIcon, TikTokIcon, InstagramIcon } from '../components/ui/SocialIcons';
 
@@ -48,6 +49,7 @@ export const CampaignDetails = () => {
     const [isJoined, setIsJoined] = useState(false);
     const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [leaderboard, setLeaderboard] = useState<any[]>([]);
 
@@ -109,7 +111,7 @@ export const CampaignDetails = () => {
 
             setIsJoined(true);
             setIsJoinModalOpen(false);
-            Toast.fire({ title: 'Joined!', icon: 'success' });
+            setIsSuccessModalOpen(true);
             fetchCampaignData();
         } catch (err: any) {
             Toast.fire({ title: 'Error', text: err.message, icon: 'error' });
@@ -339,6 +341,27 @@ export const CampaignDetails = () => {
                             ))}
                         </div>
                     </div>
+                    
+                    {isJoined && campaign.discord_channel && (
+                        <div className="p-8 rounded-[32px] bg-[#5865F2]/5 border border-[#5865F2]/10 space-y-4 group">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-[#5865F2]">
+                                    <MessageSquare className="w-5 h-5" />
+                                    <h4 className="text-sm font-bold uppercase tracking-widest">Campaign Resources</h4>
+                                </div>
+                                <div className="w-2 h-2 rounded-full bg-[#5865F2] animate-pulse" />
+                            </div>
+                            <p className="text-[11px] text-white/30 leading-relaxed">
+                                Access raw footage, brand kits, and connect with other clippers in the dedicated assets channel.
+                            </p>
+                            <Button
+                                onClick={() => window.open(campaign.discord_channel, '_blank')}
+                                className="w-full py-4 rounded-2xl bg-[#5865F2] text-white font-bold uppercase tracking-widest text-[10px] hover:bg-[#4752C4] shadow-2xl flex items-center justify-center gap-2"
+                            >
+                                Discord Channel <ExternalLink size={14} />
+                            </Button>
+                        </div>
+                    )}
 
                     <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/[0.05] space-y-6">
                         <div className="flex items-center justify-between">
@@ -382,6 +405,13 @@ export const CampaignDetails = () => {
                 campaign={campaign} 
                 onSubmit={handleSubmitClip}
                 token={token}
+            />
+
+            <JoinSuccessModal
+                isOpen={isSuccessModalOpen}
+                onClose={() => setIsSuccessModalOpen(false)}
+                campaignTitle={campaign.title}
+                discordLink={campaign.discord_channel}
             />
         </motion.div>
     );
