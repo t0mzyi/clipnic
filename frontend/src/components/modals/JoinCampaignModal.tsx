@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { X, Loader2, ShieldCheck } from 'lucide-react';
+import { X, Loader2, ShieldCheck, Plus } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { Dropdown } from '../Dropdown';
 import { useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Toast } from '../../lib/swal';
@@ -238,36 +239,36 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                         ) : (
                             <div className="space-y-6">
                                 {linkedAccounts.length > 0 && !needsDedicated && linkMode === 'select' ? (
-                                    <div className="space-y-4">
-                                        <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Select Linked Account</p>
-                                        <div className="space-y-2">
-                                            {linkedAccounts.map((acc, i) => (
-                                                <button 
-                                                    key={i} 
-                                                    onClick={() => onJoined(acc.handle || '')}
-                                                    className="w-full p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/5 transition-all flex items-center justify-between group"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center ${acc.color}`}>
-                                                            <acc.icon />
-                                                        </div>
-                                                        <div className="text-left">
-                                                            <p className="text-xs font-bold text-white">{acc.handle}</p>
-                                                            <p className="text-[10px] text-white/20 uppercase tracking-widest">{acc.type}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="w-6 h-6 rounded-full border border-white/10 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
-                                                        <div className="w-2 h-2 rounded-full bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                    </div>
-                                                </button>
-                                            ))}
+                                    <div className="space-y-6">
+                                        <div className="space-y-4">
+                                            <Dropdown 
+                                                label="Select Account"
+                                                placeholder="Select an account..."
+                                                value=""
+                                                onChange={(val) => {
+                                                    if (val === 'new') {
+                                                        setLinkMode('new');
+                                                    } else {
+                                                        const acc = linkedAccounts.find(a => a.handle === val);
+                                                        if (acc) onJoined(acc.handle || '');
+                                                    }
+                                                }}
+                                                options={[
+                                                    ...linkedAccounts.map(acc => ({
+                                                        label: `${acc.handle} (${acc.type})`,
+                                                        value: acc.handle || '',
+                                                        icon: <div className={acc.color}><acc.icon /></div>
+                                                    })),
+                                                    { label: 'Link a new account...', value: 'new', icon: <Plus size={16} className="text-emerald-500" /> }
+                                                ]}
+                                            />
                                         </div>
-                                        <button 
-                                            onClick={() => setLinkMode('new')}
-                                            className="w-full py-3 text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors"
-                                        >
-                                            + Link a new account
-                                        </button>
+                                        <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                                <ShieldCheck size={16} />
+                                            </div>
+                                            <p className="text-[10px] text-white/50 leading-relaxed">Selecting a linked account will instantly register you for this campaign.</p>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
