@@ -1,4 +1,5 @@
 import express from 'express';
+import { getBaseUrl } from './utils/url';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
@@ -126,8 +127,9 @@ app.listen(PORT, () => {
     }
 
     // Keep-alive ping for Render free tier (prevents 50s cold start that kills Discord OAuth codes)
-    if (process.env.NODE_ENV !== 'development' && process.env.RENDER_EXTERNAL_URL) {
-        const keepAliveUrl = `${process.env.RENDER_EXTERNAL_URL}/api/auth/discord/debug`;
+    if (process.env.NODE_ENV !== 'development') {
+        const baseUrl = getBaseUrl();
+        const keepAliveUrl = `${baseUrl}/api/auth/discord/debug`;
         setInterval(async () => {
             try {
                 await fetch(keepAliveUrl);

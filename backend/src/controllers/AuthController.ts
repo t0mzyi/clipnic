@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
 import { SettingsService } from '../services/SettingsService';
 import { supabase } from '../config/supabase';
+import { getBaseUrl } from '../utils/url';
 
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
@@ -9,13 +10,6 @@ import crypto from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
 const STATE_SECRET = process.env.STATE_SECRET || 'clipnic-secure-state-secret-2024';
-
-function getBaseUrl() {
-    // Priority: API_URL > Render URL > localhost
-    if (process.env.API_URL) return process.env.API_URL.replace(/\/$/, '');
-    if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL.replace(/\/$/, '');
-    return 'http://localhost:5000';
-}
 
 function signState(data: any): string {
     const state = JSON.stringify(data);
