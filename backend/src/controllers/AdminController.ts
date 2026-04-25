@@ -19,7 +19,10 @@ export class AdminController {
         .from('users')
         .select('id, email, name, avatar_url, role, discord_id, discord_verified, youtube_verified, instagram_verified, tiktok_verified, is_blocked, created_at', { count: 'exact' });
       
-      if (q) {
+      const isServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+      console.log(`[AdminController] Fetching users. Search: "${q || 'none'}", Page: ${page}, KeyType: ${isServiceKey ? 'SERVICE_ROLE' : 'ANON'}`);
+
+      if (q && q !== 'undefined' && q.trim() !== '') {
         query = query.or(`email.ilike.%${q}%,name.ilike.%${q}%`);
       }
 
