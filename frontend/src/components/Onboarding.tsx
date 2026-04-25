@@ -299,21 +299,61 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
             <div className="fixed inset-0 z-[2000] pointer-events-none">
                 {/* SVG Overlay */}
                 <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                    <AnimatePresence>
-                        {spotlightRect && !modalActive && (
-                            <motion.path
-                                key={`spotlight-${tourStepIdx}`}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.2 }}
-                                d={holePath}
-                                fill="rgba(0,0,0,0.75)"
-                                fillRule="evenodd"
-                                className="pointer-events-auto backdrop-blur-[1px]"
-                            />
-                        )}
-                    </AnimatePresence>
+                    <defs>
+                        <mask id="spotlight-mask">
+                            <rect x="0" y="0" width="100%" height="100%" fill="white" />
+                            {spotlightRect && (
+                                <motion.rect
+                                    initial={false}
+                                    animate={{
+                                        x: spotlightRect.x - 8,
+                                        y: spotlightRect.y - 8,
+                                        width: spotlightRect.width + 16,
+                                        height: spotlightRect.height + 16,
+                                        rx: 12
+                                    }}
+                                    transition={{ type: 'spring', stiffness: 300, damping: 30, mass: 0.8 }}
+                                    fill="black"
+                                />
+                            )}
+                        </mask>
+                    </defs>
+                    <motion.rect
+                        width="100%"
+                        height="100%"
+                        fill="rgba(0,0,0,0.8)"
+                        style={{ mask: 'url(#spotlight-mask)' }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="backdrop-blur-[2px]"
+                    />
+                    
+                    {/* Pulsing Guide Ring */}
+                    {spotlightRect && !modalActive && (
+                        <motion.rect
+                            initial={false}
+                            animate={{
+                                x: spotlightRect.x - 12,
+                                y: spotlightRect.y - 12,
+                                width: spotlightRect.width + 24,
+                                height: spotlightRect.height + 24,
+                                opacity: [0.2, 0.5, 0.2],
+                                scale: [1, 1.02, 1],
+                            }}
+                            transition={{
+                                x: { type: 'spring', stiffness: 300, damping: 30 },
+                                y: { type: 'spring', stiffness: 300, damping: 30 },
+                                width: { type: 'spring', stiffness: 300, damping: 30 },
+                                height: { type: 'spring', stiffness: 300, damping: 30 },
+                                opacity: { duration: 2, repeat: Infinity },
+                                scale: { duration: 2, repeat: Infinity }
+                            }}
+                            fill="none"
+                            stroke="rgba(16, 185, 129, 0.5)"
+                            strokeWidth="2"
+                            rx="16"
+                        />
+                    )}
                 </svg>
 
                 {/* Tooltip */}
@@ -345,13 +385,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ 
                             type: 'spring', 
-                            stiffness: 400, 
-                            damping: 40, 
-                            mass: 1,
-                            opacity: { duration: 0.2 }
+                            stiffness: 500, 
+                            damping: 35, 
+                            mass: 0.8,
+                            opacity: { duration: 0.15 }
                         }}
                         layout
-                        className={`${isMobile ? 'fixed' : 'absolute'} z-[2001] bg-[#0c0c0c] border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto`}
+                        className={`${isMobile ? 'fixed' : 'absolute'} z-[2001] bg-[#0c0c0c]/90 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.8)] pointer-events-auto`}
                     >
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
@@ -464,13 +504,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h2 className="text-2xl sm:text-4xl font-bold tracking-tighter text-white glassy-text">
-                                            Welcome to Clipnic
-                                        </h2>
-                                        <p className="text-white/40 text-sm sm:text-base font-light leading-relaxed max-w-sm mx-auto px-4">
-                                            Clipnic is the primary infrastructure for turning engagement into capital. We pay clippers for high velocity shortform content.
-                                        </p>
-                                    </div>
+                                         <h2 className="text-2xl sm:text-4xl font-bold tracking-tighter text-white glassy-text">
+                                             Welcome to Clipnic
+                                         </h2>
+                                         <p className="text-white/40 text-sm sm:text-base font-light leading-relaxed max-w-sm mx-auto px-4">
+                                             Clipnic is the primary infrastructure for turning engagement into capital. We pay clippers for high velocity shortform content.
+                                         </p>
+                                     </div>
 
                                     <div className="space-y-6 pt-4">
                                         <label className="flex items-start gap-4 cursor-pointer group text-left px-4">
@@ -490,15 +530,15 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
 
                                         <div className="flex flex-col gap-3 sm:gap-4">
                                             <Button
-                                                disabled={!agreed}
-                                                onClick={() => {
-                                                    setTourActive(true);
-                                                    updateProgress(2);
-                                                }}
-                                                className="w-full rounded-2xl py-4 sm:py-5 text-[11px] sm:text-sm uppercase font-bold tracking-[0.2em] shadow-[0_20px_40px_-12px_rgba(16,185,129,0.3)] disabled:opacity-50"
-                                            >
-                                                Start Tour
-                                            </Button>
+                                                 disabled={!agreed}
+                                                 onClick={() => {
+                                                     setTourActive(true);
+                                                     updateProgress(2);
+                                                 }}
+                                                 className="w-full rounded-2xl py-4 sm:py-5 text-[11px] sm:text-sm uppercase font-bold tracking-[0.2em] shadow-[0_20px_40px_-12px_rgba(16,185,129,0.3)] disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98] transition-transform"
+                                             >
+                                                 Start Tour
+                                             </Button>
                                             <button
                                                 disabled={!agreed}
                                                 onClick={onComplete}
