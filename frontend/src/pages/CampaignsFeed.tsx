@@ -5,11 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import { ArrowUpRight, DollarSign, Wallet, TrendingUp, Star, ChevronLeft, ChevronRight, Search, Play, Camera, History } from 'lucide-react';
 
-const TikTokIcon = () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-tiktok">
-        <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
-    </svg>
-);
+import { YoutubeIcon, TikTokIcon, InstagramIcon } from '../components/ui/SocialIcons';
 
 interface Campaign {
     id: string;
@@ -292,9 +288,9 @@ export const CampaignsFeed = () => {
                             All Platforms
                         </button>
                         {[
-                            { id: 'youtube', icon: <Play size={12} />, label: 'YouTube' },
-                            { id: 'tiktok', icon: <TikTokIcon />, label: 'TikTok' },
-                            { id: 'instagram', icon: <Camera size={12} />, label: 'Instagram' }
+                            { id: 'youtube', icon: <YoutubeIcon className="w-3.5 h-3.5" />, label: 'YouTube' },
+                            { id: 'tiktok', icon: <TikTokIcon className="w-3.5 h-3.5" />, label: 'TikTok' },
+                            { id: 'instagram', icon: <InstagramIcon className="w-3.5 h-3.5" />, label: 'Instagram' }
                         ].map(p => (
                             <button 
                                 key={p.id}
@@ -394,9 +390,9 @@ export const CampaignsFeed = () => {
                                         <div className="flex gap-2 mt-2">
                                             {campaign.allowed_platforms?.map(platform => (
                                                 <div key={platform} className="p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-white/40 group-hover:text-white/60 transition-colors">
-                                                    {platform === 'youtube' && <Play size={10} />}
-                                                    {platform === 'tiktok' && <TikTokIcon />}
-                                                    {platform === 'instagram' && <Camera size={10} />}
+                                                    {platform === 'youtube' && <YoutubeIcon className="w-2.5 h-2.5" />}
+                                                    {platform === 'tiktok' && <TikTokIcon className="w-2.5 h-2.5" />}
+                                                    {platform === 'instagram' && <InstagramIcon className="w-2.5 h-2.5" />}
                                                 </div>
                                             ))}
                                         </div>

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { X, Loader2, Play, Camera } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+import { YoutubeIcon, TikTokIcon, InstagramIcon } from '../ui/SocialIcons';
 import { Button } from '../ui/Button';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -13,15 +14,6 @@ interface ProfileVerifyModalProps {
     initialSocial?: string;
 }
 
-const TikTokIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.36-.54.38-.89.98-1.03 1.63-.11.45-.12.92-.01 1.37.11.83.63 1.57 1.35 1.97.66.36 1.45.41 2.18.23.69-.15 1.3-.57 1.69-1.16.27-.42.41-.9.44-1.39-.03-3.9-.01-7.8-.02-11.7z" /></svg>
-);
-
-const YoutubeIcon = ({ size = 14 }: { size?: number }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-    </svg>
-);
 
 export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync, initialSocial = '' }: ProfileVerifyModalProps) => {
     const { user, token, settings } = useAuthStore();
@@ -141,20 +133,24 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync, initia
                                     onClick={() => setSelectedSocial('youtube')} 
                                     className={`h-24 rounded-[28px] border transition-all duration-500 flex items-center justify-center group ${selectedSocial === 'youtube' ? 'border-red-500/40 bg-red-500/5 text-white shadow-[0_15px_30px_rgba(239,68,68,0.1)]' : 'border-white/5 bg-white/[0.02] text-white/20 hover:border-white/10 hover:bg-white/[0.04]'}`}
                                 >
-                                    <Play size={28} className={`transition-transform duration-500 ${selectedSocial === 'youtube' ? 'scale-110' : 'group-hover:scale-105 group-hover:text-white/40'}`} />
+                                    <div className={`transition-transform duration-500 ${selectedSocial === 'youtube' ? 'scale-110 text-red-500' : 'group-hover:scale-105 group-hover:text-white/40'}`}>
+                                        <YoutubeIcon className="w-8 h-8" />
+                                    </div>
                                 </button>
                                 <button 
                                     onClick={() => setSelectedSocial('instagram')} 
                                     className={`h-24 rounded-[28px] border transition-all duration-500 flex items-center justify-center group ${selectedSocial === 'instagram' ? 'border-pink-500/40 bg-pink-500/5 text-white shadow-[0_15px_30px_rgba(236,72,153,0.1)]' : 'border-white/5 bg-white/[0.02] text-white/20 hover:border-white/10 hover:bg-white/[0.04]'}`}
                                 >
-                                    <Camera size={28} className={`transition-transform duration-500 ${selectedSocial === 'instagram' ? 'scale-110' : 'group-hover:scale-105 group-hover:text-white/40'}`} />
+                                    <div className={`transition-transform duration-500 ${selectedSocial === 'instagram' ? 'scale-110 text-pink-500' : 'group-hover:scale-105 group-hover:text-white/40'}`}>
+                                        <InstagramIcon className="w-8 h-8" />
+                                    </div>
                                 </button>
                                 <button 
                                     onClick={() => setSelectedSocial('tiktok')} 
                                     className={`h-24 rounded-[28px] border transition-all duration-500 flex items-center justify-center group ${selectedSocial === 'tiktok' ? 'border-cyan-500/40 bg-cyan-500/5 text-white shadow-[0_15px_30px_rgba(6,182,212,0.1)]' : 'border-white/5 bg-white/[0.02] text-white/20 hover:border-white/10 hover:bg-white/[0.04]'}`}
                                 >
-                                    <div className={`transition-transform duration-500 ${selectedSocial === 'tiktok' ? 'scale-110' : 'group-hover:scale-105 group-hover:text-white/40'}`}>
-                                        <TikTokIcon />
+                                    <div className={`transition-transform duration-500 ${selectedSocial === 'tiktok' ? 'scale-110 text-cyan-400' : 'group-hover:scale-105 group-hover:text-white/40'}`}>
+                                        <TikTokIcon className="w-8 h-8" />
                                     </div>
                                 </button>
                             </div>
@@ -165,7 +161,7 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync, initia
                                 {isYoutubeOAuth ? (
                                     <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 text-center space-y-3">
                                         <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto border border-red-500/20 text-red-500">
-                                            <YoutubeIcon size={20} />
+                                            <YoutubeIcon className="w-6 h-6" />
                                         </div>
                                         <div>
                                             <p className="text-sm font-bold text-white">1-Click Verification</p>

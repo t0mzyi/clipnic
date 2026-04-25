@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { X, Loader2, Play, Camera, AlertCircle } from 'lucide-react';
+import { X, Loader2, AlertCircle } from 'lucide-react';
+import { YoutubeIcon, TikTokIcon, InstagramIcon } from '../ui/SocialIcons';
 import { Button } from '../ui/Button';
 import { useState, useEffect } from 'react';
 
@@ -11,9 +12,6 @@ interface SubmitClipModalProps {
     token: string | null;
 }
 
-const TikTokIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg>
-);
 
 export const SubmitClipModal = ({ isOpen, onClose, onSubmit, token }: SubmitClipModalProps) => {
     const [submissionUrl, setSubmissionUrl] = useState('');
@@ -100,7 +98,9 @@ export const SubmitClipModal = ({ isOpen, onClose, onSubmit, token }: SubmitClip
                             <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/60">
-                                        {platform === 'youtube' ? <Play size={16} /> : platform === 'instagram' ? <Camera size={16} /> : <TikTokIcon />}
+                                        {platform === 'youtube' && <YoutubeIcon className="w-4 h-4" />}
+                                        {platform === 'instagram' && <InstagramIcon className="w-4 h-4" />}
+                                        {platform === 'tiktok' && <TikTokIcon className="w-4 h-4" />}
                                     </div>
                                     <p className="text-xs font-bold text-white/70 capitalize">{platform} detected</p>
                                 </div>

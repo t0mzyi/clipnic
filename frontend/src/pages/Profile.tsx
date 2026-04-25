@@ -7,17 +7,7 @@ import { Toast, GlobalSwal } from '../lib/swal';
 import { ProfileVerifyModal } from '../components/modals/ProfileVerifyModal';
 import { DiscordInfoModal } from '../components/modals/DiscordInfoModal';
 
-const TikTokIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.36-.54.38-.89.98-1.03 1.63-.11.45-.12.92-.01 1.37.11.83.63 1.57 1.35 1.97.66.36 1.45.41 2.18.23.69-.15 1.3-.57 1.69-1.16.27-.42.41-.9.44-1.39-.03-3.9-.01-7.8-.02-11.7z" /></svg>
-);
-
-const YoutubeIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
-);
-
-const InstagramIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-);
+import { YoutubeIcon, TikTokIcon, InstagramIcon } from '../components/ui/SocialIcons';
 
 export const Profile = () => {
     const { user, token, updateUser, logout } = useAuthStore();
@@ -304,7 +294,7 @@ export const Profile = () => {
                             >
                                 <div className="flex items-center justify-between mb-4">
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${user?.tiktokVerified ? 'bg-cyan-500/10 text-cyan-400' : 'bg-white/5 text-white/20 group-hover:text-cyan-400'}`}>
-                                        <TikTokIcon />
+                                        <TikTokIcon className="w-5 h-5" />
                                     </div>
                                     {user?.tiktokVerified && (
                                         <button
@@ -333,7 +323,7 @@ export const Profile = () => {
                                 <div className="flex items-center justify-between mb-6">
                                     <div className="flex items-center gap-3">
                                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${user?.youtubeVerified ? 'bg-red-500/10 text-red-500' : 'bg-white/5 text-white/20 group-hover:text-red-500'}`}>
-                                            <YoutubeIcon />
+                                            <YoutubeIcon className="w-5 h-5" />
                                         </div>
                                         <div>
                                             <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">YouTube</h4>
@@ -384,7 +374,7 @@ export const Profile = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
                                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${user?.instagramVerified ? 'bg-pink-500/10 text-pink-500' : 'bg-white/5 text-white/20 group-hover:text-pink-500'}`}>
-                                            <InstagramIcon />
+                                            <InstagramIcon className="w-6 h-6" />
                                         </div>
                                         <div>
                                             <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Instagram</h4>
