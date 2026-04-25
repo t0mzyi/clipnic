@@ -211,9 +211,17 @@ export class AuthController {
       }
 
       // 1. Exchange code for token
-      const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
+      const tokenUrl = process.env.DISCORD_PROXY_URL 
+        ? `${process.env.DISCORD_PROXY_URL}?url=${encodeURIComponent('https://discord.com/api/v10/oauth2/token')}`
+        : 'https://discord.com/api/v10/oauth2/token';
+
+      const tokenRes = await fetch(tokenUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: { 
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        },
         body: new URLSearchParams({
           client_id: clientId,
           client_secret: clientSecret,
@@ -224,8 +232,14 @@ export class AuthController {
       });
 
       if (!tokenRes.ok) {
-        console.error('Discord Token Exchange Error:', await tokenRes.text());
-        return res.redirect(`${frontendUrl}/login?error=token_exchange_failed`);
+        const errorText = await tokenRes.text();
+        console.error('Discord Token Exchange Error:', tokenRes.status, errorText);
+        let errorMsg = 'token_exchange_failed';
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMsg = errorJson.error_description || errorJson.error || 'token_exchange_failed';
+        } catch (e) {}
+        return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(errorMsg)}`);
       }
 
       const tokenData = await tokenRes.json();
