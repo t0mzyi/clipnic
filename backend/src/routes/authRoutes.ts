@@ -10,6 +10,7 @@ router.get('/sync', authenticate, AuthController.sync);
 router.post('/verify-discord', authenticate, VerificationController.verifyDiscord);
 router.get('/discord', authenticate, VerificationController.discordAuth);
 router.get('/discord/callback', VerificationController.discordCallback);
+router.get('/discord/debug', (req, res) => res.json({ success: true, message: 'Keep-alive active' }));
 
 // Google/YouTube Auth Routes
 router.get('/youtube', authenticate, VerificationController.youtubeGoogleAuth);

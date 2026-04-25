@@ -8,6 +8,10 @@ export class CampaignController {
     try {
       const { page, limit } = paginationSchema.parse(req.query);
       const { data, total } = await CampaignService.getAll(page, limit);
+      
+      // Cache public feed for 60 seconds
+      res.setHeader('Cache-Control', 'public, max-age=60');
+
       res.json({ 
         success: true, 
         data,
@@ -48,6 +52,10 @@ export class CampaignController {
       if (!campaign) {
         return res.status(404).json({ success: false, error: 'Campaign not found', code: 404 });
       }
+
+      // Cache single campaign data for 60 seconds
+      res.setHeader('Cache-Control', 'public, max-age=60');
+
       res.json({ success: true, data: campaign });
     } catch (error) {
       next(error);

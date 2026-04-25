@@ -30,6 +30,7 @@ interface Campaign {
     is_featured: boolean;
     start_date?: string;
     auto_start?: boolean;
+    requires_dedicated_social?: boolean;
 }
 
 const FALLBACK_BANNERS = [

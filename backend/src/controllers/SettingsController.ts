@@ -8,6 +8,8 @@ export class SettingsController {
   static async getSettings(req: Request, res: Response, next: NextFunction) {
     try {
       const settings = await SettingsService.getAllSettings();
+      // Settings are relatively static, cache for 5 minutes
+      res.setHeader('Cache-Control', 'public, max-age=300');
       res.json({ success: true, settings });
     } catch (error) {
       next(error);

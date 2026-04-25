@@ -83,46 +83,33 @@ export class PayoutService {
    * 2. Creates Audit Log in 'payouts' table
    */
   static async processPayout(userId: string, adminId: string, notes?: string) {
-    // 1. Get current claimable to be sure of the amount
-    const eligible = await this.getEligiblePayouts();
-    const userPayout = eligible.find(u => u.user.id === userId);
+    // We use a Supabase RPC to handle the payout atomically (in a transaction)
+    // This prevents race conditions where submissions could be updated but payout log fails,
+    // or two admins trigger the same payout at the exact same time.
+    const { data, error } = await supabase.rpc('process_user_payout', {
+        p_user_id: userId,
+        p_admin_id: adminId,
+        p_notes: notes || ''
+    });
 
-    if (!userPayout) throw new Error("This user has no claimable balance at this time.");
+    if (error) {
+        console.error('[PayoutService] RPC Error:', error);
+        throw new Error(error.message || "Failed to process payout via transaction.");
+    }
 
-    const { totalClaimable, submissionIds } = userPayout;
+    const payout = data;
 
-    // 2. Perform updates in a batch (Submissions -> Paid)
-    const { error: updateError } = await supabase
-        .from('submissions')
-        .update({ status: 'Paid', updated_at: new Date().toISOString() })
-        .in('id', submissionIds);
-    
-    if (updateError) throw updateError;
-
-    // 3. Create Audit Record
-    const { data: payout, error: auditError } = await supabase
-        .from('payouts')
-        .insert({
-            user_id: userId,
-            admin_id: adminId,
-            amount: totalClaimable,
-            submission_ids: submissionIds,
-            notes
-        })
-        .select()
-        .single();
-    
-    if (auditError) console.error('Audit Log Injection Failed:', auditError);
-
-    // 4. Send Log to Discord
+    // Send Log to Discord (Background)
     try {
         const { data: adminUser } = await supabase.from('users').select('name').eq('id', adminId).single();
+        const { data: targetUser } = await supabase.from('users').select('name').eq('id', userId).single();
+        
         const adminName = adminUser?.name || 'Admin';
-        const userName = userPayout.user.name || 'User';
+        const userName = targetUser?.name || 'User';
 
         await LoggerService.info(
-            '💸 Payout Sent',
-            `**Admin**: ${adminName}\n**Recipient**: ${userName}\n**Amount**: $${totalClaimable.toFixed(2)} USD\n**Submissions**: ${submissionIds.length} clips`
+            '💸 Payout Sent (Atomic)',
+            `**Admin**: ${adminName}\n**Recipient**: ${userName}\n**Amount**: $${Number(payout.amount).toFixed(2)} USD\n**Submissions**: ${payout.submission_ids.length} clips`
         );
     } catch (e) {
         console.error('[PayoutService] Discord Log Failed:', e);

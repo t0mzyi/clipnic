@@ -292,28 +292,32 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
         const syncBackend = async (session: any, isInitial = false) => {
             if (session) {
                 setIsSyncing(true);
-                // 1. Update store with metadata ONLY if we don't have a user or if it's the same user
                 const metadata = session.user.user_metadata;
-                const instantUser = {
+                const { user: currentUser, login: storeLogin, updateUser: storeUpdateUser } = useAuthStore.getState();
+
+                // 1. Create instant user from session metadata, being careful about the role
+                const instantUser: any = {
                     id: session.user.id,
                     email: session.user.email,
                     name: metadata?.given_name
                         ? `${metadata.given_name} ${metadata.family_name || ''}`.trim()
                         : (metadata?.full_name || metadata?.name),
                     avatarUrl: metadata?.avatar_url || metadata?.picture,
-                    role: (metadata?.role as 'admin' | 'user') || 'user'
                 };
 
-                const { user: currentUser, login: storeLogin, updateUser } = useAuthStore.getState();
+                // Priority: Metadata Role > Current Store Role (prevents flicker) > Default 'user'
+                const metadataRole = metadata?.role as 'admin' | 'user';
+                if (metadataRole) {
+                    instantUser.role = metadataRole;
+                } else if (currentUser && currentUser.id === session.user.id) {
+                    instantUser.role = currentUser.role;
+                } else {
+                    instantUser.role = 'user';
+                }
 
-                // CRITICAL: Only overwrite if we don't have a user or if the IDs match 
-                // BUT don't downgrade an existing 'admin' role with 'user' metadata
+                // Update store immediately for responsiveness
                 if (currentUser && currentUser.id === session.user.id) {
-                    const safeUpdate = { ...instantUser };
-                    if (currentUser.role === 'admin' && instantUser.role === 'user') {
-                        delete (safeUpdate as any).role; // Preserve admin role from store
-                    }
-                    updateUser(safeUpdate);
+                    storeUpdateUser(instantUser);
                 } else {
                     storeLogin(instantUser, session.access_token);
                 }

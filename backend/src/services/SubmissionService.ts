@@ -92,33 +92,48 @@ export class SubmissionService {
 
             if (res.ok) {
               const html = await res.text();
-              const ogDescMatch = html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
-              const ogTitleMatch = html.match(/<meta[^>]*property="og:title"[^>]*content="([^"]+)"/i);
-              
-              let viewsNum = 0;
-              let ownerHandle = null;
-
-              if (ogDescMatch) {
-                 const desc = ogDescMatch[1];
-                 const viewMatch = desc.match(/([\d,.]+[KMB]?) views/i);
-                 if (viewMatch) {
-                     let viewStr = viewMatch[1].replace(/,/g, '');
-                     if (viewStr.endsWith('K')) viewsNum = parseFloat(viewStr) * 1000;
-                     else if (viewStr.endsWith('M')) viewsNum = parseFloat(viewStr) * 1000000;
-                     else if (viewStr.endsWith('B')) viewsNum = parseFloat(viewStr) * 1000000000;
-                     else viewsNum = parseInt(viewStr, 10);
-                 }
-              }
-
-              if (ogTitleMatch) {
-                 const title = ogTitleMatch[1];
-                 const ownerMatch = title.match(/^([^ ]+) on Instagram/i) || title.match(/^([^ ]+) (@[^)]+) posted on Instagram/i);
-                 if (ownerMatch) {
-                    ownerHandle = `@${ownerMatch[1].replace(/^@/, '')}`.toLowerCase();
-                 }
-              }
-
-              return { views: viewsNum, channelId: ownerHandle, publishedAt: null };
+               const ogDescMatch = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i) || 
+                                  html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:description["']/i);
+               
+               const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i) ||
+                                   html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:title["']/i);
+               
+               let viewsNum = 0;
+               let ownerHandle = null;
+ 
+               if (ogDescMatch) {
+                  const desc = ogDescMatch[1];
+                  const viewMatch = desc.match(/([\d,.]+[KMB]?) views/i);
+                  if (viewMatch) {
+                      let viewStr = viewMatch[1].replace(/,/g, '');
+                      if (viewStr.endsWith('K')) viewsNum = parseFloat(viewStr) * 1000;
+                      else if (viewStr.endsWith('M')) viewsNum = parseFloat(viewStr) * 1000000;
+                      else if (viewStr.endsWith('B')) viewsNum = parseFloat(viewStr) * 1000000000;
+                      else viewsNum = parseInt(viewStr, 10);
+                  }
+               }
+ 
+               // Secondary check for views in JSON-LD or script data
+               if (viewsNum === 0) {
+                  const jsonViews = html.match(/"(?:video_?view_?count|play_count)":\s*(\d+)/i);
+                  if (jsonViews) viewsNum = parseInt(jsonViews[1], 10);
+               }
+ 
+               if (ogTitleMatch) {
+                  const title = ogTitleMatch[1];
+                  const ownerMatch = title.match(/^([^ ]+) on Instagram/i) || title.match(/^([^ ]+) (@[^)]+) posted on Instagram/i);
+                  if (ownerMatch) {
+                     ownerHandle = `@${ownerMatch[1].replace(/^@/, '')}`.toLowerCase();
+                  }
+               }
+ 
+               // Secondary check for owner in JSON data
+               if (!ownerHandle) {
+                  const jsonOwner = html.match(/"username":\s*"([^"]+)"/i);
+                  if (jsonOwner) ownerHandle = `@${jsonOwner[1].toLowerCase()}`;
+               }
+ 
+               return { views: viewsNum, channelId: ownerHandle, publishedAt: null };
             }
         }
       } catch (err) {
@@ -260,6 +275,20 @@ export class SubmissionService {
         if (cleanHandle !== clipOwner) {
             console.warn(`[SubmissionService] IG Ownership mismatch! Reel: @${clipOwner}, Linked: @${cleanHandle}`);
             throw new Error(`This Reel belongs to @${clipOwner}, which is not linked to your profile.`);
+        }
+    } else if (validated.platform === 'tiktok') {
+        if (!channelId) throw new Error("Could not verify TikTok owner. Ensure the video is public.");
+        
+        const verifiedHandle = userRaw?.tiktok_handle || '';
+        const cleanHandle = verifiedHandle.toLowerCase().replace(/^@/, '');
+        const clipOwner = channelId.toLowerCase().replace(/^@/, '');
+
+        console.log(`[SubmissionService] User's Linked TikTok Handle: ${cleanHandle}`);
+        console.log(`[SubmissionService] Clip Owner: ${clipOwner}`);
+
+        if (cleanHandle !== clipOwner) {
+            console.warn(`[SubmissionService] TikTok Ownership mismatch! Video: @${clipOwner}, Linked: @${cleanHandle}`);
+            throw new Error(`This TikTok video belongs to @${clipOwner}, which is not linked to your profile.`);
         }
     }
 

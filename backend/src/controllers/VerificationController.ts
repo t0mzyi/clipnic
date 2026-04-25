@@ -779,6 +779,19 @@ export class VerificationController {
       }
 
       handle = handle.trim().replace(/^@/, '').toLowerCase();
+      
+      // 1. DUPLICATE CHECK: Prevent two users from claiming same handle
+      const { data: duplicateUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('tiktok_handle', `@${handle}`)
+        .neq('id', userId)
+        .maybeSingle();
+      
+      if (duplicateUser) {
+        return res.status(400).json({ success: false, error: 'This TikTok account is already linked to another user.' });
+      }
+
       const apifyToken = process.env.APIFY_TOKEN;
 
       if (!apifyToken) {

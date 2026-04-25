@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import compression from 'compression';
 import campaignRoutes from './routes/campaignRoutes';
 import authRoutes from './routes/authRoutes';
 import adminRoutes from './routes/adminRoutes';
@@ -16,7 +17,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.disable('x-powered-by');
+app.set('trust proxy', 1); // Trust first proxy (Render/Vercel/Cloudflare) for accurate IP rate limiting
 
+app.use(compression()); // Compress all responses for better performance
 // Security: Helmet for various HTTP headers
 app.use(helmet({
   contentSecurityPolicy: {

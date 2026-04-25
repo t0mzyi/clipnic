@@ -10,6 +10,14 @@ const TikTokIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.36-.54.38-.89.98-1.03 1.63-.11.45-.12.92-.01 1.37.11.83.63 1.57 1.35 1.97.66.36 1.45.41 2.18.23.69-.15 1.3-.57 1.69-1.16.27-.42.41-.9.44-1.39-.03-3.9-.01-7.8-.02-11.7z"/></svg>
 );
 
+const YoutubeIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+);
+
+const InstagramIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+);
+
 export const Profile = () => {
     const { user, token, updateUser, logout } = useAuthStore();
     const [stats, setStats] = useState({ totalEarned: 0, totalViews: 0, pendingPayout: 0, missionsJoined: 0 });
@@ -243,19 +251,13 @@ export const Profile = () => {
                     </div>
 
                     {/* Social Verification */}
-                    <div id="profile-socials-step" className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-8">
+                    <div id="profile-socials-step" className="p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] space-y-8">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-white uppercase tracking-tight">Social Verification</h3>
-                            <Button 
-                                variant="secondary" 
-                                onClick={() => {
-                                    setSelectedPlatform('');
-                                    setIsVerifyOpen(true);
-                                }} 
-                                className="rounded-xl px-5 py-2 text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10"
-                            >
-                                Manage Links
-                            </Button>
+                            <div>
+                                <h3 className="text-xl font-bold text-white tracking-tight">Social Verification</h3>
+                                <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mt-1">Manage Linked Platforms</p>
+                            </div>
+                            <ShieldCheck className="w-6 h-6 text-emerald-500 opacity-50" />
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -269,24 +271,46 @@ export const Profile = () => {
                                         handleDiscordLink();
                                     }
                                 }}
-                                className={`p-5 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${user?.discordVerified ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-indigo-500/30 hover:bg-indigo-500/5'}`}
+                                className={`p-6 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${user?.discordVerified ? 'bg-[#5865F2]/5 border-[#5865F2]/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-[#5865F2]/30 hover:bg-[#5865F2]/5'}`}
                              >
-                                <div className="flex items-center justify-between mb-3 relative z-10">
-                                    {discordLoading ? (
-                                        <Loader2 className="w-5 h-5 text-indigo-400 animate-spin" />
-                                    ) : (
-                                        <CheckCircle2 className={`w-5 h-5 ${user?.discordVerified ? 'text-indigo-400' : 'text-white/20 group-hover:text-indigo-400'}`} />
-                                    )}
-                                    {user?.discordVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
+                                <div className="flex items-center justify-between mb-4 relative z-10">
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${user?.discordVerified ? 'bg-[#5865F2]/10 text-[#5865F2]' : 'bg-white/5 text-white/20 group-hover:text-[#5865F2]'}`}>
+                                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.874.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+                                    </div>
+                                    {user?.discordVerified && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
                                 </div>
                                 <div className="relative z-10">
                                     <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Discord</h4>
-                                    <p className="text-xs text-white/30 font-mono truncate">{user?.discordVerified ? 'Verified Account' : (discordLoading ? 'Connecting...' : 'Click to Connect')}</p>
+                                    <p className="text-xs text-white/30 font-mono truncate">{user?.discordVerified ? 'Connected' : (discordLoading ? 'Connecting...' : 'Link Discord')}</p>
                                 </div>
-                                
-                                {!user?.discordVerified && !discordLoading && (
-                                    <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                                )}
+                            </div>
+
+                            {/* TikTok Status */}
+                            <div 
+                                onClick={() => {
+                                    setSelectedPlatform('tiktok');
+                                    setIsVerifyOpen(true);
+                                }}
+                                className={`p-6 rounded-2xl border transition-all cursor-pointer group ${user?.tiktokVerified ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-cyan-500/30 hover:bg-cyan-500/5'}`}
+                            >
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${user?.tiktokVerified ? 'bg-cyan-500/10 text-cyan-400' : 'bg-white/5 text-white/20 group-hover:text-cyan-400'}`}>
+                                        <TikTokIcon />
+                                    </div>
+                                    {user?.tiktokVerified && (
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteSocial('tiktok');
+                                            }}
+                                            className="p-1.5 text-white/10 hover:text-red-500 transition-colors"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    )}
+                                </div>
+                                <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">TikTok</h4>
+                                <p className="text-xs text-white/30 font-mono truncate">{user?.tiktokHandle || 'Not Linked'}</p>
                             </div>
 
                             {/* YouTube Status */}
@@ -295,25 +319,30 @@ export const Profile = () => {
                                     setSelectedPlatform('youtube');
                                     setIsVerifyOpen(true);
                                 }}
-                                className={`p-5 rounded-2xl border transition-all cursor-pointer group ${user?.youtubeVerified ? 'bg-red-500/5 border-red-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-red-500/30 hover:bg-red-500/5'} sm:col-span-2`}
+                                className={`p-6 rounded-2xl border transition-all cursor-pointer group sm:col-span-2 ${user?.youtubeVerified ? 'bg-red-500/5 border-red-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-red-500/30 hover:bg-red-500/5'}`}
                             >
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-2">
-                                        <Play className={`w-5 h-5 ${user?.youtubeVerified ? 'text-red-500' : 'text-white/20 group-hover:text-red-500'}`} />
-                                        <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">YouTube</h4>
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${user?.youtubeVerified ? 'bg-red-500/10 text-red-500' : 'bg-white/5 text-white/20 group-hover:text-red-500'}`}>
+                                            <YoutubeIcon />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">YouTube</h4>
+                                            <p className="text-[10px] text-white/30 uppercase font-mono tracking-widest">{user?.youtubeVerified ? 'Connected Channels' : 'Click to Link'}</p>
+                                        </div>
                                     </div>
                                     {user?.youtubeVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
                                 </div>
                                 
-                                <div className="space-y-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {user?.youtubeChannels && user.youtubeChannels.length > 0 ? (
                                         user.youtubeChannels.map((ch: any) => (
-                                            <div key={ch.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] group">
+                                            <div key={ch.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] group/item">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[10px] font-bold">{ch.handle?.[0]?.toUpperCase() || 'Y'}</div>
                                                     <div>
                                                         <p className="text-xs font-bold text-white">{ch.title}</p>
-                                                        <p className="text-[10px] text-white/40 font-mono">{ch.handle}</p>
+                                                        <p className="text-[10px] text-white/20 font-mono">{ch.handle}</p>
                                                     </div>
                                                 </div>
                                                 <button 
@@ -321,14 +350,16 @@ export const Profile = () => {
                                                         e.stopPropagation();
                                                         handleDeleteSocial('youtube', ch.id);
                                                     }}
-                                                    className="p-2 text-white/20 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                                    className="p-2 text-white/10 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover/item:opacity-100"
                                                 >
                                                     <Trash2 size={14} />
                                                 </button>
                                             </div>
                                         ))
                                     ) : (
-                                        <p className="text-xs text-white/20 italic p-2">No channels linked</p>
+                                        <div className="col-span-2 text-center py-4 border border-dashed border-white/10 rounded-xl">
+                                            <p className="text-[10px] text-white/20 uppercase font-bold tracking-widest">No Channels Linked</p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -339,56 +370,33 @@ export const Profile = () => {
                                     setSelectedPlatform('instagram');
                                     setIsVerifyOpen(true);
                                 }}
-                                className={`p-5 rounded-2xl border transition-all cursor-pointer group ${user?.instagramVerified ? 'bg-pink-500/5 border-pink-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-pink-500/30 hover:bg-pink-500/5'}`}
+                                className={`p-6 rounded-2xl border transition-all cursor-pointer group sm:col-span-2 ${user?.instagramVerified ? 'bg-pink-500/5 border-pink-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-pink-500/30 hover:bg-pink-500/5'}`}
                             >
-                                <div className="flex items-center justify-between mb-3">
-                                    <Camera className={`w-5 h-5 ${user?.instagramVerified ? 'text-pink-500' : 'text-white/20 group-hover:text-pink-500'}`} />
-                                    <div className="flex items-center gap-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${user?.instagramVerified ? 'bg-pink-500/10 text-pink-500' : 'bg-white/5 text-white/20 group-hover:text-pink-500'}`}>
+                                            <InstagramIcon />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Instagram</h4>
+                                            <p className="text-xs text-white/30 font-mono">{user?.instagramHandle || 'Not Connected'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
                                         {user?.instagramVerified && (
                                             <button 
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleDeleteSocial('instagram');
                                                 }}
-                                                className="p-1.5 text-white/20 hover:text-red-500 transition-colors"
+                                                className="p-2 text-white/10 hover:text-red-500 transition-colors"
                                             >
-                                                <Trash2 size={14} />
+                                                <Trash2 size={16} />
                                             </button>
                                         )}
-                                        {user?.instagramVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
+                                        {user?.instagramVerified && <ShieldCheck className="w-5 h-5 text-emerald-500" />}
                                     </div>
                                 </div>
-                                <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Instagram</h4>
-                                <p className="text-xs text-white/30 font-mono truncate">{user?.instagramHandle || 'No Link Found'}</p>
-                            </div>
-
-                            {/* TikTok Status */}
-                            <div 
-                                onClick={() => {
-                                    setSelectedPlatform('tiktok');
-                                    setIsVerifyOpen(true);
-                                }}
-                                className={`p-5 rounded-2xl border transition-all cursor-pointer group ${user?.tiktokVerified ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-cyan-500/30 hover:bg-cyan-500/5'}`}
-                            >
-                                <div className="flex items-center justify-between mb-3">
-                                    <TikTokIcon />
-                                    <div className="flex items-center gap-2">
-                                        {user?.tiktokVerified && (
-                                            <button 
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteSocial('tiktok');
-                                                }}
-                                                className="p-1.5 text-white/20 hover:text-red-500 transition-colors"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        )}
-                                        {user?.tiktokVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
-                                    </div>
-                                </div>
-                                <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-widest">TikTok</h4>
-                                <p className="text-xs text-white/30 font-mono truncate">{user?.tiktokHandle || 'No Link Found'}</p>
                             </div>
                         </div>
                     </div>

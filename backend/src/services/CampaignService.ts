@@ -169,7 +169,7 @@ export class CampaignService {
       // Check if user is verified for at least one allowed platform
       const { data: user } = await supabase
           .from('users')
-          .select('instagram_verified, youtube_verified')
+          .select('instagram_verified, youtube_verified, tiktok_verified')
           .eq('id', userId)
           .single();
 
@@ -178,6 +178,7 @@ export class CampaignService {
       const isVerifiedForAllowedPlatform = campaign.allowed_platforms?.some((p: string) => {
           if (p === 'instagram') return user.instagram_verified;
           if (p === 'youtube') return user.youtube_verified;
+          if (p === 'tiktok') return user.tiktok_verified;
           return false;
       });
 
