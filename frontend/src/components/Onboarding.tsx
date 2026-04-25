@@ -524,7 +524,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, openMenu, cl
                                                 <CustomTick checked={agreed} />
                                             </div>
                                             <p className="text-xs text-white/30 leading-relaxed group-hover:text-white/50 transition-colors">
-                                                By continuing, you agree to our <span className="text-emerald-400 font-medium hover:underline cursor-pointer">Clipper Terms & Conditions</span>, <span className="text-white/60">Terms of Service</span>, and <span className="text-white/60">Privacy Policy</span>.
+                                                By continuing, you agree to our <a href="/terms" target="_blank" className="text-emerald-400 font-medium hover:underline">Terms of Service</a> and <a href="/privacy" target="_blank" className="text-emerald-400 font-medium hover:underline">Privacy Policy</a>.
                                             </p>
                                         </label>
 
