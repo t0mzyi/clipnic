@@ -183,47 +183,49 @@ export const CampaignDetails = () => {
                 Back to Campaigns
             </Link>
 
-            <div className="relative h-[320px] md:h-[420px] rounded-[40px] overflow-hidden border border-white/10 group shadow-2xl bg-[#080808]">
+            <div className="relative min-h-[400px] md:h-[420px] rounded-[40px] overflow-hidden border border-white/10 group shadow-2xl bg-[#080808]">
                 <img src={campaign.banner_url || FALLBACK_BANNERS[0]} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-1000" alt={campaign.title} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                            <Badge status={campaign.status} />
-                            {campaign.is_featured && (
-                                <div className="px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
-                                    <Trophy size={12} fill="currentColor" /> Featured
-                                </div>
+                <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end gap-6">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+                        <div className="space-y-4 max-w-2xl">
+                            <div className="flex items-center gap-3">
+                                <Badge status={campaign.status} />
+                                {campaign.is_featured && (
+                                    <div className="px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
+                                        <Trophy size={12} fill="currentColor" /> Featured
+                                    </div>
+                                )}
+                            </div>
+                            <h1 className="text-3xl md:text-6xl font-bold tracking-tight text-white glassy-text leading-tight">{campaign.title}</h1>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+                            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-4 md:p-6 border border-white/10 shadow-2xl text-center min-w-[120px] md:min-w-[140px]">
+                                <p className="text-[9px] text-white/40 mb-1 uppercase tracking-[0.2em] font-bold">CPM Rate</p>
+                                <p className="text-2xl md:text-3xl font-mono font-bold text-emerald-400">${campaign.cpm_rate.toFixed(2)}</p>
+                            </div>
+
+                            {isJoined ? (
+                                <Button 
+                                    variant="primary" 
+                                    disabled={isComingSoon}
+                                    onClick={() => setIsSubmitModalOpen(true)} 
+                                    className={`px-8 py-5 md:py-6 rounded-3xl font-bold uppercase tracking-widest text-xs md:text-sm shadow-2xl ${isComingSoon ? 'bg-white/5 text-white/20' : 'bg-white text-black hover:bg-white/90'}`}
+                                >
+                                    <Upload className="w-5 h-5 mr-2 inline" /> Submit Clip
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="primary"
+                                    disabled={campaign.status !== 'Active' || isComingSoon}
+                                    onClick={() => setIsJoinModalOpen(true)}
+                                    className="px-8 py-5 md:py-6 rounded-3xl font-bold uppercase tracking-widest text-xs md:text-sm bg-emerald-500 text-white hover:bg-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.2)]"
+                                >
+                                    <Globe className="w-5 h-5 mr-2 inline" /> Join Campaign
+                                </Button>
                             )}
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white glassy-text">{campaign.title}</h1>
-                    </div>
-
-                    <div className="flex gap-4 items-center">
-                        <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl text-center min-w-[140px]">
-                            <p className="text-[9px] text-white/40 mb-1 uppercase tracking-[0.2em] font-bold">CPM Rate</p>
-                            <p className="text-3xl font-mono font-bold text-emerald-400">${campaign.cpm_rate.toFixed(2)}</p>
-                        </div>
-
-                        {isJoined ? (
-                            <Button 
-                                variant="primary" 
-                                disabled={isComingSoon}
-                                onClick={() => setIsSubmitModalOpen(true)} 
-                                className={`px-8 py-6 rounded-3xl font-bold uppercase tracking-widest text-sm shadow-2xl ${isComingSoon ? 'bg-white/5 text-white/20' : 'bg-white text-black hover:bg-white/90'}`}
-                            >
-                                <Upload className="w-5 h-5 mr-2 inline" /> Submit Clip
-                            </Button>
-                        ) : (
-                            <Button
-                                variant="primary"
-                                disabled={campaign.status !== 'Active' || isComingSoon}
-                                onClick={() => setIsJoinModalOpen(true)}
-                                className="px-8 py-6 rounded-3xl font-bold uppercase tracking-widest text-sm bg-emerald-500 text-white hover:bg-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.2)]"
-                            >
-                                <Globe className="w-5 h-5 mr-2 inline" /> Join Campaign
-                            </Button>
-                        )}
                     </div>
                 </div>
             </div>

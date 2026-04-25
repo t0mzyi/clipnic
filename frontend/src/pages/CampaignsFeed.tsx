@@ -222,30 +222,30 @@ export const CampaignsFeed = () => {
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
                                     
-                                    <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-end max-w-3xl">
+                                    <div className="absolute inset-0 p-6 md:p-16 flex flex-col justify-end max-w-3xl">
                                         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <div className="px-3 py-1 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-[10px] font-bold text-white/40 flex items-center gap-1.5 shadow-sm uppercase tracking-wider">
-                                                    <Star size={12} className="text-amber-400" fill="currentColor" /> Featured
+                                            <div className="flex items-center gap-3 mb-3 md:mb-4">
+                                                <div className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[9px] font-bold text-white/60 flex items-center gap-1.5 shadow-sm uppercase tracking-wider">
+                                                    <Star size={10} className="text-amber-400" fill="currentColor" /> Featured
                                                 </div>
                                             </div>
-                                            <h3 className="text-3xl md:text-6xl font-bold text-premium-white mb-6 leading-[1.1] tracking-tight">{featured[activeIdx].title}</h3>
-                                            <div className="flex items-center gap-8">
+                                            <h3 className="text-2xl md:text-6xl font-bold text-premium-white mb-4 md:mb-6 leading-[1.1] tracking-tight">{featured[activeIdx].title}</h3>
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
                                                 <div className="flex flex-col">
-                                                    <span className="text-[10px] text-white/30 uppercase font-bold tracking-widest mb-1">Earning Potential</span>
-                                                    <span className="text-2xl font-mono font-bold text-amber-400">${featured[activeIdx].cpm_rate.toFixed(2)} <span className="text-sm opacity-50 font-sans tracking-tight">/ 1000 views</span></span>
+                                                    <span className="text-[9px] md:text-[10px] text-white/30 uppercase font-bold tracking-widest mb-0.5 md:mb-1">Earning Potential</span>
+                                                    <span className="text-xl md:text-2xl font-mono font-bold text-amber-400">${featured[activeIdx].cpm_rate.toFixed(2)} <span className="text-xs md:text-sm opacity-50 font-sans tracking-tight">/ 1k</span></span>
                                                 </div>
-                                                <div className="h-10 w-[1px] bg-white/10" />
+                                                <div className="hidden sm:block h-10 w-[1px] bg-white/10" />
                                                 <div className="flex flex-col">
-                                                    <span className="text-[10px] text-white/30 uppercase font-bold tracking-widest mb-1">Campaign Budget</span>
-                                                    <span className="text-2xl font-mono font-bold text-white">${featured[activeIdx].total_budget.toLocaleString()}</span>
+                                                    <span className="text-[9px] md:text-[10px] text-white/30 uppercase font-bold tracking-widest mb-0.5 md:mb-1">Campaign Budget</span>
+                                                    <span className="text-xl md:text-2xl font-mono font-bold text-white">${featured[activeIdx].total_budget.toLocaleString()}</span>
                                                 </div>
                                             </div>
                                         </motion.div>
                                     </div>
 
-                                    {/* Glass Shine Animation Overlay */}
-                                    <div className="absolute inset-0 glowing-glass-item opacity-40 pointer-events-none" />
+                                    {/* Glass Shine Animation Overlay - Reduced opacity to prevent covering text */}
+                                    <div className="absolute inset-0 glowing-glass-item opacity-20 pointer-events-none" />
                                 </div>
                             </motion.div>
                         </AnimatePresence>
