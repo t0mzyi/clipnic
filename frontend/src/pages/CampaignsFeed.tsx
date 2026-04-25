@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
-import { ArrowUpRight, DollarSign, Wallet, TrendingUp, Star, ChevronLeft, ChevronRight, Search, Play, Camera, History } from 'lucide-react';
+import { ArrowUpRight, DollarSign, Wallet, TrendingUp, Star, ChevronLeft, ChevronRight, Search, History } from 'lucide-react';
 
 import { YoutubeIcon, TikTokIcon, InstagramIcon } from '../components/ui/SocialIcons';
 
