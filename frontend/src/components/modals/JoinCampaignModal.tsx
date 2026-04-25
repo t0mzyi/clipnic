@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { X, Loader2, Play, Camera } from 'lucide-react';
+import { X, Loader2, Play, Camera, ShieldCheck } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -174,9 +174,31 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                         </div>
 
                         {!user?.discordVerified ? (
-                            <div className="space-y-4">
-                                <p className="text-xs text-amber-400/80 bg-amber-400/10 p-4 rounded-xl border border-amber-400/20">You must verify your Discord account in your profile before joining missions.</p>
-                                <Button variant="secondary" onClick={onClose} className="w-full py-4 rounded-2xl text-xs font-bold uppercase tracking-widest">Go to Profile</Button>
+                            <div className="space-y-4 text-center py-4">
+                                <div className="w-16 h-16 bg-[#5865F2]/10 rounded-2xl flex items-center justify-center mx-auto border border-[#5865F2]/20 mb-2">
+                                    <ShieldCheck className="w-8 h-8 text-[#5865F2]" />
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-bold text-white">Discord Required</p>
+                                    <p className="text-xs text-white/40">Connect your Discord to join this mission.</p>
+                                </div>
+                                <Button 
+                                    variant="primary" 
+                                    onClick={async () => {
+                                        setIsVerifying(true);
+                                        try {
+                                            const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/discord`, {
+                                                headers: { 'Authorization': `Bearer ${token}` }
+                                            });
+                                            const json = await res.json();
+                                            window.location.href = json.url;
+                                        } catch (err) { setIsVerifying(false); }
+                                    }} 
+                                    disabled={isVerifying}
+                                    className="w-full py-4 rounded-2xl bg-[#5865F2] text-white font-bold uppercase tracking-widest text-xs"
+                                >
+                                    {isVerifying ? <Loader2 className="animate-spin w-4 h-4 mx-auto" /> : 'Link Discord'}
+                                </Button>
                             </div>
                         ) : (
                             <div className="space-y-4">

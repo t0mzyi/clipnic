@@ -106,47 +106,54 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync, initia
                 {step === 1 ? (
                     <div className="space-y-6">
                         <div className="space-y-2">
-                            <h2 className="text-2xl font-bold tracking-tight">Discord Link</h2>
-                            <p className="text-sm text-white/40">Connect your Discord.</p>
+                            <h2 className="text-2xl font-bold tracking-tight">
+                                {initialSocial ? 'Link Discord First' : 'Discord Link'}
+                            </h2>
+                            <p className="text-sm text-white/40">
+                                {initialSocial 
+                                    ? `Please connect Discord before linking your ${initialSocial}.` 
+                                    : 'Connect your Discord to get started.'}
+                            </p>
                         </div>
                         <Button variant="primary" onClick={handleDiscordLink} disabled={isVerifying} className="w-full py-4 rounded-2xl bg-[#5865F2] text-white">
                             {isVerifying ? <Loader2 className="animate-spin w-4 h-4 mx-auto" /> : 'Link Discord'}
                         </Button>
-                        <button 
-                            onClick={() => setStep(2)} 
-                            className="w-full text-[10px] text-white/30 uppercase tracking-[0.2em] hover:text-white transition-colors"
-                        >
-                            Skip to Socials
-                        </button>
                     </div>
                 ) : (
                     <div className="space-y-6">
                         <div className="space-y-2">
-                            <h2 className="text-2xl font-bold tracking-tight">Social Platforms</h2>
-                            <p className="text-sm text-white/40">Choose a platform to link.</p>
+                            <h2 className="text-2xl font-bold tracking-tight capitalize">
+                                {selectedSocial ? `${selectedSocial} Verification` : 'Social Platforms'}
+                            </h2>
+                            <p className="text-sm text-white/40">
+                                {selectedSocial ? `Link your ${selectedSocial} account.` : 'Choose a platform to link.'}
+                            </p>
                         </div>
-                        <div className="grid grid-cols-3 gap-4">
-                            <button 
-                                onClick={() => setSelectedSocial('youtube')} 
-                                className={`h-24 rounded-[28px] border transition-all duration-500 flex items-center justify-center group ${selectedSocial === 'youtube' ? 'border-red-500/40 bg-red-500/5 text-white shadow-[0_15px_30px_rgba(239,68,68,0.1)]' : 'border-white/5 bg-white/[0.02] text-white/20 hover:border-white/10 hover:bg-white/[0.04]'}`}
-                            >
-                                <Play size={28} className={`transition-transform duration-500 ${selectedSocial === 'youtube' ? 'scale-110' : 'group-hover:scale-105 group-hover:text-white/40'}`} />
-                            </button>
-                            <button 
-                                onClick={() => setSelectedSocial('instagram')} 
-                                className={`h-24 rounded-[28px] border transition-all duration-500 flex items-center justify-center group ${selectedSocial === 'instagram' ? 'border-pink-500/40 bg-pink-500/5 text-white shadow-[0_15px_30px_rgba(236,72,153,0.1)]' : 'border-white/5 bg-white/[0.02] text-white/20 hover:border-white/10 hover:bg-white/[0.04]'}`}
-                            >
-                                <Camera size={28} className={`transition-transform duration-500 ${selectedSocial === 'instagram' ? 'scale-110' : 'group-hover:scale-105 group-hover:text-white/40'}`} />
-                            </button>
-                            <button 
-                                onClick={() => setSelectedSocial('tiktok')} 
-                                className={`h-24 rounded-[28px] border transition-all duration-500 flex items-center justify-center group ${selectedSocial === 'tiktok' ? 'border-cyan-500/40 bg-cyan-500/5 text-white shadow-[0_15px_30px_rgba(6,182,212,0.1)]' : 'border-white/5 bg-white/[0.02] text-white/20 hover:border-white/10 hover:bg-white/[0.04]'}`}
-                            >
-                                <div className={`transition-transform duration-500 ${selectedSocial === 'tiktok' ? 'scale-110' : 'group-hover:scale-105 group-hover:text-white/40'}`}>
-                                    <TikTokIcon />
-                                </div>
-                            </button>
-                        </div>
+                        
+                        {!initialSocial && (
+                            <div className="grid grid-cols-3 gap-4">
+                                <button 
+                                    onClick={() => setSelectedSocial('youtube')} 
+                                    className={`h-24 rounded-[28px] border transition-all duration-500 flex items-center justify-center group ${selectedSocial === 'youtube' ? 'border-red-500/40 bg-red-500/5 text-white shadow-[0_15px_30px_rgba(239,68,68,0.1)]' : 'border-white/5 bg-white/[0.02] text-white/20 hover:border-white/10 hover:bg-white/[0.04]'}`}
+                                >
+                                    <Play size={28} className={`transition-transform duration-500 ${selectedSocial === 'youtube' ? 'scale-110' : 'group-hover:scale-105 group-hover:text-white/40'}`} />
+                                </button>
+                                <button 
+                                    onClick={() => setSelectedSocial('instagram')} 
+                                    className={`h-24 rounded-[28px] border transition-all duration-500 flex items-center justify-center group ${selectedSocial === 'instagram' ? 'border-pink-500/40 bg-pink-500/5 text-white shadow-[0_15px_30px_rgba(236,72,153,0.1)]' : 'border-white/5 bg-white/[0.02] text-white/20 hover:border-white/10 hover:bg-white/[0.04]'}`}
+                                >
+                                    <Camera size={28} className={`transition-transform duration-500 ${selectedSocial === 'instagram' ? 'scale-110' : 'group-hover:scale-105 group-hover:text-white/40'}`} />
+                                </button>
+                                <button 
+                                    onClick={() => setSelectedSocial('tiktok')} 
+                                    className={`h-24 rounded-[28px] border transition-all duration-500 flex items-center justify-center group ${selectedSocial === 'tiktok' ? 'border-cyan-500/40 bg-cyan-500/5 text-white shadow-[0_15px_30px_rgba(6,182,212,0.1)]' : 'border-white/5 bg-white/[0.02] text-white/20 hover:border-white/10 hover:bg-white/[0.04]'}`}
+                                >
+                                    <div className={`transition-transform duration-500 ${selectedSocial === 'tiktok' ? 'scale-110' : 'group-hover:scale-105 group-hover:text-white/40'}`}>
+                                        <TikTokIcon />
+                                    </div>
+                                </button>
+                            </div>
+                        )}
                         
                         {selectedSocial && (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 pt-4">
