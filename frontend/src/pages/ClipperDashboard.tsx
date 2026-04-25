@@ -20,6 +20,15 @@ export const ClipperDashboard = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Load from cache first
+        const cachedEarnings = localStorage.getItem('clipnic_earnings_cache');
+        const cachedSubmissions = localStorage.getItem('clipnic_submissions_cache');
+        if (cachedEarnings) setEarnings(JSON.parse(cachedEarnings));
+        if (cachedSubmissions) {
+            setSubmissions(JSON.parse(cachedSubmissions));
+            setLoading(false); // Can stop loading early if we have cache
+        }
+
         if (token) {
             Promise.all([fetchEarnings(), fetchSubmissions()]).finally(() => setLoading(false));
         }
@@ -31,7 +40,10 @@ export const ClipperDashboard = () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
-            if (json.success) setEarnings(json.data);
+            if (json.success) {
+                setEarnings(json.data);
+                localStorage.setItem('clipnic_earnings_cache', JSON.stringify(json.data));
+            }
         } catch (err) { console.error(err); }
     };
 
@@ -41,9 +53,14 @@ export const ClipperDashboard = () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const json = await res.json();
-            if (json.success) setSubmissions(json.data || []);
+            if (json.success) {
+                const fetchedData = json.data || [];
+                setSubmissions(fetchedData);
+                localStorage.setItem('clipnic_submissions_cache', JSON.stringify(fetchedData));
+            }
         } catch (err) { console.error(err); }
     };
+
 
     // Build chart data: group views by date (last 14 days)
     const chartData = useMemo(() => {
