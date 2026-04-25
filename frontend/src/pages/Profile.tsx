@@ -8,11 +8,11 @@ import { ProfileVerifyModal } from '../components/modals/ProfileVerifyModal';
 import { DiscordInfoModal } from '../components/modals/DiscordInfoModal';
 
 const TikTokIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.36-.54.38-.89.98-1.03 1.63-.11.45-.12.92-.01 1.37.11.83.63 1.57 1.35 1.97.66.36 1.45.41 2.18.23.69-.15 1.3-.57 1.69-1.16.27-.42.41-.9.44-1.39-.03-3.9-.01-7.8-.02-11.7z"/></svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.36-.54.38-.89.98-1.03 1.63-.11.45-.12.92-.01 1.37.11.83.63 1.57 1.35 1.97.66.36 1.45.41 2.18.23.69-.15 1.3-.57 1.69-1.16.27-.42.41-.9.44-1.39-.03-3.9-.01-7.8-.02-11.7z" /></svg>
 );
 
 const YoutubeIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
 );
 
 const InstagramIcon = () => (
@@ -167,12 +167,12 @@ export const Profile = () => {
             } else {
                 throw new Error(json.error || 'Failed to initialize Discord session.');
             }
-        } catch (err: any) { 
+        } catch (err: any) {
             console.error('[DiscordConnect]', err);
-            Toast.fire({ 
-                title: 'Link Error', 
-                text: err.message.includes('fetch') ? 'Backend server unreachable. Ensure port 5000 is open.' : err.message, 
-                icon: 'error' 
+            Toast.fire({
+                title: 'Link Error',
+                text: err.message.includes('fetch') ? 'Backend server unreachable. Ensure port 5000 is open.' : err.message,
+                icon: 'error'
             });
             setDiscordLoading(false);
         }
@@ -196,15 +196,15 @@ export const Profile = () => {
                 <div className="lg:col-span-1 space-y-6">
                     <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col items-center">
                         <div className="relative group">
-                            <img 
-                                src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${user?.name}&background=random`} 
-                                className="w-24 h-24 rounded-2xl object-cover border border-white/10" 
-                                alt={user?.name} 
+                            <img
+                                src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${user?.name}&background=random`}
+                                className="w-24 h-24 rounded-2xl object-cover border border-white/10"
+                                alt={user?.name}
                             />
                             {user?.discordVerified && (
-                                 <div className="absolute -bottom-2 -right-2 p-1.5 bg-[#5865F2] rounded-lg border-2 border-[#0c0c0c]">
+                                <div className="absolute -bottom-2 -right-2 p-1.5 bg-[#5865F2] rounded-lg border-2 border-[#0c0c0c]">
                                     <CheckCircle2 size={12} className="text-white" />
-                                 </div>
+                                </div>
                             )}
                         </div>
 
@@ -214,9 +214,9 @@ export const Profile = () => {
                         </div>
 
                         <div className="w-full mt-8 pt-8 border-t border-white/[0.05] space-y-4">
-                            <Button 
-                                variant="secondary" 
-                                onClick={logout} 
+                            <Button
+                                variant="secondary"
+                                onClick={logout}
                                 className="w-full rounded-xl py-3.5 text-[10px] font-bold uppercase tracking-widest bg-red-500/5 border border-red-500/10 text-red-500 hover:bg-red-500/10"
                             >
                                 Logout
@@ -233,14 +233,13 @@ export const Profile = () => {
                             <p className="text-[9px] text-white/20 uppercase font-bold tracking-widest">Available Balance</p>
                             <p className="text-3xl font-mono font-bold text-white">${stats.pendingPayout.toFixed(2)}</p>
                         </div>
-                        <Button 
-                            disabled={stats.pendingPayout < 5 || withdrawLoading} 
+                        <Button
+                            disabled={stats.pendingPayout < 5 || withdrawLoading}
                             onClick={handleWithdraw}
                             className="w-full rounded-xl py-4 bg-emerald-500 text-white font-bold uppercase tracking-widest text-[10px] hover:bg-emerald-400 shadow-2xl disabled:opacity-30"
                         >
                             {withdrawLoading ? <Loader2 className="animate-spin mx-auto" size={16} /> : 'Request Payout'}
                         </Button>
-                        <p className="text-[9px] text-white/20 text-center uppercase tracking-widest font-medium italic">Min. Withdrawal $5.00</p>
                     </div>
                 </div>
 
@@ -271,9 +270,9 @@ export const Profile = () => {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                             {/* Discord Status */}
-                             <div 
-                                id="profile-discord-step" 
+                            {/* Discord Status */}
+                            <div
+                                id="profile-discord-step"
                                 onClick={() => {
                                     if (user?.discordVerified) {
                                         setIsDiscordInfoOpen(true);
@@ -282,10 +281,10 @@ export const Profile = () => {
                                     }
                                 }}
                                 className={`p-6 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${user?.discordVerified ? 'bg-[#5865F2]/5 border-[#5865F2]/20' : 'bg-white/[0.02] border-white/[0.05] hover:border-[#5865F2]/30 hover:bg-[#5865F2]/5'}`}
-                             >
+                            >
                                 <div className="flex items-center justify-between mb-4 relative z-10">
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${user?.discordVerified ? 'bg-[#5865F2]/10 text-[#5865F2]' : 'bg-white/5 text-white/20 group-hover:text-[#5865F2]'}`}>
-                                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.874.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+                                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.874.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" /></svg>
                                     </div>
                                     {user?.discordVerified && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
                                 </div>
@@ -296,7 +295,7 @@ export const Profile = () => {
                             </div>
 
                             {/* TikTok Status */}
-                            <div 
+                            <div
                                 onClick={() => {
                                     setSelectedPlatform('tiktok');
                                     setIsVerifyOpen(true);
@@ -308,7 +307,7 @@ export const Profile = () => {
                                         <TikTokIcon />
                                     </div>
                                     {user?.tiktokVerified && (
-                                        <button 
+                                        <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleDeleteSocial('tiktok');
@@ -324,7 +323,7 @@ export const Profile = () => {
                             </div>
 
                             {/* YouTube Status */}
-                            <div 
+                            <div
                                 onClick={() => {
                                     setSelectedPlatform('youtube');
                                     setIsVerifyOpen(true);
@@ -343,7 +342,7 @@ export const Profile = () => {
                                     </div>
                                     {user?.youtubeVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
                                 </div>
-                                
+
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {user?.youtubeChannels && user.youtubeChannels.length > 0 ? (
                                         user.youtubeChannels.map((ch: any) => (
@@ -355,7 +354,7 @@ export const Profile = () => {
                                                         <p className="text-[10px] text-white/20 font-mono">{ch.handle}</p>
                                                     </div>
                                                 </div>
-                                                <button 
+                                                <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleDeleteSocial('youtube', ch.id);
@@ -375,7 +374,7 @@ export const Profile = () => {
                             </div>
 
                             {/* Instagram Status */}
-                            <div 
+                            <div
                                 onClick={() => {
                                     setSelectedPlatform('instagram');
                                     setIsVerifyOpen(true);
@@ -394,7 +393,7 @@ export const Profile = () => {
                                     </div>
                                     <div className="flex items-center gap-3">
                                         {user?.instagramVerified && (
-                                            <button 
+                                            <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleDeleteSocial('instagram');
@@ -413,18 +412,18 @@ export const Profile = () => {
                 </div>
             </div>
 
-            <ProfileVerifyModal 
-                isOpen={isVerifyOpen} 
-                onClose={() => setIsVerifyOpen(false)} 
-                verifyCode={verifyCode} 
-                onSync={handleSync} 
+            <ProfileVerifyModal
+                isOpen={isVerifyOpen}
+                onClose={() => setIsVerifyOpen(false)}
+                verifyCode={verifyCode}
+                onSync={handleSync}
                 initialSocial={selectedPlatform}
             />
 
-            <DiscordInfoModal 
-                isOpen={isDiscordInfoOpen} 
-                onClose={() => setIsDiscordInfoOpen(false)} 
-                username={user?.name || ''} 
+            <DiscordInfoModal
+                isOpen={isDiscordInfoOpen}
+                onClose={() => setIsDiscordInfoOpen(false)}
+                username={user?.name || ''}
             />
         </motion.div>
     );
