@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { X, Loader2, ShieldCheck, Plus } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Dropdown } from '../Dropdown';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Toast } from '../../lib/swal';
 
