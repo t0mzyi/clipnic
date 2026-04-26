@@ -12,6 +12,7 @@ interface JoinCampaignModalProps {
     campaign: any;
     onJoined: (handle?: string) => void;
     verifyCode: string;
+    initialStep?: number;
 }
 
 const TikTokIcon = () => (
@@ -32,9 +33,13 @@ const InstagramIcon = () => (
     </svg>
 );
 
-export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyCode }: JoinCampaignModalProps) => {
+export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyCode, initialStep = 1 }: JoinCampaignModalProps) => {
     const { user, token, updateUser, settings } = useAuthStore();
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(initialStep);
+    
+    useEffect(() => {
+        if (isOpen) setStep(initialStep);
+    }, [isOpen, initialStep]);
     const [selectedSocial, setSelectedSocial] = useState('');
     const [linkedHandle, setLinkedHandle] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
@@ -103,6 +108,8 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
     const handleYouTubeOAuth = async () => {
         setIsVerifying(true);
         try {
+            localStorage.setItem('pending_join_campaign_id', campaign.id);
+            localStorage.setItem('pending_join_step', '2');
             const returnUrl = encodeURIComponent(window.location.href + (window.location.href.includes('?') ? '&' : '?') + 'youtube_success=true');
             const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/youtube?redirectTo=${returnUrl}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -190,10 +197,7 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                         <Button
                             variant="primary"
                             onClick={() => {
-                                // If not dedicated AND has at least one valid account, just join
                                 if (!needsDedicated && linkedAccounts.length > 0) {
-                                    // If only one account, use it. If multiple, we could let them choose, 
-                                    // but user said "don't show it", so we join with null (any)
                                     onJoined();
                                     return;
                                 }
@@ -230,6 +234,8 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                                     onClick={async () => {
                                         setIsVerifying(true);
                                         try {
+                                            localStorage.setItem('pending_join_campaign_id', campaign.id);
+                                            localStorage.setItem('pending_join_step', '2');
                                             const currentUrl = window.location.href;
                                             const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/discord?redirectTo=${encodeURIComponent(currentUrl)}`, {
                                                 headers: { 'Authorization': `Bearer ${token}` }

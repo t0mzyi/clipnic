@@ -47,6 +47,7 @@ export const CampaignDetails = () => {
     const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+    const [initialStep, setInitialStep] = useState(1);
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [leaderboard, setLeaderboard] = useState<any[]>([]);
 
@@ -93,8 +94,20 @@ export const CampaignDetails = () => {
     useEffect(() => {
         fetchCampaignData();
         const interval = setInterval(fetchCampaignData, 15000); // 15s refresh
+
+        // Check for pending join flow restoration
+        const savedJoinId = localStorage.getItem('pending_join_campaign_id');
+        const savedStep = localStorage.getItem('pending_join_step');
+        
+        if (savedJoinId === id && savedStep) {
+            setInitialStep(parseInt(savedStep));
+            setIsJoinModalOpen(true);
+            localStorage.removeItem('pending_join_campaign_id');
+            localStorage.removeItem('pending_join_step');
+        }
+
         return () => clearInterval(interval);
-    }, [fetchCampaignData]);
+    }, [fetchCampaignData, id]);
 
     const handleJoin = async (linkedHandle?: string) => {
         try {
@@ -390,10 +403,14 @@ export const CampaignDetails = () => {
 
             <JoinCampaignModal 
                 isOpen={isJoinModalOpen} 
-                onClose={() => setIsJoinModalOpen(false)} 
+                onClose={() => {
+                    setIsJoinModalOpen(false);
+                    setInitialStep(1);
+                }} 
                 campaign={campaign} 
                 onJoined={handleJoin}
                 verifyCode="CLPNIC-VERIFY"
+                initialStep={initialStep}
             />
 
             <SubmitClipModal 
