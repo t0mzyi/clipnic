@@ -409,8 +409,9 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
 
     const isMaintenance = settings?.maintenance_mode;
     const isAdmin = user?.role === 'admin';
+    const isLoginPage = location.pathname === '/login';
 
-    if (isMaintenance && !isAdmin && !loading) {
+    if (isMaintenance && !isAdmin && !loading && !isLoginPage) {
         return <Maintenance />;
     }
 
