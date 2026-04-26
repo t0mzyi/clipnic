@@ -9,6 +9,8 @@ import { DiscordInfoModal } from '../components/modals/DiscordInfoModal';
 
 import { YoutubeIcon, TikTokIcon, InstagramIcon } from '../components/ui/SocialIcons';
 
+import { generateVerificationCode } from '../utils/verification';
+
 export const Profile = () => {
     const { user, token, updateUser, logout } = useAuthStore();
     const [stats, setStats] = useState({ totalEarned: 0, totalViews: 0, pendingPayout: 0, missionsJoined: 0 });
@@ -18,7 +20,13 @@ export const Profile = () => {
     const [withdrawLoading, setWithdrawLoading] = useState(false);
     const [discordLoading, setDiscordLoading] = useState(false);
     const [selectedPlatform, setSelectedPlatform] = useState('');
-    const [verifyCode] = useState('CLPNIC-VERIFY');
+    const [verifyCode, setVerifyCode] = useState(generateVerificationCode());
+
+    useEffect(() => {
+        if (isVerifyOpen) {
+            setVerifyCode(generateVerificationCode());
+        }
+    }, [isVerifyOpen]);
 
     const fetchStats = useCallback(async () => {
         if (!token) return;

@@ -13,6 +13,7 @@ import { SubmitClipModal } from '../components/modals/SubmitClipModal';
 import { JoinSuccessModal } from '../components/modals/JoinSuccessModal';
 
 import { YoutubeIcon, TikTokIcon, InstagramIcon } from '../components/ui/SocialIcons';
+import { generateVerificationCode } from '../utils/verification';
 
 interface Campaign {
     id: string;
@@ -51,6 +52,13 @@ export const CampaignDetails = () => {
     const [initialStep, setInitialStep] = useState(1);
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [leaderboard, setLeaderboard] = useState<any[]>([]);
+    const [verifyCode, setVerifyCode] = useState(generateVerificationCode());
+
+    useEffect(() => {
+        if (isJoinModalOpen) {
+            setVerifyCode(generateVerificationCode());
+        }
+    }, [isJoinModalOpen]);
 
     const countdown = useCountdown(campaign?.end_date);
     const isComingSoon = useMemo(() => 
@@ -410,7 +418,7 @@ export const CampaignDetails = () => {
                 }} 
                 campaign={campaign} 
                 onJoined={handleJoin}
-                verifyCode="CLPNIC-VERIFY"
+                verifyCode={verifyCode}
                 initialStep={initialStep}
             />
 
