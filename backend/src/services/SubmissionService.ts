@@ -333,8 +333,14 @@ export class SubmissionService {
     
     if (error) throw error;
 
-    // 8. Update Campaign Stats (Handled by DB Trigger on submissions table)
-    console.log(`[SubmissionService] Submission created. DB Trigger will sync campaign stats.`);
+    // 8. Update Campaign Stats manually (Trigger may be delayed or restricted to Verified)
+    await supabase.rpc('increment_campaign_stats', {
+        camp_id: validated.campaign_id,
+        earnings_add: Number(earnings || 0),
+        views_add: Number(views || 0)
+    });
+    
+    console.log(`[SubmissionService] Submission created. Stats updated.`);
 
     // 8. Auto-complete mission if budget hit
     const { data: updatedCampaign } = await supabase
@@ -452,8 +458,14 @@ export class SubmissionService {
       
       if (updateErr) throw updateErr;
 
-       // 6. Sync stats is now handled by DB trigger 'on_submission_change'
-       console.log(`[SubmissionService] Submission ${submissionId} updated. DB Trigger will sync stats.`);
+       // 6. Sync stats manually to ensure real-time progress
+       await supabase.rpc('increment_campaign_stats', {
+           camp_id: submission.campaign_id,
+           earnings_add: Number(earnings || 0) - oldEarnings,
+           views_add: Number(views || 0) - oldViews
+       });
+       
+       console.log(`[SubmissionService] Submission ${submissionId} updated and stats synced.`);
 
       // 7. Auto-complete mission if budget hit
       const { data: updatedCampaign } = await supabase
