@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
-import { LayoutGrid, Globe, Target, Box, Sparkles, Zap, TrendingUp, Wallet, ShieldCheck, Clock, Search, Filter, Rocket, Star, CheckCircle, ArrowUpRight, DollarSign, ChevronLeft, ChevronRight, History } from 'lucide-react';
+import { TrendingUp, Wallet, Search, ArrowUpRight, DollarSign, ChevronLeft, ChevronRight, History, Star } from 'lucide-react';
 import { formatDateTimeToIST } from '../utils/date';
 
 import { YoutubeIcon, TikTokIcon, InstagramIcon } from '../components/ui/SocialIcons';

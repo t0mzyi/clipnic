@@ -6,7 +6,6 @@ import Swal from '../lib/swal';
 import { Dropdown } from '../components/Dropdown';
 import { AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/Button';
-import { AlertModal } from '../components/ui/AlertModal';
 import { formatToIST } from '../utils/date';
 
 const Toast = Swal.mixin({

@@ -1,6 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Filter, CheckCircle, XCircle, Clock, ExternalLink, Calendar, Users, Eye, ArrowUpRight, Check, X, AlertTriangle, User as UserIcon, Play, Instagram, Youtube } from 'lucide-react';
+import { 
+    Search, Filter, Layers, CheckCircle2, XCircle, 
+    ExternalLink, User, Calendar, ChevronDown, 
+    Video, AlertCircle, Clock, Smartphone, Shield, Mail, Activity,
+    Users, Eye, ArrowUpRight, Check, X, AlertTriangle, Play, Instagram, Youtube, CheckCircle
+} from 'lucide-react';
 import { formatToIST } from '../utils/date';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from '../lib/swal';
