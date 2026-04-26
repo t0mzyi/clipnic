@@ -28,9 +28,15 @@ export class SettingsService {
       const { data, error } = await supabase.from('settings').select('*');
       if (error) return {};
       
-      return data.reduce((acc: any, curr: any) => {
+      const settings = data.reduce((acc: any, curr: any) => {
           acc[curr.key] = curr.value;
           return acc;
       }, {});
+
+      if (settings.maintenance_mode === undefined) {
+          settings.maintenance_mode = false;
+      }
+      
+      return settings;
   }
 }
