@@ -313,6 +313,8 @@ export class SubmissionService {
         }
     }
 
+    earnings = isNaN(earnings) ? 0 : earnings;
+
     // 7. Final Insert
     const { data: submission, error } = await supabase
         .from('submissions')
@@ -397,7 +399,7 @@ export class SubmissionService {
           throw new Error("Submission not found or unauthorized.");
       }
 
-      const campaign = submission.campaigns;
+      const campaign = Array.isArray(submission.campaigns) ? submission.campaigns[0] : submission.campaigns;
       if (!campaign) throw new Error("Campaign data missing.");
 
       // 2. Check 1-minute cooldown (for real-time feel)
@@ -430,6 +432,8 @@ export class SubmissionService {
                earnings = campaign.per_video_cap;
            }
        }
+
+       earnings = isNaN(earnings) ? 0 : earnings;
 
       // 5. Update DB
       const oldEarnings = Number(submission.earnings || 0);
@@ -662,8 +666,13 @@ export class SubmissionService {
       } else if (sub.status === 'Rejected') {
         earningCategory = 'rejected';
       } else if (sub.status === 'Pending') {
-        earningCategory = 'pending_verification';
-        // Potential earnings but not added to any balance yet
+         // Check if requirements met even if pending
+         if (minViews > 0 && sub.views < minViews) {
+            earningCategory = 'pending_verification'; 
+         } else {
+            earningCategory = 'ready_to_claim_after_end'; // Label it as ready but it stays in 'Pending' status
+            pendingPayout += earnings;
+         }
       } else if (isCampaignEnded) {
          // Mission Over - check if goal was met
          if (minViews > 0 && sub.views < minViews) {
@@ -802,7 +811,7 @@ export class SubmissionService {
     if (subErr || !sub) throw new Error("Submission not found.");
     if (sub.status !== 'Rejected') throw new Error("Only rejected submissions can be edited.");
 
-    const campaign = sub.campaigns;
+    const campaign = Array.isArray(sub.campaigns) ? sub.campaigns[0] : sub.campaigns;
     if (!campaign) throw new Error("Campaign not found.");
 
     // 2.5 Check for duplicate URL (Exclude self)
