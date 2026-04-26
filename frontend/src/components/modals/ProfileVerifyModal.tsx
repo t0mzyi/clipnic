@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { X, Loader2, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { YoutubeIcon, TikTokIcon, InstagramIcon } from '../ui/SocialIcons';
 import { Button } from '../ui/Button';
 import { useState, useEffect } from 'react';
@@ -185,7 +185,7 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync, initia
                                                 <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em]">Verification Code</p>
                                                 <div className="bg-white/5 border border-white/10 rounded-2xl py-4 px-6 relative group/code cursor-pointer active:scale-95 transition-transform" onClick={() => {
                                                     navigator.clipboard.writeText(verifyCode);
-                                                    Toast.fire({ title: 'Code Copied!', icon: 'success', timer: 1500 });
+                                                    Toast.fire({ title: 'Code Copied!', icon: 'success' });
                                                 }}>
                                                     <p className="text-2xl font-mono font-bold text-white tracking-[0.2em]">{verifyCode}</p>
                                                 </div>
