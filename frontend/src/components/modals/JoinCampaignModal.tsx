@@ -176,8 +176,11 @@ export const JoinCampaignModal = ({ isOpen, onClose, campaign, onJoined, verifyC
                 animate={{ y: 0, opacity: 1, scale: 1 }}
                 className="bg-[#0D0D0D] border border-white/10 rounded-[32px] p-8 max-w-lg w-full relative shadow-2xl"
             >
-                <button onClick={onClose} className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full">
-                    <X size={20} />
+                <button 
+                    onClick={onClose} 
+                    className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full z-[100] group"
+                >
+                    <X size={20} className="group-hover:rotate-90 transition-transform duration-300" />
                 </button>
 
                 {step === 1 && (

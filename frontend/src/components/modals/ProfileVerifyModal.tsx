@@ -97,10 +97,15 @@ export const ProfileVerifyModal = ({ isOpen, onClose, verifyCode, onSync, initia
                 className="bg-[#0A0A0A] border border-white/10 rounded-[32px] p-8 max-w-md w-full relative shadow-2xl overflow-hidden"
             >
                 {/* Background Glow */}
-                <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/5 blur-[80px] rounded-full" />
-                <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-white/5 blur-[80px] rounded-full" />
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/5 blur-[80px] rounded-full pointer-events-none" />
+                <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-white/5 blur-[80px] rounded-full pointer-events-none" />
 
-                <button onClick={onClose} className="absolute top-6 right-6 text-white/20 hover:text-white transition-all p-2 hover:bg-white/5 rounded-full z-10"><X size={20} /></button>
+                <button 
+                    onClick={onClose} 
+                    className="absolute top-6 right-6 text-white/20 hover:text-white transition-all p-2 hover:bg-white/5 rounded-full z-[100] group"
+                >
+                    <X size={20} className="group-hover:rotate-90 transition-transform duration-300" />
+                </button>
 
                 {step === 1 ? (
                     <div className="space-y-8 relative z-10">

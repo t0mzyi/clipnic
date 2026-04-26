@@ -21,7 +21,7 @@ export const JoinSuccessModal = ({ isOpen, onClose, campaignTitle, discordLink }
                         onClick={onClose}
                         className="absolute inset-0 bg-black/90 backdrop-blur-md"
                     />
-                    
+
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0, y: 20 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -45,10 +45,10 @@ export const JoinSuccessModal = ({ isOpen, onClose, campaignTitle, discordLink }
                         <div className="px-8 pb-10 pt-4 text-center space-y-8">
                             <div className="space-y-3">
                                 <h2 className="text-3xl font-bold tracking-tight text-white leading-tight">
-                                    You're In! 🎉
+                                    You're In!
                                 </h2>
                                 <p className="text-white/40 text-sm leading-relaxed max-w-[320px] mx-auto">
-                                    You have successfully joined <span className="text-white/90 font-bold">{campaignTitle}</span>. 
+                                    You have successfully joined <span className="text-white/90 font-bold">{campaignTitle}</span>.
                                     It's time to start clipping and earning.
                                 </p>
                             </div>
@@ -65,9 +65,9 @@ export const JoinSuccessModal = ({ isOpen, onClose, campaignTitle, discordLink }
                                             <h4 className="text-sm font-bold text-white/90">Discord Assets Channel</h4>
                                         </div>
                                     </div>
-                                    <a 
-                                        href={discordLink} 
-                                        target="_blank" 
+                                    <a
+                                        href={discordLink}
+                                        target="_blank"
                                         rel="noopener noreferrer"
                                         className="p-2 rounded-lg bg-white/5 text-white/40 group-hover:bg-[#5865F2] group-hover:text-white transition-all"
                                     >
@@ -85,7 +85,7 @@ export const JoinSuccessModal = ({ isOpen, onClose, campaignTitle, discordLink }
                                 </Button>
                             </div>
 
-                            <button 
+                            <button
                                 onClick={onClose}
                                 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] hover:text-white/40 transition-colors"
                             >
@@ -93,8 +93,8 @@ export const JoinSuccessModal = ({ isOpen, onClose, campaignTitle, discordLink }
                             </button>
                         </div>
 
-                        <button 
-                            onClick={onClose} 
+                        <button
+                            onClick={onClose}
                             className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full z-20"
                         >
                             <X size={20} />

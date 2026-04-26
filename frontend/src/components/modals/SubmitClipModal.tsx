@@ -64,7 +64,7 @@ export const SubmitClipModal = ({ isOpen, onClose, onSubmit, token }: SubmitClip
 
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-            <motion.div 
+            <motion.div
                 initial={{ y: 20, opacity: 0, scale: 0.95 }}
                 animate={{ y: 0, opacity: 1, scale: 1 }}
                 className="bg-[#0D0D0D] border border-white/10 rounded-[32px] p-8 max-w-md w-full relative shadow-2xl"
@@ -82,8 +82,8 @@ export const SubmitClipModal = ({ isOpen, onClose, onSubmit, token }: SubmitClip
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Video URL</label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 placeholder="Paste link here..."
                                 value={submissionUrl}
                                 onChange={(e) => setSubmissionUrl(e.target.value)}
@@ -102,13 +102,13 @@ export const SubmitClipModal = ({ isOpen, onClose, onSubmit, token }: SubmitClip
                                         {platform === 'instagram' && <InstagramIcon className="w-4 h-4" />}
                                         {platform === 'tiktok' && <TikTokIcon className="w-4 h-4" />}
                                     </div>
-                                    <p className="text-xs font-bold text-white/70 capitalize">{platform} detected</p>
+                                    <p className="text-xs font-bold text-white/70 capitalize">{platform}</p>
                                 </div>
                                 <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                             </div>
                         )}
 
-                        <Button 
+                        <Button
                             type="submit"
                             disabled={!platform || isSubmitting || isCheckingUrl || !!urlError}
                             className="w-full py-4 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-xs disabled:opacity-30"
