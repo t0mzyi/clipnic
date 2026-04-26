@@ -32,7 +32,9 @@ export class LoggerService {
             description: message,
             color,
             timestamp: new Date().toISOString(),
-            footer: { text: "Clipnic Monitoring System" }
+            footer: { 
+              text: `Clipnic Monitoring System · ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true })} IST` 
+            }
           }]
         })
       });

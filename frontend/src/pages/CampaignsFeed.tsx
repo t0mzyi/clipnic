@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '../components/ui/Badge';
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
-import { ArrowUpRight, DollarSign, Wallet, TrendingUp, Star, ChevronLeft, ChevronRight, Search, History } from 'lucide-react';
+import { LayoutGrid, Globe, Target, Box, Sparkles, Zap, TrendingUp, Wallet, ShieldCheck, Clock, Search, Filter, Rocket, Star, CheckCircle, ArrowUpRight, DollarSign, ChevronLeft, ChevronRight, History } from 'lucide-react';
+import { formatDateTimeToIST } from '../utils/date';
 
 import { YoutubeIcon, TikTokIcon, InstagramIcon } from '../components/ui/SocialIcons';
 
@@ -416,11 +417,11 @@ export const CampaignsFeed = () => {
                                         <div className="flex items-center justify-between text-[8px] font-bold uppercase tracking-widest px-1">
                                             {(!campaign.start_date || new Date(campaign.start_date) <= new Date()) ? (
                                                 <span className="text-amber-500/60">
-                                                    Ends: {new Date(campaign.end_date).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                    Ends: {formatDateTimeToIST(campaign.end_date)}
                                                 </span>
                                             ) : (
                                                 <span className="text-blue-400/60">
-                                                    Starts: {new Date(campaign.start_date).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                    Starts: {formatDateTimeToIST(campaign.start_date)}
                                                 </span>
                                             )}
                                             <span className="text-white/20 font-mono">{Math.round(progress)}% filled</span>

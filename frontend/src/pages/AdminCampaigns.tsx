@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Badge } from '../components/ui/Badge';
+import { formatToIST } from '../utils/date';
 import { Button } from '../components/ui/Button';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from '../lib/swal';
@@ -342,7 +343,7 @@ export const AdminCampaigns = () => {
                                                         </Link>
                                                         <div className="flex items-center gap-2 mt-1">
                                                             {camp.is_featured && <Star size={10} className="text-purple-400 fill-purple-400" />}
-                                                            <span className="text-[10px] text-white/30 font-mono">Ends {new Date(camp.end_date).toLocaleDateString()}</span>
+                                                             <span className="text-[10px] text-white/30 font-mono">Ends {formatToIST(camp.end_date)}</span>
                                                         </div>
                                                     </div>
                                                 </div>

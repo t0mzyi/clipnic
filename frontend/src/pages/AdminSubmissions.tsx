@@ -1,10 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { 
-    Search, Filter, Layers, CheckCircle2, XCircle, 
-    ExternalLink, User, Calendar, ChevronDown, 
-    Video, AlertCircle, Clock, Smartphone, Shield, Mail, Activity
-} from 'lucide-react';
+import { Search, Filter, CheckCircle, XCircle, Clock, ExternalLink, Calendar, Users, Eye, ArrowUpRight, Check, X, AlertTriangle, User as UserIcon, Play, Instagram, Youtube } from 'lucide-react';
+import { formatToIST } from '../utils/date';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from '../lib/swal';
 import { Dropdown } from '../components/Dropdown';
@@ -368,7 +365,7 @@ export const AdminSubmissions = () => {
                                                         <td className="py-4 border-y border-white/[0.03]">
                                                             <div className="flex items-center gap-1.5 text-[10px] text-white/20 font-mono">
                                                                 <Calendar className="w-3 h-3" />
-                                                                {new Date(sub.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}
+                                                                {formatToIST(sub.created_at)}
                                                             </div>
                                                         </td>
                                                         <td className="py-4 pr-6 rounded-r-2xl border-y border-r border-white/[0.03] text-right">

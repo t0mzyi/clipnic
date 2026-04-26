@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useParams, Link } from 'react-router-dom';
+import { formatToIST } from '../utils/date';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -315,7 +316,7 @@ export const CampaignDetails = () => {
                                             <tr key={sub.id} className="group hover:bg-white/[0.02] transition-all">
                                                 <td className="px-8 py-6">
                                                     <p className="text-sm font-medium text-white/90 truncate max-w-[180px]">{sub.url}</p>
-                                                    <p className="text-[10px] text-white/20 mt-1 capitalize">{sub.platform} · {new Date(sub.created_at).toLocaleDateString()}</p>
+                                                    <p className="text-[10px] text-white/20 mt-1 capitalize">{sub.platform} · {formatToIST(sub.created_at)}</p>
                                                 </td>
                                                 <td className="px-8 py-6 font-mono text-sm font-bold text-white/60">{sub.views?.toLocaleString()}</td>
                                                 <td className="px-8 py-6 font-mono text-sm font-bold text-emerald-400">${Number(sub.earnings || 0).toFixed(2)}</td>
