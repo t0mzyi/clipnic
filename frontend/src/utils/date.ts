@@ -37,3 +37,11 @@ export const formatDateTimeToIST = (date: string | Date | number) => {
 export const getISTDate = () => {
     return new Date(new Date().toLocaleString('en-US', { timeZone: TIMEZONE }));
 };
+
+/**
+ * Converts a local datetime-local input string (YYYY-MM-DDTHH:mm) to a UTC ISO string
+ */
+export const toUTCISO = (dateStr: string) => {
+    if (!dateStr) return null;
+    return new Date(dateStr).toISOString();
+};

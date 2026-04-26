@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Badge } from '../components/ui/Badge';
-import { formatToIST } from '../utils/date';
+import { formatToIST, toUTCISO } from '../utils/date';
 import { Button } from '../components/ui/Button';
 import { useAuthStore } from '../store/useAuthStore';
 import Swal from '../lib/swal';
@@ -163,6 +163,8 @@ export const AdminCampaigns = () => {
                 min_views: form.min_views ? parseInt(form.min_views, 10) : null,
                 per_clipper_cap: form.per_clipper_cap ? parseFloat(form.per_clipper_cap) : null,
                 per_video_cap: form.per_video_cap ? parseFloat(form.per_video_cap) : null,
+                start_date: toUTCISO(form.start_date),
+                end_date: toUTCISO(form.end_date)
             };
 
             const url = editingCampaign 
