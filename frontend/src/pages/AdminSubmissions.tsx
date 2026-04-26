@@ -3,8 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { 
     Search, Filter, Layers, CheckCircle2, XCircle, 
     ExternalLink, User, Calendar, ChevronDown, 
-    Video, AlertCircle, Clock, Smartphone, Shield, Mail, Activity,
-    Users, Eye, ArrowUpRight, Check, X, AlertTriangle, Play, Instagram, Youtube, CheckCircle
+    Video, AlertCircle, Clock, Smartphone, Shield, Mail, Activity
 } from 'lucide-react';
 import { formatToIST } from '../utils/date';
 import { useAuthStore } from '../store/useAuthStore';
