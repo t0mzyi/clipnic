@@ -339,6 +339,12 @@ export class SubmissionService {
         earnings_add: Number(earnings || 0),
         views_add: Number(views || 0)
     });
+
+    // Ensure view_progress is updated (in case RPC doesn't handle it)
+    await supabase.rpc('update_campaign_view_progress', {
+        camp_id: validated.campaign_id,
+        views_to_add: Number(views || 0)
+    }).catch(e => console.warn('update_campaign_view_progress failed, might be integrated in increment_campaign_stats'));
     
     console.log(`[SubmissionService] Submission created. Stats updated.`);
 
@@ -386,6 +392,12 @@ export class SubmissionService {
           earnings_add: -Number(submission.earnings || 0),
           views_add: -Number(submission.views || 0)
       });
+
+      // Deduct from view_progress
+      await supabase.rpc('update_campaign_view_progress', {
+          camp_id: submission.campaign_id,
+          views_to_add: -Number(submission.views || 0)
+      }).catch(e => {});
 
       LoggerService.info('Submission Deleted', `User **${userId}** deleted a submission.\nSubmission ID: ${submissionId}\nEarnings Deducted: $${submission.earnings.toFixed(2)}`);
 
@@ -464,6 +476,12 @@ export class SubmissionService {
            earnings_add: Number(earnings || 0) - oldEarnings,
            views_add: Number(views || 0) - oldViews
        });
+
+       // Sync view_progress
+       await supabase.rpc('update_campaign_view_progress', {
+           camp_id: submission.campaign_id,
+           views_to_add: Number(views || 0) - oldViews
+       }).catch(e => {});
        
        console.log(`[SubmissionService] Submission ${submissionId} updated and stats synced.`);
 

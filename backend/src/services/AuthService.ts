@@ -23,7 +23,7 @@ export class AuthService {
       .upsert({
         id: supabaseId,
         email,
-        name,
+        name: (name === null || name === undefined || String(name).toLowerCase() === 'null') ? 'Anonymous Clipper' : name,
         avatar_url: avatarUrl,
         role: targetRole,
         updated_at: new Date().toISOString()
