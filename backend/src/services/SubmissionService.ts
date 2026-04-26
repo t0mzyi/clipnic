@@ -602,14 +602,26 @@ export class SubmissionService {
   }
 
   static async adminUpdateStatus(submissionId: string, status: string, rejectionReason?: string) {
+    // 1. Fetch current submission to know its campaign and current status
+    const { data: submission, error: fetchErr } = await supabase
+      .from('submissions')
+      .select('*')
+      .eq('id', submissionId)
+      .single();
+    if (fetchErr || !submission) throw new Error("Submission not found.");
+
+    const oldStatus = submission.status;
+    const newStatus = status;
+
+    // 2. Perform Update
     const updateData: any = { 
-        status, 
+        status: newStatus, 
         updated_at: new Date().toISOString() 
     };
     
-    if (status === 'Rejected' && rejectionReason) {
+    if (newStatus === 'Rejected' && rejectionReason) {
         updateData.rejection_reason = rejectionReason;
-    } else if (status === 'Verified') {
+    } else if (newStatus === 'Verified') {
         updateData.rejection_reason = null;
     }
 
@@ -621,6 +633,27 @@ export class SubmissionService {
       .single();
       
     if (error) throw error;
+
+    // 3. Sync Campaign Stats if status changed to/from Rejected
+    const wasRejected = oldStatus === 'Rejected';
+    const isRejected = newStatus === 'Rejected';
+
+    if (!wasRejected && isRejected) {
+        // Status flipped TO Rejected: Deduct from campaign
+        await supabase.rpc('increment_campaign_stats', {
+            camp_id: submission.campaign_id,
+            earnings_add: -Number(submission.earnings || 0),
+            views_add: -Number(submission.views || 0)
+        });
+    } else if (wasRejected && !isRejected) {
+        // Status flipped FROM Rejected: Add back to campaign
+        await supabase.rpc('increment_campaign_stats', {
+            camp_id: submission.campaign_id,
+            earnings_add: Number(submission.earnings || 0),
+            views_add: Number(submission.views || 0)
+        });
+    }
+
     return data;
   }
 
