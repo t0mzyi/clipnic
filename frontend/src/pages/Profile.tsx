@@ -188,7 +188,7 @@ export const Profile = () => {
                     <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col items-center">
                         <div className="relative group">
                             <img
-                                src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${user?.name}&background=random`}
+                                src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${user?.name || 'null'}&background=random`}
                                 className="w-24 h-24 rounded-2xl object-cover border border-white/10"
                                 alt={user?.name}
                             />
@@ -200,7 +200,7 @@ export const Profile = () => {
                         </div>
 
                         <div className="mt-6 text-center space-y-1">
-                            <h2 className="text-xl font-bold text-white uppercase tracking-tight">{user?.name || 'Anonymous'}</h2>
+                            <h2 className="text-xl font-bold text-white uppercase tracking-tight">{(!user?.name || user.name === 'Anonymous' || user.name === 'Anonymous Clipper' || user.name === 'Anonymous user') ? 'null' : user.name}</h2>
                             <p className="text-[11px] text-white/30 font-mono truncate max-w-[200px]">{user?.email}</p>
                         </div>
 

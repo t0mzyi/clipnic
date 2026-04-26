@@ -397,7 +397,7 @@ export const CampaignDetails = () => {
                                             <span className="w-6 text-xs font-bold text-white/20">{i + 1}</span>
                                             {entry.avatar_url ? <img src={entry.avatar_url} className="w-9 h-9 rounded-xl object-cover" /> : <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-[10px] font-bold uppercase">{entry.name?.charAt(0)}</div>}
                                             <div>
-                                                <p className="text-xs font-bold text-white/80">{entry.name}</p>
+                                                <p className="text-xs font-bold text-white/80">{(!entry.name || entry.name === 'Anonymous Clipper' || entry.name === 'Anonymous' || entry.name === 'Anonymous user') ? 'null' : entry.name}</p>
                                                 <p className="text-[9px] text-white/20 uppercase tracking-widest">{entry.views?.toLocaleString()} Views</p>
                                             </div>
                                         </div>

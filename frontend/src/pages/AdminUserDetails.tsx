@@ -267,7 +267,7 @@ export const AdminUserDetails = () => {
                         </div>
 
                         <div className="mt-6 text-center space-y-1">
-                            <h2 className="text-xl font-bold text-white uppercase tracking-tight">{user.name || 'Anonymous'}</h2>
+                            <h2 className="text-xl font-bold text-white uppercase tracking-tight">{(!user.name || user.name === 'Anonymous' || user.name === 'Anonymous Clipper' || user.name === 'Anonymous user') ? 'null' : user.name}</h2>
                             <p className="text-sm text-white/40 font-mono">{user.email}</p>
                         </div>
 

@@ -28,7 +28,7 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose 
                     title: '🚨 New Bug Report Received',
                     color: 15548997, // Red
                     fields: [
-                        { name: 'Reporter', value: user?.name || 'Anonymous', inline: true },
+                        { name: 'Reporter', value: user?.name || 'null', inline: true },
                         { name: 'Topic', value: title, inline: true },
                         { name: 'Timestamp', value: new Date().toLocaleString(), inline: true },
                         { name: 'Detailed Description', value: description }
