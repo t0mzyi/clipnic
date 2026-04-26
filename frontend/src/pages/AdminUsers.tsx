@@ -284,7 +284,7 @@ export const AdminUsers = () => {
                                                         )}
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <p className="text-sm font-medium text-white/90 truncate">{user.name || 'Anonymous'}</p>
+                                                        <p className="text-sm font-medium text-white/90 truncate">{user.name || 'Anonymous User'}</p>
                                                         <p className="text-[11px] text-white/25 font-mono truncate">{user.email}</p>
                                                     </div>
                                                 </div>

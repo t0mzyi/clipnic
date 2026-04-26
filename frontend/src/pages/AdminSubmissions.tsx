@@ -330,7 +330,7 @@ export const AdminSubmissions = () => {
                                                                     )}
                                                                 </div>
                                                                 <div className="flex flex-col min-w-0">
-                                                                    <span className="text-sm font-bold text-white/90 truncate group-hover/row:text-white">{sub.users?.name || 'Unknown'}</span>
+                                                                    <span className="text-sm font-bold text-white/90 truncate group-hover/row:text-white">{sub.users?.name || 'Anonymous User'}</span>
                                                                     <div className="flex items-center gap-2 mt-1">
                                                                         <a href={sub.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-emerald-500/40 hover:text-emerald-400 flex items-center gap-1 transition-colors">
                                                                             Open Clip <ExternalLink className="w-2.5 h-2.5" />
@@ -441,7 +441,7 @@ export const AdminSubmissions = () => {
                                                 )}
                                             </div>
                                             <div>
-                                                <h2 className="text-xl font-bold text-white">{selectedUser.name}</h2>
+                                                <h2 className="text-xl font-bold text-white">{selectedUser.name || 'Anonymous User'}</h2>
                                                 <p className="text-sm text-white/40">{selectedUser.email}</p>
                                             </div>
                                         </div>
