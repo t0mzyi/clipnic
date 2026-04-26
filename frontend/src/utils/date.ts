@@ -6,7 +6,18 @@ const TIMEZONE = 'Asia/Kolkata';
 const LOCALE = 'en-IN';
 
 export const formatToIST = (date: string | Date | number, options: Intl.DateTimeFormatOptions = {}) => {
-    const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
+    if (!date) return '—';
+    
+    let d: Date;
+    if (typeof date === 'string') {
+        // If it's a string without a timezone indicator, treat it as UTC
+        const isoStr = (date.includes('T') || date.includes(' ')) && !date.includes('Z') && !date.includes('+') 
+            ? date.replace(' ', 'T') + 'Z' 
+            : date;
+        d = new Date(isoStr);
+    } else {
+        d = new Date(date);
+    }
     
     // Default options if none provided
     const defaultOptions: Intl.DateTimeFormatOptions = {
@@ -21,7 +32,17 @@ export const formatToIST = (date: string | Date | number, options: Intl.DateTime
 };
 
 export const formatDateTimeToIST = (date: string | Date | number) => {
-    const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
+    if (!date) return '—';
+
+    let d: Date;
+    if (typeof date === 'string') {
+        const isoStr = (date.includes('T') || date.includes(' ')) && !date.includes('Z') && !date.includes('+') 
+            ? date.replace(' ', 'T') + 'Z' 
+            : date;
+        d = new Date(isoStr);
+    } else {
+        d = new Date(date);
+    }
     
     return d.toLocaleString(LOCALE, {
         timeZone: TIMEZONE,
@@ -43,5 +64,12 @@ export const getISTDate = () => {
  */
 export const toUTCISO = (dateStr: string) => {
     if (!dateStr) return null;
-    return new Date(dateStr).toISOString();
+    
+    // If it's already an ISO string with timezone, just return it
+    if (dateStr.includes('Z') || dateStr.includes('+')) return new Date(dateStr).toISOString();
+    
+    // If it's a datetime-local string (YYYY-MM-DDTHH:mm), parse it as local time
+    // and convert to UTC ISO. 
+    const d = new Date(dateStr);
+    return d.toISOString();
 };
