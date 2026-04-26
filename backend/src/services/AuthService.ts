@@ -1,6 +1,11 @@
 import { supabase } from '../config/supabase';
 import { LoggerService } from './LoggerService';
 
+const ADMIN_EMAILS = [
+    'labsrebound@gmail.com',
+    'jaideepkollys@gmail.com'
+];
+
 export class AuthService {
   /**
    * Syncs a Supabase Auth user with our public.users table.
@@ -10,9 +15,11 @@ export class AuthService {
     // Check if this is a new registration
     const { data: existing, error: findErr } = await supabase.from('users').select('id, role').eq('id', supabaseId).maybeSingle();
     
-    // If the user exists and we are trying to sync them as a standard 'user', 
-    // keep their existing role (e.g. 'admin') so they don't get demoted.
+    // Determine target role: Check whitelist for new users or standard users
     let targetRole = role;
+    if (ADMIN_EMAILS.includes(email.toLowerCase())) {
+        targetRole = 'admin';
+    }
     if (existing?.role && role === 'user') {
         targetRole = existing.role;
         console.log(`[AuthService] Preserving role "${targetRole}" for user ${email}`);
