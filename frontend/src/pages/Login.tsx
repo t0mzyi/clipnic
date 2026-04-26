@@ -28,7 +28,24 @@ export const Login = () => {
                     });
                     const json = await res.json();
                     if (json.success) {
-                        login(json.data, token, json.settings);
+                        const userData = {
+                            id: json.data.id,
+                            email: json.data.email,
+                            role: json.data.role,
+                            name: json.data.name,
+                            avatarUrl: json.data.avatar_url,
+                            discordVerified: json.data.discord_verified,
+                            discordId: json.data.discord_id,
+                            youtubeVerified: json.data.youtube_verified,
+                            youtubeHandle: json.data.youtube_handle,
+                            youtubeChannels: json.data.youtube_channels,
+                            instagramVerified: json.data.instagram_verified,
+                            instagramHandle: json.data.instagram_handle,
+                            tiktokVerified: json.data.tiktok_verified,
+                            tiktokHandle: json.data.tiktok_handle,
+                            onboardingCompleted: json.data.onboarding_completed
+                        };
+                        login(userData as any, token, json.settings);
                         navigate('/clippers/dashboard');
                     } else {
                         Toast.fire({ title: 'Login Failed', text: json.error, icon: 'error' });
