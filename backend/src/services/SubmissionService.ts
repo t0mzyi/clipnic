@@ -528,11 +528,16 @@ export class SubmissionService {
     for (const sub of data) {
         const uid = sub.user_id;
         if (!aggregated[uid]) {
-            // @ts-ignore - Supabase join returns an object or array of objects in JS 
+            // @ts-ignore
             const userData = Array.isArray(sub.users) ? sub.users[0] : sub.users;
+            const rawName = userData?.name;
+            const displayName = (rawName === null || rawName === undefined || String(rawName).toLowerCase() === 'null') 
+                ? 'Anonymous Clipper' 
+                : rawName;
+
             aggregated[uid] = {
                user_id: uid,
-               name: userData?.name || 'Anonymous Clipper',
+               name: displayName,
                avatar_url: userData?.avatar_url,
                views: 0,
                earnings: 0
@@ -559,7 +564,25 @@ export class SubmissionService {
       .range(offset, offset + limit - 1);
       
     if (error) throw error;
-    return { data: data || [], total: count || 0 };
+
+    // Flatten joined objects and handle null names
+    const flattened = (data || []).map(sub => {
+        const user = Array.isArray(sub.users) ? sub.users[0] : sub.users;
+        const campaign = Array.isArray(sub.campaigns) ? sub.campaigns[0] : sub.campaigns;
+        
+        const rawName = user?.name;
+        const displayName = (rawName === null || rawName === undefined || String(rawName).toLowerCase() === 'null') 
+            ? 'Anonymous Clipper' 
+            : rawName;
+
+        return {
+            ...sub,
+            users: user ? { ...user, name: displayName } : null,
+            campaigns: campaign
+        };
+    });
+
+    return { data: flattened, total: count || 0 };
   }
 
   static async adminUpdateStatus(submissionId: string, status: string, rejectionReason?: string) {
