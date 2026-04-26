@@ -330,7 +330,7 @@ export const CampaignsFeed = () => {
             {/* Campaign Cards */}
             {!loading && sortedCampaigns.length > 0 && (
                 <div id="tour-campaign-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {sortedCampaigns.map((campaign, index) => {
+                    {sortedCampaigns.map((campaign) => {
                         const remaining = campaign.total_budget - campaign.budget_used;
                         const progress = campaign.total_budget > 0 ? (campaign.budget_used / campaign.total_budget) * 100 : 0;
                         const isFull = remaining <= 0;
