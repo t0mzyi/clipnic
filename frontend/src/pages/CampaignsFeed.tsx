@@ -22,12 +22,7 @@ interface Campaign {
     allowed_platforms: string[];
 }
 
-const FALLBACK_BANNERS = [
-    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1612817288484-6f916006741a?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800&auto=format&fit=crop',
-];
+import { getCampaignBanner } from '../utils/campaign';
 
 const MotionLink = motion.create(Link);
 
@@ -213,7 +208,7 @@ export const CampaignsFeed = () => {
                                     className="block h-full w-full relative group/slide cursor-pointer"
                                 >
                                     <img
-                                        src={featured[activeIdx].banner_url || FALLBACK_BANNERS[activeIdx % FALLBACK_BANNERS.length]}
+                                        src={getCampaignBanner(featured[activeIdx].id, featured[activeIdx].banner_url)}
                                         className="absolute inset-0 w-full h-full object-cover opacity-60 transition-transform duration-1000 group-hover/slide:scale-105"
                                         alt={featured[activeIdx].title}
                                     />
@@ -339,7 +334,7 @@ export const CampaignsFeed = () => {
                         const remaining = campaign.total_budget - campaign.budget_used;
                         const progress = campaign.total_budget > 0 ? (campaign.budget_used / campaign.total_budget) * 100 : 0;
                         const isFull = remaining <= 0;
-                        const banner = campaign.banner_url || FALLBACK_BANNERS[index % FALLBACK_BANNERS.length];
+                        const banner = getCampaignBanner(campaign.id, campaign.banner_url);
 
                         return (
                             <MotionLink

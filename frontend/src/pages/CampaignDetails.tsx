@@ -36,10 +36,7 @@ interface Campaign {
     requires_dedicated_social?: boolean;
 }
 
-const FALLBACK_BANNERS = [
-    'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=2000&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1612817288484-6f916006741a?q=80&w=2000&auto=format&fit=crop',
-];
+import { getCampaignBanner } from '../utils/campaign';
 
 export const CampaignDetails = () => {
     const { id } = useParams();
@@ -188,7 +185,7 @@ export const CampaignDetails = () => {
             </Link>
 
             <div className="relative min-h-[400px] md:h-[420px] rounded-[40px] overflow-hidden border border-white/10 group shadow-2xl bg-[#080808]">
-                <img src={campaign.banner_url || FALLBACK_BANNERS[0]} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-1000" alt={campaign.title} />
+                <img src={getCampaignBanner(campaign.id, campaign.banner_url)} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-1000" alt={campaign.title} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
                 <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end gap-6">
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">

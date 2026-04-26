@@ -7,6 +7,7 @@ import Swal from '../lib/swal';
 import { Link } from 'react-router-dom';
 import { Plus, Trash2, ToggleLeft, ToggleRight, Pencil, Search, Eye, Globe, Filter, CheckCircle2, Star, BarChart, Layers } from 'lucide-react';
 import { Dropdown } from '../components/Dropdown';
+import { getCampaignBanner } from '../utils/campaign';
 
 interface Campaign {
     id: string;
@@ -333,12 +334,8 @@ export const AdminCampaigns = () => {
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 group-hover:border-white/20 transition-all">
-                                                        {camp.banner_url ? (
-                                                            <img src={camp.banner_url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all" alt="" />
-                                                        ) : (
-                                                            <Layers className="w-5 h-5 text-white/10" />
-                                                        )}
-                                                    </div>
+                                                         <img src={getCampaignBanner(camp.id, camp.banner_url)} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all" alt="" />
+                                                     </div>
                                                     <div className="flex flex-col min-w-0">
                                                         <Link to={`/clippers/campaigns/${camp.id}`} target="_blank" className="font-bold text-white/90 hover:text-white transition-colors truncate">
                                                             {camp.title}
