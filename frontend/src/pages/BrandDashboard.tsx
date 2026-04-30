@@ -200,11 +200,71 @@ const CampaignDetailsView = ({ campaign, token }: { campaign: any, token: string
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <MetricBox label="Reach" value={totalViews.toLocaleString()} icon={<TrendingUp size={18} />} />
+            <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <MetricBox label="Total Reach" value={totalViews.toLocaleString()} icon={<TrendingUp size={18} />} />
                 <MetricBox label="Investment" value={`$${totalSpent.toFixed(2)}`} icon={<DollarSign size={18} />} />
                 <MetricBox label="Creatives" value={submissions.length.toString()} icon={<Play size={18} />} />
                 <MetricBox label="CPM Rate" value={`$${campaign.cpm_rate}`} icon={<TrendingUp size={18} />} />
+                <MetricBox label="Avg. Velocity" value={(totalViews / (submissions.length || 1)).toLocaleString(undefined, {maximumFractionDigits: 0})} icon={<TrendingUp size={18} />} />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-white/[0.02] border border-white/5 rounded-2xl p-6">
+                    <div className="flex justify-between items-center mb-8">
+                        <h3 className="font-bold text-white/60 text-sm uppercase tracking-wider">Platform Performance</h3>
+                        <div className="flex gap-4">
+                            {['youtube', 'tiktok', 'instagram'].map(p => (
+                                <div key={p} className="flex items-center gap-1.5">
+                                    <div className={`w-2 h-2 rounded-full ${p === 'youtube' ? 'bg-red-500' : p === 'tiktok' ? 'bg-emerald-400' : 'bg-purple-500'}`} />
+                                    <span className="text-[10px] uppercase text-white/20 font-bold">{p}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="space-y-6">
+                        {['youtube', 'tiktok', 'instagram'].map(platform => {
+                            const platformViews = submissions.filter(s => s.platform === platform && s.status !== 'Rejected').reduce((acc, s) => acc + s.views, 0);
+                            const percentage = totalViews > 0 ? (platformViews / totalViews) * 100 : 0;
+                            return (
+                                <div key={platform} className="space-y-2">
+                                    <div className="flex justify-between items-end">
+                                        <p className="text-xs font-bold text-white/60 capitalize">{platform}</p>
+                                        <p className="text-xs font-mono text-white/40">{platformViews.toLocaleString()} views ({percentage.toFixed(1)}%)</p>
+                                    </div>
+                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                        <motion.div 
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${percentage}%` }}
+                                            transition={{ duration: 1, ease: "easeOut" }}
+                                            className={`h-full rounded-full ${platform === 'youtube' ? 'bg-red-500' : platform === 'tiktok' ? 'bg-emerald-400' : 'bg-purple-500'}`} 
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 flex flex-col justify-between">
+                    <div>
+                        <h3 className="font-bold text-white/60 text-sm uppercase tracking-wider mb-2">Network Health</h3>
+                        <p className="text-xs text-white/20 leading-relaxed">Your campaign is currently distributed across {new Set(submissions.map(s => s.user_id)).size} unique creator nodes.</p>
+                    </div>
+                    <div className="mt-8 space-y-4">
+                        <div className="p-4 bg-white/[0.03] border border-white/5 rounded-xl">
+                            <p className="text-[10px] uppercase tracking-widest text-white/20 mb-1">Approval Rating</p>
+                            <p className="text-xl font-bold text-emerald-400">
+                                {((submissions.filter(s => s.status === 'Verified' || s.status === 'Paid').length / (submissions.length || 1)) * 100).toFixed(1)}%
+                            </p>
+                        </div>
+                        <div className="p-4 bg-white/[0.03] border border-white/5 rounded-xl">
+                            <p className="text-[10px] uppercase tracking-widest text-white/20 mb-1">Efficiency Factor</p>
+                            <p className="text-xl font-bold text-white">
+                                {totalViews > 100000 ? 'High' : totalViews > 10000 ? 'Medium' : 'Standard'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
