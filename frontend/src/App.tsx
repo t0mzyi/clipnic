@@ -16,10 +16,7 @@ import {
     Shield,
     Menu,
     Bug,
-    Briefcase,
-    Search,
-    ChevronRight,
-    Play
+    Briefcase
 } from 'lucide-react';
 import { CampaignsFeed } from './pages/CampaignsFeed';
 import { CampaignDetails } from './pages/CampaignDetails';
@@ -226,88 +223,33 @@ const BrandSidebarContent = ({ closeMenu }: { closeMenu: () => void }) => {
         if (token) fetchCampaigns();
     }, [token]);
 
-    const [searchTerm, setSearchTerm] = useState('');
-
-    const filteredCampaigns = campaigns.filter(c => 
-        c.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     return (
         <div className="flex flex-col h-full overflow-hidden">
-            <div className="mb-8 space-y-4">
-                <div className="flex items-center gap-3 px-2">
-                    <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-black shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-                        <Box size={20} />
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 leading-none mb-1">Terminal</p>
-                        <p className="text-xs font-bold text-white uppercase tracking-wider">Enterprise v1.0</p>
-                    </div>
-                </div>
-
-                <div className="relative group px-2">
-                    <Search size={14} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-emerald-500 transition-colors" />
-                    <input 
-                        type="text" 
-                        placeholder="Filter missions..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-2.5 pl-10 pr-4 text-[10px] uppercase tracking-widest text-white/60 focus:outline-none focus:border-emerald-500/30 focus:bg-white/[0.05] transition-all"
-                    />
-                </div>
-            </div>
-
-            <div className="mb-4 text-[9px] font-black text-white/10 uppercase tracking-[0.4em] px-2 flex items-center gap-2">
-                <span>Active Infrastructure</span>
-                <div className="h-px flex-1 bg-white/5" />
-            </div>
-
-            <nav className="flex-1 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-2">
+            <div className="mb-6 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] px-4 py-2 border border-white/5 rounded-xl bg-white/[0.02]">Active Campaigns</div>
+            <nav className="flex-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-2">
                 <Link
                     to="/brands/dashboard"
                     onClick={closeMenu}
-                    className={`transition-all py-3.5 px-4 rounded-2xl flex items-center justify-between group ${location.pathname === '/brands/dashboard' && !location.search ? 'bg-white/10 text-white font-bold shadow-inner' : 'text-white/30 hover:text-white/70 hover:bg-white/5'}`}
+                    className={`transition-all py-3 px-4 rounded-xl flex items-center gap-3 ${location.pathname === '/brands/dashboard' && !location.search ? 'bg-white/10 text-white font-bold' : 'text-white/30 hover:text-white/70 hover:bg-white/5'}`}
                 >
-                    <div className="flex items-center gap-3">
-                        <BarChart3 size={18} className={location.pathname === '/brands/dashboard' && !location.search ? 'text-emerald-400' : 'text-white/20 group-hover:text-white/40'} />
-                        <span className="text-xs uppercase tracking-wider">Control Panel</span>
-                    </div>
-                    {location.pathname === '/brands/dashboard' && !location.search && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,1)]" />}
+                    <BarChart3 size={18} />
+                    <span className="text-xs uppercase tracking-wider">Overview</span>
                 </Link>
 
-                <div className="h-px bg-white/5 my-4 mx-2" />
+                <div className="h-px bg-white/5 my-2" />
 
-                {filteredCampaigns.map(camp => (
+                {campaigns.map(camp => (
                     <Link
                         key={camp.id}
                         to={`/brands/dashboard?id=${camp.id}`}
                         onClick={closeMenu}
-                        className={`transition-all py-3.5 px-4 rounded-2xl flex items-center justify-between group ${location.search.includes(camp.id) ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold shadow-[inset_0_0_20px_rgba(16,185,129,0.05)]' : 'text-white/30 hover:text-white/70 hover:bg-white/5'}`}
+                        className={`transition-all py-3 px-4 rounded-xl flex items-center gap-3 ${location.search.includes(camp.id) ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold' : 'text-white/30 hover:text-white/70 hover:bg-white/5'}`}
                     >
-                        <div className="flex items-center gap-3 overflow-hidden">
-                            <div className={`shrink-0 w-2 h-2 rounded-full ${camp.status === 'Active' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-white/20'}`} />
-                            <span className="text-[11px] uppercase tracking-wide truncate">{camp.title}</span>
-                        </div>
-                        {location.search.includes(camp.id) && <ChevronRight size={14} className="text-emerald-500" />}
+                        <div className={`w-2 h-2 rounded-full ${camp.status === 'Active' ? 'bg-emerald-500' : 'bg-white/20'}`} />
+                        <span className="text-xs truncate">{camp.title}</span>
                     </Link>
                 ))}
-
-                {filteredCampaigns.length === 0 && searchTerm && (
-                    <div className="px-4 py-8 text-center border border-dashed border-white/5 rounded-2xl opacity-20 italic text-[10px] uppercase tracking-widest">
-                        No matches found
-                    </div>
-                )}
             </nav>
-
-            <div className="mt-auto pt-6 border-t border-white/5">
-                 <button 
-                    onClick={async () => { await supabase.auth.signOut(); useAuthStore.getState().logout(); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500/50 hover:text-red-500 hover:bg-red-500/5 transition-all text-xs uppercase font-bold tracking-widest"
-                >
-                    <Play className="rotate-180" size={14} />
-                    Logout Session
-                </button>
-            </div>
         </div>
     );
 };
@@ -609,7 +551,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                     {/* Mobile Header */}
                     {!location.pathname.startsWith('/admin') && (
                         <div className="md:hidden flex-shrink-0 bg-black/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-between px-6 z-50 sticky top-0">
-                            <Link to={user?.role === 'brand' ? "/brands/dashboard" : "/clippers/campaigns"} className="flex items-center gap-2">
+                            <Link to="/clippers/campaigns" className="flex items-center gap-2">
                                 <img src="/logo.webp" alt="Logo" className="h-7 w-auto object-contain" />
                                 <span className="text-lg font-bold tracking-tight text-premium-white">
                                     clipnic.com
