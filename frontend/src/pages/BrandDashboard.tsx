@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Box, Play, DollarSign, TrendingUp, BarChart3, Target, Calendar, ArrowRight, ExternalLink } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
@@ -124,20 +124,24 @@ const BrandOverview = ({ campaigns, token }: { campaigns: any[], token: string |
                             <p className="text-white/10 italic">No assigned campaigns found.</p>
                         </div>
                     ) : campaigns.map(camp => (
-                        <div key={camp.id} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-all group">
+                        <Link 
+                            key={camp.id} 
+                            to={`/brands/dashboard?id=${camp.id}`} 
+                            className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-all group border-transparent hover:border-white/10"
+                        >
                             <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center font-bold text-white/40">
                                     {camp.title.charAt(0)}
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-bold group-hover:text-white transition-colors">{camp.title}</h4>
+                                    <h4 className="text-sm font-bold text-white/80 group-hover:text-white transition-colors">{camp.title}</h4>
                                     <p className="text-[10px] text-white/30 uppercase tracking-widest mt-0.5">${camp.total_budget} Budget</p>
                                 </div>
                             </div>
-                            <a href={`/brands/dashboard?id=${camp.id}`} className="p-2 bg-white/5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all">
+                            <div className="p-2 bg-white/5 rounded-lg text-white/40 group-hover:text-white group-hover:bg-white/10 transition-all">
                                 <ArrowRight size={18} />
-                            </a>
-                        </div>
+                            </div>
+                        </Link>
                     ))}
                 </div>
             </div>
