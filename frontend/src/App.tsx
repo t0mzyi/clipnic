@@ -16,7 +16,10 @@ import {
     Shield,
     Menu,
     Bug,
-    Briefcase
+    Briefcase,
+    Search,
+    ChevronRight,
+    Play
 } from 'lucide-react';
 import { CampaignsFeed } from './pages/CampaignsFeed';
 import { CampaignDetails } from './pages/CampaignDetails';
