@@ -152,6 +152,7 @@ const BrandOverview = ({ campaigns, token }: { campaigns: any[], token: string |
 const CampaignDetailsView = ({ campaign, token }: { campaign: any, token: string | null }) => {
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'performance' | 'submissions'>('performance');
 
     useEffect(() => {
         const fetchSubmissions = async () => {
@@ -200,145 +201,180 @@ const CampaignDetailsView = ({ campaign, token }: { campaign: any, token: string
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                <MetricBox label="Total Reach" value={totalViews.toLocaleString()} icon={<TrendingUp size={18} />} />
-                <MetricBox label="Investment" value={`$${totalSpent.toFixed(2)}`} icon={<DollarSign size={18} />} />
-                <MetricBox label="Creatives" value={submissions.length.toString()} icon={<Play size={18} />} />
-                <MetricBox label="CPM Rate" value={`$${campaign.cpm_rate}`} icon={<TrendingUp size={18} />} />
-                <MetricBox label="Avg. Velocity" value={(totalViews / (submissions.length || 1)).toLocaleString(undefined, {maximumFractionDigits: 0})} icon={<TrendingUp size={18} />} />
+            <div className="flex gap-8 border-b border-white/5 mb-8">
+                <button 
+                    onClick={() => setActiveTab('performance')}
+                    className={`pb-4 text-xs uppercase tracking-widest font-bold transition-all relative ${activeTab === 'performance' ? 'text-emerald-400' : 'text-white/20 hover:text-white/40'}`}
+                >
+                    Performance Overview
+                    {activeTab === 'performance' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400" />}
+                </button>
+                <button 
+                    onClick={() => setActiveTab('submissions')}
+                    className={`pb-4 text-xs uppercase tracking-widest font-bold transition-all relative ${activeTab === 'submissions' ? 'text-emerald-400' : 'text-white/20 hover:text-white/40'}`}
+                >
+                    Submissions Log
+                    {activeTab === 'submissions' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400" />}
+                </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white/[0.02] border border-white/5 rounded-2xl p-6">
-                    <div className="flex justify-between items-center mb-8">
-                        <h3 className="font-bold text-white/60 text-sm uppercase tracking-wider">Platform Performance</h3>
-                        <div className="flex gap-4">
-                            {['youtube', 'tiktok', 'instagram'].map(p => (
-                                <div key={p} className="flex items-center gap-1.5">
-                                    <div className={`w-2 h-2 rounded-full ${p === 'youtube' ? 'bg-red-500' : p === 'tiktok' ? 'bg-emerald-400' : 'bg-purple-500'}`} />
-                                    <span className="text-[10px] uppercase text-white/20 font-bold">{p}</span>
-                                </div>
-                            ))}
+            <AnimatePresence mode="wait">
+                {activeTab === 'performance' ? (
+                    <motion.div 
+                        key="performance"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        className="space-y-8"
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            <MetricBox label="Total Reach" value={totalViews.toLocaleString()} icon={<TrendingUp size={18} />} />
+                            <MetricBox label="Investment" value={`$${totalSpent.toFixed(2)}`} icon={<DollarSign size={18} />} />
+                            <MetricBox label="Creatives" value={submissions.length.toString()} icon={<Play size={18} />} />
+                            <MetricBox label="CPM Rate" value={`$${campaign.cpm_rate}`} icon={<TrendingUp size={18} />} />
+                            <MetricBox label="Avg. Velocity" value={(totalViews / (submissions.length || 1)).toLocaleString(undefined, {maximumFractionDigits: 0})} icon={<TrendingUp size={18} />} />
                         </div>
-                    </div>
-                    <div className="space-y-6">
-                        {['youtube', 'tiktok', 'instagram'].map(platform => {
-                            const platformViews = submissions.filter(s => s.platform === platform && s.status !== 'Rejected').reduce((acc, s) => acc + s.views, 0);
-                            const percentage = totalViews > 0 ? (platformViews / totalViews) * 100 : 0;
-                            return (
-                                <div key={platform} className="space-y-2">
-                                    <div className="flex justify-between items-end">
-                                        <p className="text-xs font-bold text-white/60 capitalize">{platform}</p>
-                                        <p className="text-xs font-mono text-white/40">{platformViews.toLocaleString()} views ({percentage.toFixed(1)}%)</p>
-                                    </div>
-                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                        <motion.div 
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${percentage}%` }}
-                                            transition={{ duration: 1, ease: "easeOut" }}
-                                            className={`h-full rounded-full ${platform === 'youtube' ? 'bg-red-500' : platform === 'tiktok' ? 'bg-emerald-400' : 'bg-purple-500'}`} 
-                                        />
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 bg-white/[0.02] border border-white/5 rounded-2xl p-6">
+                                <div className="flex justify-between items-center mb-8">
+                                    <h3 className="font-bold text-white/60 text-sm uppercase tracking-wider">Platform Performance</h3>
+                                    <div className="flex gap-4">
+                                        {['youtube', 'tiktok', 'instagram'].map(p => (
+                                            <div key={p} className="flex items-center gap-1.5">
+                                                <div className={`w-2 h-2 rounded-full ${p === 'youtube' ? 'bg-red-500' : p === 'tiktok' ? 'bg-emerald-400' : 'bg-purple-500'}`} />
+                                                <span className="text-[10px] uppercase text-white/20 font-bold">{p}</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 flex flex-col justify-between">
-                    <div>
-                        <h3 className="font-bold text-white/60 text-sm uppercase tracking-wider mb-2">Network Health</h3>
-                        <p className="text-xs text-white/20 leading-relaxed">Your campaign is currently distributed across {new Set(submissions.map(s => s.user_id)).size} unique creator nodes.</p>
-                    </div>
-                    <div className="mt-8 space-y-4">
-                        <div className="p-4 bg-white/[0.03] border border-white/5 rounded-xl">
-                            <p className="text-[10px] uppercase tracking-widest text-white/20 mb-1">Approval Rating</p>
-                            <p className="text-xl font-bold text-emerald-400">
-                                {((submissions.filter(s => s.status === 'Verified' || s.status === 'Paid').length / (submissions.length || 1)) * 100).toFixed(1)}%
-                            </p>
-                        </div>
-                        <div className="p-4 bg-white/[0.03] border border-white/5 rounded-xl">
-                            <p className="text-[10px] uppercase tracking-widest text-white/20 mb-1">Efficiency Factor</p>
-                            <p className="text-xl font-bold text-white">
-                                {totalViews > 100000 ? 'High' : totalViews > 10000 ? 'Medium' : 'Standard'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
-                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/[0.02]">
-                    <h3 className="font-semibold text-white/80 text-sm">Submission Intelligence</h3>
-                    <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider">{submissions.length} total entries</p>
-                </div>
-
-                {loading ? (
-                    <div className="p-16 text-center text-white/20 text-xs tracking-widest">Loading data...</div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="text-[10px] uppercase tracking-wider text-white/40 border-b border-white/10 bg-white/[0.01]">
-                                    <th className="px-6 py-4 font-semibold w-16">Preview</th>
-                                    <th className="px-6 py-4 font-semibold">Video URL</th>
-                                    <th className="px-6 py-4 font-semibold">Network</th>
-                                    <th className="px-6 py-4 font-semibold text-right">Reach</th>
-                                    <th className="px-6 py-4 font-semibold text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {submissions.map((sub: any) => {
-                                    const thumbnail = getThumbnailUrl(sub.url, sub.platform);
-                                    return (
-                                        <tr key={sub.id} className="hover:bg-white/[0.01] transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="w-12 h-16 rounded-lg bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center relative group/thumb">
-                                                    {thumbnail ? (
-                                                        <img src={thumbnail} alt="Preview" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <Play size={16} className="text-white/10" />
-                                                    )}
-                                                    <a href={sub.url} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center">
-                                                        <ExternalLink size={14} className="text-white" />
-                                                    </a>
+                                <div className="space-y-6">
+                                    {['youtube', 'tiktok', 'instagram'].map(platform => {
+                                        const platformViews = submissions.filter(s => s.platform === platform && s.status !== 'Rejected').reduce((acc, s) => acc + s.views, 0);
+                                        const percentage = totalViews > 0 ? (platformViews / totalViews) * 100 : 0;
+                                        return (
+                                            <div key={platform} className="space-y-2">
+                                                <div className="flex justify-between items-end">
+                                                    <p className="text-xs font-bold text-white/60 capitalize">{platform}</p>
+                                                    <p className="text-xs font-mono text-white/40">{platformViews.toLocaleString()} views ({percentage.toFixed(1)}%)</p>
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 max-w-[300px]">
-                                                <a href={sub.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors">
-                                                    <span className="truncate text-xs">{sub.url}</span>
-                                                    <ExternalLink size={12} className="opacity-40" />
-                                                </a>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="text-xs text-white/50">{sub.platform}</span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right font-medium text-white/90 text-sm">
-                                                {sub.views.toLocaleString()}
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <span className={`px-2 py-1 rounded text-[10px] font-medium ${
-                                                    sub.status === 'Verified' ? 'text-emerald-400 bg-emerald-400/10' :
-                                                    sub.status === 'Rejected' ? 'text-red-400 bg-red-400/10' :
-                                                    sub.status === 'Paid' ? 'text-blue-400 bg-blue-400/10' :
-                                                    'text-white/40 bg-white/10'
-                                                }`}>
-                                                    {sub.status}
-                                                </span>
-                                            </td>
+                                                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                                    <motion.div 
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${percentage}%` }}
+                                                        transition={{ duration: 1, ease: "easeOut" }}
+                                                        className={`h-full rounded-full ${platform === 'youtube' ? 'bg-red-500' : platform === 'tiktok' ? 'bg-emerald-400' : platform === 'purple-500'}`} 
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 flex flex-col justify-between">
+                                <div>
+                                    <h3 className="font-bold text-white/60 text-sm uppercase tracking-wider mb-2">Network Health</h3>
+                                    <p className="text-xs text-white/20 leading-relaxed">Your campaign is currently distributed across {new Set(submissions.map(s => s.user_id)).size} unique creator nodes.</p>
+                                </div>
+                                <div className="mt-8 space-y-4">
+                                    <div className="p-4 bg-white/[0.03] border border-white/5 rounded-xl">
+                                        <p className="text-[10px] uppercase tracking-widest text-white/20 mb-1">Approval Rating</p>
+                                        <p className="text-xl font-bold text-emerald-400">
+                                            {((submissions.filter(s => s.status === 'Verified' || s.status === 'Paid').length / (submissions.length || 1)) * 100).toFixed(1)}%
+                                        </p>
+                                    </div>
+                                    <div className="p-4 bg-white/[0.03] border border-white/5 rounded-xl">
+                                        <p className="text-[10px] uppercase tracking-widest text-white/20 mb-1">Efficiency Factor</p>
+                                        <p className="text-xl font-bold text-white">
+                                            {totalViews > 100000 ? 'High' : totalViews > 10000 ? 'Medium' : 'Standard'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                ) : (
+                    <motion.div 
+                        key="submissions"
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden"
+                    >
+                        <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/[0.02]">
+                            <h3 className="font-semibold text-white/80 text-sm">Submission Intelligence</h3>
+                            <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider">{submissions.length} total entries</p>
+                        </div>
+
+                        {loading ? (
+                            <div className="p-16 text-center text-white/20 text-xs tracking-widest">Loading data...</div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="text-[10px] uppercase tracking-wider text-white/40 border-b border-white/10 bg-white/[0.01]">
+                                            <th className="px-6 py-4 font-semibold w-16">Preview</th>
+                                            <th className="px-6 py-4 font-semibold">Video URL</th>
+                                            <th className="px-6 py-4 font-semibold">Network</th>
+                                            <th className="px-6 py-4 font-semibold text-right">Reach</th>
+                                            <th className="px-6 py-4 font-semibold text-center">Status</th>
                                         </tr>
-                                    );
-                                })}
-                                {submissions.length === 0 && (
-                                    <tr>
-                                        <td colSpan={4} className="px-6 py-16 text-center text-white/20 text-sm italic">No submissions found.</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {submissions.map((sub: any) => {
+                                            const thumbnail = getThumbnailUrl(sub.url, sub.platform);
+                                            return (
+                                                <tr key={sub.id} className="hover:bg-white/[0.01] transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="w-12 h-16 rounded-lg bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center relative group/thumb">
+                                                            {thumbnail ? (
+                                                                <img src={thumbnail} alt="Preview" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <Play size={16} className="text-white/10" />
+                                                            )}
+                                                            <a href={sub.url} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center">
+                                                                <ExternalLink size={14} className="text-white" />
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 max-w-[300px]">
+                                                        <a href={sub.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors">
+                                                            <span className="truncate text-xs">{sub.url}</span>
+                                                            <ExternalLink size={12} className="opacity-40" />
+                                                        </a>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="text-xs text-white/50">{sub.platform}</span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right font-medium text-white/90 text-sm">
+                                                        {sub.views.toLocaleString()}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <span className={`px-2 py-1 rounded text-[10px] font-medium ${
+                                                            sub.status === 'Verified' ? 'text-emerald-400 bg-emerald-400/10' :
+                                                            sub.status === 'Rejected' ? 'text-red-400 bg-red-400/10' :
+                                                            sub.status === 'Paid' ? 'text-blue-400 bg-blue-400/10' :
+                                                            'text-white/40 bg-white/10'
+                                                        }`}>
+                                                            {sub.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                        {submissions.length === 0 && (
+                                            <tr>
+                                                <td colSpan={5} className="px-6 py-16 text-center text-white/20 text-sm italic">No submissions found.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </motion.div>
                 )}
-            </div>
+            </AnimatePresence>
         </div>
     );
 };
