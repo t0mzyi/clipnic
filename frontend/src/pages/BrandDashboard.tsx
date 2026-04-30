@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Box, Play, DollarSign, TrendingUp, BarChart3, Target, Calendar, ArrowRight, ExternalLink } from 'lucide-react';
+import { Play, Calendar, ArrowRight, ExternalLink } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-import { Toast } from '../lib/swal';
 
 export const BrandDashboard = () => {
     const { token } = useAuthStore();

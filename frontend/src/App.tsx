@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import {
     LayoutGrid,
-    Globe,
     Target,
     Upload,
     DollarSign,
@@ -54,34 +53,6 @@ const CampaignRedirect = () => {
 };
 
 
-const BrandUnderConstruction = () => (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6 text-center">
-        <div className="max-w-2xl space-y-8">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto border border-white/10"
-            >
-                <Box size={48} className="text-white/20" />
-            </motion.div>
-            <div className="space-y-4">
-                <h1 className="text-5xl font-bold tracking-tighter uppercase glassy-text">Under Development</h1>
-                <p className="text-white/40 text-lg font-light">This webpage is currently under development. For inquiries or to get started, please contact us via Discord.</p>
-            </div>
-            <div className="pt-8 flex flex-col sm:flex-row justify-center gap-4">
-                <a
-                    href="https://discord.gg/m4d6QA6w3"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-8 py-3 rounded-full bg-[#5865F2] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#4752C4] transition-all flex items-center justify-center gap-2"
-                >
-                    Join Our Discord
-                </a>
-                <Link to="/" className="px-8 py-3 rounded-full border border-white/10 text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">Return to Home</Link>
-            </div>
-        </div>
-    </div>
-);
 
 const NotFound = () => (
     <div className="min-h-[70vh] flex items-center justify-center p-6 text-center">
@@ -279,7 +250,7 @@ const AdminDock = () => {
                 <div className="absolute inset-x-0 top-0 h-[40%] bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none rounded-t-full" />
 
                 {items.map((item) => {
-                    const isActive = location.pathname === item.to || (item.to !== '/admin' && location.pathname.startsWith(item.to));
+                    const isActive = item.to ? (location.pathname === item.to || (item.to !== '/admin' && location.pathname.startsWith(item.to))) : false;
                     // Mobile-responsive icon size
                     const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
                     const iconSize = isMobile ? 18 : 22;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Box, Plus, Search, Trash2, Link as LinkIcon, Unlink, Check, X, ChevronDown, ChevronUp, Settings2, Key, ShieldAlert } from 'lucide-react';
+import { Box, Plus, Search, X, Settings2, Key, ShieldAlert } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Toast } from '../lib/swal';
 import { Button } from '../components/ui/Button';
@@ -161,7 +161,6 @@ export const AdminBrands = () => {
 
 const BrandCard = ({ brand, token, allCampaigns }: { brand: any, token: string | null, allCampaigns: any[] }) => {
     const [assigned, setAssigned] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [showPasswordReset, setShowPasswordReset] = useState(false);
     const [newPassword, setNewPassword] = useState('');
@@ -178,8 +177,6 @@ const BrandCard = ({ brand, token, allCampaigns }: { brand: any, token: string |
             }
         } catch (error) {
             console.error(error);
-        } finally {
-            setLoading(false);
         }
     };
 

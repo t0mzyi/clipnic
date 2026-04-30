@@ -26,7 +26,7 @@ export const BrandLogin = () => {
             const json = await res.json();
             
             if (json.success) {
-                login(json.user, json.token, null);
+                login(json.user, json.token);
                 navigate('/brands/dashboard');
             } else {
                 Toast.fire({ title: 'Login Failed', text: json.error || 'Invalid credentials', icon: 'error' });
