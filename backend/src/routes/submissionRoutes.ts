@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { SubmissionController } from '../controllers/SubmissionController';
-import { authenticate } from '../middleware/authMiddleware';
+import { authenticate, requireRole } from '../middleware/authMiddleware';
 
 const router = Router();
 
@@ -17,5 +17,8 @@ router.delete('/:id', authenticate, SubmissionController.deleteSubmission);
 
 // Public or general route for Leaderboard
 router.get('/campaign/:campaignId/leaderboard', SubmissionController.getLeaderboard);
+
+// Brand routes
+router.get('/brand/:campaignId', authenticate, requireRole('brand'), SubmissionController.getBrandCampaignSubmissions);
 
 export default router;

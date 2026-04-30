@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
 import { SubmissionService } from '../services/SubmissionService';
 import { paginationSchema } from '../utils/validation';
+import { supabase } from '../config/supabase';
 
 export class SubmissionController {
   static async submitClip(req: Request, res: Response) {
@@ -58,6 +58,45 @@ export class SubmissionController {
       const data = await SubmissionService.getCampaignLeaderboard(campaignId);
       res.json({ success: true, data });
     } catch (err: any) {
+      res.status(400).json({ success: false, error: err.message });
+    }
+  }
+
+  static async getBrandCampaignSubmissions(req: Request, res: Response) {
+    try {
+      const brandId = (req as any).user.id;
+      const campaignId = req.params.campaignId;
+      
+      console.log(`[SubmissionController] Brand ${brandId} checking access for Campaign ${campaignId}`);
+
+      const { data: assignment, error: assignErr } = await supabase
+        .from('brand_campaigns')
+        .select('id')
+        .eq('brand_id', brandId)
+        .eq('campaign_id', campaignId)
+        .maybeSingle();
+
+      if (assignErr) {
+          console.error(`[SubmissionController] Assignment check error:`, assignErr);
+          throw assignErr;
+      }
+
+      if (!assignment) {
+        console.warn(`[SubmissionController] Unauthorized access attempt: Brand ${brandId} -> Campaign ${campaignId}`);
+        return res.status(403).json({ success: false, error: 'Not authorized for this campaign' });
+      }
+
+      const { page, limit } = paginationSchema.parse(req.query);
+      const { data, total } = await SubmissionService.adminGetAllSubmissions(page, limit, campaignId);
+      
+      console.log(`[SubmissionController] Successfully fetched ${data.length} submissions for brand.`);
+      res.json({ 
+          success: true, 
+          data: data, // This is the array
+          pagination: { page, limit, total, pages: Math.ceil(total/limit) } 
+      });
+    } catch (err: any) {
+      console.error(`[SubmissionController] Error in getBrandCampaignSubmissions:`, err);
       res.status(400).json({ success: false, error: err.message });
     }
   }

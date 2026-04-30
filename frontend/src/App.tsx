@@ -15,7 +15,8 @@ import {
     LogOut,
     Shield,
     Menu,
-    Bug
+    Bug,
+    Briefcase
 } from 'lucide-react';
 import { CampaignsFeed } from './pages/CampaignsFeed';
 import { CampaignDetails } from './pages/CampaignDetails';
@@ -33,6 +34,9 @@ import { AdminPayouts } from './pages/AdminPayouts';
 import { AdminCampaignDetails } from './pages/AdminCampaignDetails';
 import { JoinedCampaigns } from './pages/JoinedCampaigns';
 import { Login } from './pages/Login';
+import { BrandLogin } from './pages/BrandLogin';
+import { BrandDashboard } from './pages/BrandDashboard';
+import { AdminBrands } from './pages/AdminBrands';
 import ComingSoon from './pages/ComingSoon';
 import Maintenance from './pages/Maintenance';
 import { supabase } from './lib/supabase';
@@ -116,17 +120,18 @@ const NotFound = () => (
 
 const Sidebar = ({ isOpen, closeMenu, onReportBug }: { isOpen: boolean, closeMenu: () => void, onReportBug: () => void }) => {
     const location = useLocation();
-    const { user } = useAuthStore();
+    const { user, logout } = useAuthStore();
     const isAdmin = user?.role === 'admin';
+    const isBrand = user?.role === 'brand';
     const isAdminPortal = location.pathname.startsWith('/admin');
 
     return (
         <aside className={`w-72 border-r border-white/10 bg-black/95 backdrop-blur-xl z-[100] flex flex-col px-6 py-8 transition-transform duration-500 ease-[0.16,1,0.3,1] ${isOpen ? 'fixed inset-y-0 left-0 translate-x-0 h-full' : 'fixed inset-y-0 left-0 -translate-x-full md:sticky md:top-0 md:h-screen md:translate-x-0'} ${isAdminPortal ? 'hidden md:hidden' : 'flex'}`}>
             <div className="flex items-center justify-between mb-8">
-                <Link to="/clippers/campaigns" className="flex items-center gap-1.5 group">
+                <Link to={isBrand ? "/brands/dashboard" : "/clippers/campaigns"} className="flex items-center gap-1.5 group">
                     <img src="/logo.webp" alt="Logo" className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
-                    <span className="text-xl font-bold tracking-tight text-premium-white">
-                        CLIPNIC.COM
+                    <span className="text-xl font-bold tracking-tight text-premium-white uppercase">
+                        Enterprise
                     </span>
                 </Link>
                 <button onClick={closeMenu} className="md:hidden text-white/50 hover:text-white">
@@ -134,16 +139,10 @@ const Sidebar = ({ isOpen, closeMenu, onReportBug }: { isOpen: boolean, closeMen
                 </button>
             </div>
 
-
-            {!isAdminPortal ? (
+            {isBrand ? (
+                <BrandSidebarContent closeMenu={closeMenu} />
+            ) : !isAdminPortal ? (
                 <>
-                    <nav className="flex flex-col gap-2 text-sm font-medium mb-8 mt-14">
-                        <Link id="sidebar-active-campaigns" onClick={closeMenu} to="/clippers/campaigns" className={`transition-all py-3 px-4 rounded-xl flex items-center gap-3 ${location.pathname === '/clippers/campaigns' ? 'bg-white/15 text-white font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
-                            <Globe size={18} className={location.pathname === '/clippers/campaigns' ? 'text-emerald-400' : ''} />
-                            <span className="glassy-text">Active Campaigns</span>
-                        </Link>
-                    </nav>
-
                     <div className="mb-4 text-xs font-bold text-white/20 uppercase tracking-[0.2em] px-4 py-2 rounded-xl glassy-glow-premium">Clipper Portal</div>
                     <nav className="flex flex-col gap-2 text-sm font-medium mb-10 overflow-y-auto">
                         <Link id="sidebar-dashboard" onClick={closeMenu} to="/clippers/dashboard" className={`transition-colors py-2 px-3 rounded-lg flex items-center gap-3 ${location.pathname === '/clippers/dashboard' ? 'bg-white/15 text-white border border-white/5' : 'text-white/40 hover:text-white/90 hover:bg-white/5'}`}>
@@ -193,6 +192,7 @@ const Sidebar = ({ isOpen, closeMenu, onReportBug }: { isOpen: boolean, closeMen
                 <button
                     onClick={async () => {
                         await supabase.auth.signOut();
+                        logout();
                         closeMenu();
                     }}
                     className="w-full transition-colors py-2 px-3 rounded-lg flex items-center gap-3 text-white/50 hover:text-white/90 hover:bg-red-500/10 hover:text-red-400 group"
@@ -202,6 +202,55 @@ const Sidebar = ({ isOpen, closeMenu, onReportBug }: { isOpen: boolean, closeMen
                 </button>
             </div>
         </aside>
+    );
+};
+
+const BrandSidebarContent = ({ closeMenu }: { closeMenu: () => void }) => {
+    const { token } = useAuthStore();
+    const [campaigns, setCampaigns] = useState<any[]>([]);
+    const location = useLocation();
+
+    useEffect(() => {
+        const fetchCampaigns = async () => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/brand-assigned`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                if (json.success) setCampaigns(json.data);
+            } catch (err) { console.error(err); }
+        };
+        if (token) fetchCampaigns();
+    }, [token]);
+
+    return (
+        <div className="flex flex-col h-full overflow-hidden">
+            <div className="mb-6 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] px-4 py-2 border border-white/5 rounded-xl bg-white/[0.02]">Active Campaigns</div>
+            <nav className="flex-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-2">
+                <Link
+                    to="/brands/dashboard"
+                    onClick={closeMenu}
+                    className={`transition-all py-3 px-4 rounded-xl flex items-center gap-3 ${location.pathname === '/brands/dashboard' && !location.search ? 'bg-white/10 text-white font-bold' : 'text-white/30 hover:text-white/70 hover:bg-white/5'}`}
+                >
+                    <BarChart3 size={18} />
+                    <span className="text-xs uppercase tracking-wider">Overview</span>
+                </Link>
+
+                <div className="h-px bg-white/5 my-2" />
+
+                {campaigns.map(camp => (
+                    <Link
+                        key={camp.id}
+                        to={`/brands/dashboard?id=${camp.id}`}
+                        onClick={closeMenu}
+                        className={`transition-all py-3 px-4 rounded-xl flex items-center gap-3 ${location.search.includes(camp.id) ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold' : 'text-white/30 hover:text-white/70 hover:bg-white/5'}`}
+                    >
+                        <div className={`w-2 h-2 rounded-full ${camp.status === 'Active' ? 'bg-emerald-500' : 'bg-white/20'}`} />
+                        <span className="text-xs truncate">{camp.title}</span>
+                    </Link>
+                ))}
+            </nav>
+        </div>
     );
 };
 
@@ -217,7 +266,9 @@ const AdminDock = () => {
         { to: '/admin/submissions', icon: Upload, label: 'Review' },
         { to: '/admin/payouts', icon: DollarSign, label: 'Payouts' },
         { to: '/admin/users', icon: Users, label: 'Users' },
+        { to: '/admin/brands', icon: Briefcase, label: 'Brands' },
         { to: '/admin/settings', icon: Settings, label: 'Setup' },
+        { onClick: async () => { await supabase.auth.signOut(); useAuthStore.getState().logout(); }, icon: LogOut, label: 'Logout', color: 'text-red-500' },
         { to: '/clippers/dashboard', icon: UserIcon, label: 'Exit Admin', color: 'text-emerald-400' }
     ];
 
@@ -233,10 +284,22 @@ const AdminDock = () => {
                     const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
                     const iconSize = isMobile ? 18 : 22;
 
+                    if (item.onClick) {
+                        return (
+                            <button
+                                key={item.label}
+                                onClick={item.onClick}
+                                className="relative w-11 sm:w-16 h-11 sm:h-14 flex items-center justify-center transition-all duration-500 rounded-full group text-white/60 hover:text-white hover:bg-white/[0.05]"
+                            >
+                                <item.icon size={iconSize} className={`${item.color || ''} transition-transform duration-500 group-hover:scale-110`} />
+                            </button>
+                        );
+                    }
+
                     return (
                         <Link
                             key={item.to}
-                            to={item.to}
+                            to={item.to!}
                             className={`relative w-11 sm:w-16 h-11 sm:h-14 flex items-center justify-center transition-all duration-500 rounded-full group ${isActive ? 'bg-white/15 text-white' : 'text-white/60 hover:text-white hover:bg-white/[0.05]'}`}
                         >
                             <item.icon size={iconSize} className={`${item.color || ''} ${isActive ? 'scale-110 drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]' : 'scale-100'} transition-transform duration-500`} />
@@ -385,8 +448,9 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
         // Check for onboarding
         if (user && !loading && !isSyncing) {
             const isAdmin = user.role === 'admin';
-            // Only show to non-admins who haven't completed onboarding in DB
-            if (!isAdmin && !user.onboardingCompleted) {
+            const isBrand = user.role === 'brand';
+            // Only show to clippers (non-admins, non-brands) who haven't completed onboarding
+            if (!isAdmin && !isBrand && !user.onboardingCompleted) {
                 setShowOnboarding(true);
             }
         }
@@ -444,24 +508,27 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
         );
     }
 
-    if (isAuthenticated && location.pathname === '/login') {
+    if (isAuthenticated && (location.pathname === '/login' || location.pathname === '/brands')) {
+        if (user?.role === 'brand') {
+            return <Navigate to="/brands/dashboard" replace />;
+        }
+        if (user?.role === 'admin') {
+            return <Navigate to="/admin" replace />;
+        }
         return <Navigate to="/clippers/dashboard" replace />;
     }
 
-    if (location.pathname === '/brand' || location.pathname === '/brands') {
-        return <BrandUnderConstruction />;
-    }
-
-    if (!isAuthenticated && location.pathname !== '/login') {
+    if (!isAuthenticated && location.pathname !== '/login' && location.pathname !== '/brands') {
         return <Navigate to="/login" replace />;
     }
 
-    // Show login page without sidebar layout
-    if (location.pathname === '/login') {
+    // Show login pages without sidebar layout
+    if (location.pathname === '/login' || location.pathname === '/brands') {
         return (
             <AnimatePresence mode="wait">
                 <Routes location={location} key={location.pathname}>
                     <Route path="/login" element={<Login />} />
+                    <Route path="/brands" element={<BrandLogin />} />
                 </Routes>
             </AnimatePresence>
         );
@@ -525,7 +592,7 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                                     <Route path="/clippers/campaigns" element={<CampaignsFeed />} />
                                     <Route path="/clippers/campaigns/joined" element={<JoinedCampaigns />} />
                                     <Route path="/clippers/campaigns/:id" element={<CampaignDetails />} />
-                                    
+
                                     {/* Safety Redirects for missing /clippers prefix */}
                                     <Route path="/campaigns" element={<Navigate to="/clippers/campaigns" replace />} />
                                     <Route path="/campaigns/joined" element={<Navigate to="/clippers/campaigns/joined" replace />} />
@@ -543,7 +610,11 @@ const Layout = ({ onReportBug }: { onReportBug: () => void }) => {
                                     <Route path="/admin/payouts" element={<AdminRoute><AdminPayouts /></AdminRoute>} />
                                     <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
                                     <Route path="/admin/users/:id" element={<AdminRoute><AdminUserDetails /></AdminRoute>} />
+                                    <Route path="/admin/brands" element={<AdminRoute><AdminBrands /></AdminRoute>} />
                                     <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+
+                                    {/* Brand Routes */}
+                                    <Route path="/brands/dashboard" element={<BrandDashboard />} />
 
                                     {/* Fallback */}
                                     <Route path="*" element={<NotFound />} />

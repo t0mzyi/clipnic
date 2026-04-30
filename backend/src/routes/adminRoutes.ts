@@ -12,6 +12,7 @@ router.get('/users', AdminController.getAllUsers);
 router.get('/users/:id', AdminController.getUser);
 router.patch('/users/:id/block', AdminController.toggleBlock);
 router.patch('/users/:id/role', AdminController.updateUserRole);
+router.patch('/users/:id/password', AdminController.updateUserPassword);
 router.delete('/users/:id', AdminController.deleteUser);
 router.get('/users/:id/earnings', AdminController.getUserEarnings);
 
@@ -26,5 +27,11 @@ router.post('/payouts', AdminController.processPayout);
 
 // Global settings
 router.patch('/settings', SettingsController.updateSetting);
+
+// Brands
+router.post('/brands', AdminController.createBrand);
+router.get('/brands/:id/campaigns', AdminController.getBrandCampaigns);
+router.post('/brands/:id/campaigns', AdminController.assignCampaignToBrand);
+router.delete('/brands/:id/campaigns/:campaignId', AdminController.unassignCampaignFromBrand);
 
 export default router;

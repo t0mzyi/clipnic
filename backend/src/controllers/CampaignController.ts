@@ -144,6 +144,19 @@ export class CampaignController {
       }
   }
 
+  static async getBrandCampaigns(req: Request, res: Response, next: NextFunction) {
+      try {
+          const brandId = (req as any).user.id;
+          console.log(`[CampaignController] Brand ${brandId} fetching assigned campaigns`);
+          const campaigns = await CampaignService.getBrandAssignedCampaigns(brandId);
+          console.log(`[CampaignController] Successfully fetched ${campaigns.length} assigned campaigns for brand ${brandId}`);
+          res.json({ success: true, data: campaigns });
+      } catch (error) {
+          console.error(`[CampaignController] Error fetching campaigns for brand ${ (req as any).user?.id }:`, error);
+          next(error);
+      }
+  }
+
   static async leaveCampaign(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;

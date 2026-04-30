@@ -159,6 +159,19 @@ export class CampaignService {
           }));
   }
 
+  static async getBrandAssignedCampaigns(brandId: string) {
+      const { data, error } = await supabase
+          .from('brand_campaigns')
+          .select('campaigns:campaign_id(*)')
+          .eq('brand_id', brandId);
+      
+      if (error) {
+          console.error('[CampaignService] Error fetching brand campaigns:', error);
+          throw error;
+      }
+      return (data || []).map((p: any) => p.campaigns).filter(Boolean);
+  }
+
   static async joinCampaign(userId: string, campaignId: string, linkedHandle?: string): Promise<any> {
       const campaign = await this.getById(campaignId);
       if (!campaign) throw new Error("Campaign not found.");

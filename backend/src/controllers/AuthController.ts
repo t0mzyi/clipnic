@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
 import { SettingsService } from '../services/SettingsService';
 import { supabase } from '../config/supabase';
-import { getBaseUrl } from '../utils/url';
+import { getBaseUrl, getFrontendUrl } from '../utils/url';
 
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
@@ -79,7 +79,7 @@ export class AuthController {
   static async googleCallback(req: Request, res: Response, next: NextFunction) {
     try {
       const { code, state } = req.query;
-      const frontendUrl = process.env.FRONTEND_URL || 'https://dash.clipnic.com';
+      const frontendUrl = getFrontendUrl();
       const clientId = process.env.GOOGLE_CLIENT_ID;
       const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
       const baseUrl = getBaseUrl();
@@ -162,7 +162,7 @@ export class AuthController {
       return res.redirect(`${frontendUrl}/login?token=${token}`);
     } catch (error) {
       console.error('[GoogleLoginCallback] Error:', error);
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const frontendUrl = getFrontendUrl();
       return res.redirect(`${frontendUrl}/login?error=server_error`);
     }
   }
@@ -195,7 +195,7 @@ export class AuthController {
   static async discordCallback(req: Request, res: Response, next: NextFunction) {
     try {
       const { code, state } = req.query;
-      const frontendUrl = process.env.FRONTEND_URL || 'https://dash.clipnic.com';
+      const frontendUrl = getFrontendUrl();
       const clientId = process.env.DISCORD_CLIENT_ID;
       const clientSecret = process.env.DISCORD_CLIENT_SECRET;
       const baseUrl = getBaseUrl();
@@ -307,8 +307,60 @@ export class AuthController {
       return res.redirect(`${frontendUrl}/login?token=${token}`);
     } catch (error) {
       console.error('[DiscordLoginCallback] Error:', error);
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const frontendUrl = getFrontendUrl();
       return res.redirect(`${frontendUrl}/login?error=server_error`);
+    }
+  }
+
+  /**
+   * Handles Brand Login using email and password
+   */
+  static async brandLogin(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ success: false, error: 'Email and password are required' });
+      }
+
+      // Supabase signInWithPassword
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        return res.status(401).json({ success: false, error: 'Invalid credentials' });
+      }
+
+      if (!data.user) {
+        return res.status(401).json({ success: false, error: 'User not found' });
+      }
+
+      // Sync user and retrieve public user profile
+      const user = await AuthService.syncUser(
+        data.user.id, 
+        data.user.email!, 
+        data.user.user_metadata?.full_name || 'Brand User', 
+        undefined, 
+        data.user.user_metadata?.role || 'brand'
+      );
+      
+      if (user.role !== 'brand' && user.role !== 'admin') {
+        return res.status(403).json({ success: false, error: 'Access denied: not a brand account' });
+      }
+
+      const token = jwt.sign({
+        sub: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role
+      }, JWT_SECRET, { expiresIn: '7d' });
+
+      res.json({ success: true, token, user });
+    } catch (error) {
+      console.error('[BrandLogin] Error:', error);
+      next(error);
     }
   }
 }

@@ -7,6 +7,7 @@ const router = Router();
 // User routes
 router.get('/', authenticate, CampaignController.getAll);
 router.get('/joined', authenticate, CampaignController.getJoined);
+router.get('/brand-assigned', authenticate, requireRole('brand'), CampaignController.getBrandCampaigns);
 router.get('/participations', authenticate, CampaignController.getParticipations);
 router.get('/:id', authenticate, CampaignController.getById);
 router.post('/:id/join', authenticate, CampaignController.joinCampaign);

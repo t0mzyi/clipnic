@@ -566,25 +566,36 @@ export class SubmissionService {
     return Object.values(aggregated).sort((a: any, b: any) => b.views - a.views);
   }
 
-  static async adminGetAllSubmissions(page: number = 1, limit: number = 20) {
+  static async adminGetAllSubmissions(page: number = 1, limit: number = 20, campaignId?: string) {
     const offset = (page - 1) * limit;
     
-    const { data, count, error } = await supabase
+    let query = supabase
       .from('submissions')
       .select(`
          *,
-         campaigns (id, title, cpm_rate),
-         users (id, name, avatar_url, email, instagram_handle, youtube_handle, youtube_channels)
-      `, { count: 'exact' })
+         campaign:campaign_id (id, title, cpm_rate),
+         user:user_id (id, name, avatar_url, email, instagram_handle, youtube_handle, youtube_channels)
+      `, { count: 'exact' });
+
+    if (campaignId) {
+        query = query.eq('campaign_id', campaignId);
+    }
+      
+    const { data, count, error } = await query
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
       
-    if (error) throw error;
+    if (error) {
+        console.error('[SubmissionService] adminGetAllSubmissions error:', error);
+        throw error;
+    }
 
     // Flatten joined objects and handle null names
     const flattened = (data || []).map(sub => {
-        const user = Array.isArray(sub.users) ? sub.users[0] : sub.users;
-        const campaign = Array.isArray(sub.campaigns) ? sub.campaigns[0] : sub.campaigns;
+        // @ts-ignore
+        const user = Array.isArray(sub.user) ? sub.user[0] : sub.user;
+        // @ts-ignore
+        const campaign = Array.isArray(sub.campaign) ? sub.campaign[0] : sub.campaign;
         
         const rawName = user?.name;
         const displayName = (rawName === null || rawName === undefined || String(rawName).toLowerCase() === 'null') 

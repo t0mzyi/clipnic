@@ -18,3 +18,15 @@ export function getBaseUrl() {
 
     return 'http://localhost:5000';
 }
+
+export function getFrontendUrl() {
+    if (process.env.FRONTEND_URL) {
+        return process.env.FRONTEND_URL.replace(/\/$/, '');
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+        return 'https://dash.clipnic.com';
+    }
+
+    return 'http://localhost:5173';
+}

@@ -397,4 +397,125 @@ export class AdminController {
       next(error);
     }
   }
+
+  static async updateUserPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { password } = req.body;
+
+      if (!password || password.length < 6) {
+        return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' });
+      }
+
+      const { error } = await supabase.auth.admin.updateUserById(id, { password });
+
+      if (error) throw error;
+      res.json({ success: true, message: 'Password updated successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /admin/brands
+   * Create a new brand user (Auth + public.users)
+   */
+  static async createBrand(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email, password, name } = req.body;
+      
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: name,
+          role: 'brand'
+        }
+      });
+
+      if (createError) throw createError;
+
+      const { data: dbUser, error: dbError } = await supabase.from('users').upsert({
+        id: newUser.user.id,
+        email,
+        name,
+        role: 'brand',
+        updated_at: new Date().toISOString()
+      }).select().single();
+
+      if (dbError) throw dbError;
+
+      res.json({ success: true, data: dbUser });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /admin/brands/:id/campaigns
+   * Assign a campaign to a brand
+   */
+  static async assignCampaignToBrand(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { campaignIds, campaignId } = req.body;
+      
+      const idsToAssign = Array.isArray(campaignIds) ? campaignIds : (campaignId ? [campaignId] : []);
+      
+      if (idsToAssign.length === 0) {
+          return res.status(400).json({ success: false, error: 'No campaign IDs provided' });
+      }
+
+      const rows = idsToAssign.map(cId => ({
+        brand_id: id,
+        campaign_id: cId
+      }));
+
+      const { data, error } = await supabase.from('brand_campaigns').upsert(rows, { onConflict: 'brand_id, campaign_id' });
+
+      if (error) throw error;
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /admin/brands/:id/campaigns
+   * Fetch all campaigns assigned to a brand
+   */
+  static async getBrandCampaigns(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { data, error } = await supabase
+        .from('brand_campaigns')
+        .select('campaign_id, campaigns(*)')
+        .eq('brand_id', id);
+
+      if (error) throw error;
+      res.json({ success: true, data: (data || []).map(d => d.campaigns) });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * DELETE /admin/brands/:id/campaigns/:campaignId
+   */
+  static async unassignCampaignFromBrand(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id, campaignId } = req.params;
+      
+      const { error } = await supabase.from('brand_campaigns').delete().match({
+        brand_id: id,
+        campaign_id: campaignId
+      });
+
+      if (error) throw error;
+      res.json({ success: true, message: 'Campaign unassigned' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
