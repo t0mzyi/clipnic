@@ -220,6 +220,7 @@ const CampaignDetailsView = ({ campaign, token }: { campaign: any, token: string
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-[10px] uppercase tracking-wider text-white/40 border-b border-white/10 bg-white/[0.01]">
+                                    <th className="px-6 py-4 font-semibold w-16">Preview</th>
                                     <th className="px-6 py-4 font-semibold">Video URL</th>
                                     <th className="px-6 py-4 font-semibold">Network</th>
                                     <th className="px-6 py-4 font-semibold text-right">Reach</th>
@@ -227,32 +228,47 @@ const CampaignDetailsView = ({ campaign, token }: { campaign: any, token: string
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {submissions.map((sub: any) => (
-                                    <tr key={sub.id} className="hover:bg-white/[0.01] transition-colors">
-                                        <td className="px-6 py-4 max-w-[300px]">
-                                            <a href={sub.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors">
-                                                <span className="truncate text-xs">{sub.url}</span>
-                                                <ExternalLink size={12} className="opacity-40" />
-                                            </a>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-xs text-white/50">{sub.platform}</span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right font-medium text-white/90 text-sm">
-                                            {sub.views.toLocaleString()}
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className={`px-2 py-1 rounded text-[10px] font-medium ${
-                                                sub.status === 'Verified' ? 'text-emerald-400 bg-emerald-400/10' :
-                                                sub.status === 'Rejected' ? 'text-red-400 bg-red-400/10' :
-                                                sub.status === 'Paid' ? 'text-blue-400 bg-blue-400/10' :
-                                                'text-white/40 bg-white/10'
-                                            }`}>
-                                                {sub.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {submissions.map((sub: any) => {
+                                    const thumbnail = getThumbnailUrl(sub.url, sub.platform);
+                                    return (
+                                        <tr key={sub.id} className="hover:bg-white/[0.01] transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="w-12 h-16 rounded-lg bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center relative group/thumb">
+                                                    {thumbnail ? (
+                                                        <img src={thumbnail} alt="Preview" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <Play size={16} className="text-white/10" />
+                                                    )}
+                                                    <a href={sub.url} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center">
+                                                        <ExternalLink size={14} className="text-white" />
+                                                    </a>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 max-w-[300px]">
+                                                <a href={sub.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors">
+                                                    <span className="truncate text-xs">{sub.url}</span>
+                                                    <ExternalLink size={12} className="opacity-40" />
+                                                </a>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className="text-xs text-white/50">{sub.platform}</span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right font-medium text-white/90 text-sm">
+                                                {sub.views.toLocaleString()}
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={`px-2 py-1 rounded text-[10px] font-medium ${
+                                                    sub.status === 'Verified' ? 'text-emerald-400 bg-emerald-400/10' :
+                                                    sub.status === 'Rejected' ? 'text-red-400 bg-red-400/10' :
+                                                    sub.status === 'Paid' ? 'text-blue-400 bg-blue-400/10' :
+                                                    'text-white/40 bg-white/10'
+                                                }`}>
+                                                    {sub.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                                 {submissions.length === 0 && (
                                     <tr>
                                         <td colSpan={4} className="px-6 py-16 text-center text-white/20 text-sm italic">No submissions found.</td>
@@ -278,3 +294,12 @@ const MetricBox = ({ label, value, icon }: any) => (
         <p className="text-2xl font-bold text-white">{value}</p>
     </div>
 );
+
+const getThumbnailUrl = (url: string, platform: string) => {
+    if (platform === 'youtube') {
+        const match = url.match(/(?:shorts\/|v=|\/v\/|youtu\.be\/|embed\/)([^"&?\/\s]{11})/);
+        const id = match ? match[1] : null;
+        return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null;
+    }
+    return null;
+};
